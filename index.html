@@ -15,12 +15,12 @@
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         input[readonly], input:disabled { background: #f1f3f4; border: 1px dashed #ccc; color: #666; cursor: not-allowed; }
         .hidden { display: none; }
-        .status-memoria { font-size: 12px; color: #d32f2f; font-weight: bold; margin-top: 5px; display: none; background: #ffebee; padding: 5px; border-radius: 4px; text-align: center; }
+        .status-memoria { font-size: 12px; font-weight: bold; margin-top: 5px; display: none; background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 4px; text-align: center; border: 1px solid #c8e6c9; }
         
-        /* Botão Salvar (Azul) */
-        .btn-save { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        /* Botão Enviar (Verde) */
-        .btn-send { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        /* BOTÃO AZUL (INÍCIO) */
+        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+        /* BOTÃO VERDE (FIM/WHATSAPP) */
+        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
         
         button:active { transform: scale(0.98); opacity: 0.9; }
     </style>
@@ -44,8 +44,26 @@
 
         <div id="msgStatus" class="status-memoria"></div>
 
-        <label>DATA</label>
+        <label>TAG DO VEÍCULO</label>
+        <select id="tag" onchange="completar()" required>
+            <option value="">SELECIONE A TAG</option>
+            <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50" data-troca="data">TJUR 04</option>
+            <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02" data-troca="km">TJUR 06</option>
+            <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75" data-troca="data">TJUR 07</option>
+            <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48" data-troca="km">TJUR 08</option>
+            <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04" data-troca="data">TJUR 09</option>
+            <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37" data-troca="km">TJUR 10</option>
+            <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38" data-troca="km">TJUR 13</option>
+        </select>
+
+        <label>DATA DO RELATÓRIO</label>
         <input type="date" id="data" required>
+
+        <label>VEÍCULO</label>
+        <input type="text" id="veiculo" readonly placeholder="Preenchido pela TAG">
+
+        <label>PLACA</label>
+        <input type="text" id="placa" readonly placeholder="Preenchido pela TAG">
 
         <label>CONDUTOR</label>
         <select id="condutor" required>
@@ -59,24 +77,6 @@
             <option>MIRIELLY</option>
             <option>RAIMUNDO WALTER</option>
         </select>
-
-        <label>TAG DO VEÍCULO</label>
-        <select id="tag" onchange="completar()" required>
-            <option value="">SELECIONE A TAG</option>
-            <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50" data-troca="data">TJUR 04</option>
-            <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02" data-troca="km">TJUR 06</option>
-            <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75" data-troca="data">TJUR 07</option>
-            <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48" data-troca="km">TJUR 08</option>
-            <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04" data-troca="data">TJUR 09</option>
-            <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37" data-troca="km">TJUR 10</option>
-            <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38" data-troca="km">TJUR 13</option>
-        </select>
-
-        <label>VEÍCULO</label>
-        <input type="text" id="veiculo" readonly>
-
-        <label>PLACA</label>
-        <input type="text" id="placa" readonly>
 
         <label>COR DO SELO</label>
         <select id="corSelo" required>
@@ -116,8 +116,16 @@
 </div>
 
 <script>
+    function setarDataHoje() {
+        const hoje = new Date();
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const ano = hoje.getFullYear();
+        document.getElementById('data').value = `${ano}-${mes}-${dia}`;
+    }
+
     window.onload = function() {
-        document.getElementById('data').valueAsDate = new Date();
+        setarDataHoje();
         gerenciarInterface();
     };
 
@@ -137,12 +145,12 @@
 
         if (tipo === "INICIO") {
             btn.innerText = "SALVAR INÍCIO DE TRAJETO";
-            btn.className = "btn-save";
+            btn.className = "btn-azul"; // Define cor Azul
             campoFim.className = "hidden";
             msg.style.display = "none";
         } else {
             btn.innerText = "ENVIAR CHECKLIST COMPLETO";
-            btn.className = "btn-send";
+            btn.className = "btn-verde"; // Define cor Verde
             campoFim.className = "";
             recuperarDados();
         }
@@ -153,6 +161,7 @@
         var sel = s.options[s.selectedIndex];
         document.getElementById("veiculo").value = sel.getAttribute("data-v") || "";
         document.getElementById("placa").value = sel.getAttribute("data-p") || "";
+        setarDataHoje();
         
         var tipoTroca = sel.getAttribute("data-troca");
         document.getElementById("divTrocaData").classList.toggle("hidden", tipoTroca !== "data");
@@ -163,11 +172,7 @@
 
     function processar() {
         var tipo = document.getElementById("tipoLancamento").value;
-        if (tipo === "INICIO") {
-            salvarDados();
-        } else {
-            enviarWhatsApp();
-        }
+        if (tipo === "INICIO") salvarDados(); else enviarWhatsApp();
     }
 
     function salvarDados() {
@@ -176,7 +181,6 @@
             alert("Preencha a TAG e o KM Inicial para salvar.");
             return;
         }
-
         var dados = {
             condutor: document.getElementById("condutor").value,
             kmi: document.getElementById("kmi").value,
@@ -184,9 +188,8 @@
             oleo: document.getElementById("tipoOleo").value,
             obs: document.getElementById("obs").value
         };
-
         localStorage.setItem("tjur_temp_" + tag, JSON.stringify(dados));
-        alert("INÍCIO DE TRAJETO SALVO NO CELULAR!\n\nQuando terminar o serviço, mude para 'FIM DE TRAJETO' e envie para o WhatsApp.");
+        alert("✓ INÍCIO DE TRAJETO SALVO!\n\nOs dados ficarão guardados no seu celular até você finalizar o trajeto.");
     }
 
     function recuperarDados() {
@@ -201,16 +204,8 @@
             document.getElementById("corSelo").value = dados.cor;
             document.getElementById("tipoOleo").value = dados.oleo;
             document.getElementById("obs").value = dados.obs;
-            
             msg.innerText = "✓ DADOS DO INÍCIO RECUPERADOS";
             msg.style.display = "block";
-            msg.style.color = "#2e7d32";
-            msg.style.background = "#e8f5e9";
-        } else if (tag !== "") {
-            msg.innerText = "⚠ NENHUM INÍCIO SALVO PARA ESTA TAG";
-            msg.style.display = "block";
-            msg.style.color = "#d32f2f";
-            msg.style.background = "#ffebee";
         }
     }
 
@@ -219,7 +214,6 @@
             alert("Preencha o KM FINAL para enviar.");
             return;
         }
-
         var tag = document.getElementById("tag").value;
         var d = document.getElementById('data').value.split('-').reverse().join('/');
         var c = document.getElementById('condutor').value;
@@ -230,10 +224,9 @@
         var kf = document.getElementById('kmf').value;
         var oleo = document.getElementById('tipoOleo').value || "NÃO INFORMADO";
         var obs = document.getElementById('obs').value || "SEM OBSERVAÇÕES";
-
-        var proxTroca = "NÃO INFORMADO";
         var tipoTroca = document.getElementById("tag").options[document.getElementById("tag").selectedIndex].getAttribute("data-troca");
         
+        var proxTroca = "NÃO INFORMADO";
         if(tipoTroca === "data") {
             var dt = document.getElementById('dataTroca').value;
             proxTroca = dt ? dt.split('-').reverse().join('/') : "NÃO INFORMADO";
@@ -241,16 +234,11 @@
             proxTroca = document.getElementById('kmTroca').value || "NÃO INFORMADO";
         }
 
-        var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A` +
-                    `==========================%0A%0A%0A` + 
-                    `*DATA:* ${d}%0A__________________________%0A%0A` +
-                    `*CONDUTOR:* ${c}%0A__________________________%0A%0A` +
-                    `*TAG:* ${tag}%0A__________________________%0A%0A` +
-                    `*VEÍCULO:* ${v}%0A__________________________%0A%0A` +
-                    `*PLACA:* ${p}%0A__________________________%0A%0A` +
-                    `*COR DO SELO:* ${selo}%0A__________________________%0A%0A` +
-                    `*KM INICIAL:* ${ki}%0A__________________________%0A%0A` +
-                    `*KM FINAL:* ${kf}%0A__________________________%0A%0A` +
-                    `*ÓLEO:* ${oleo}%0A__________________________%0A%0A` +
-                    `*PRÓX. TROCA (${tipoTroca.toUpperCase()}):* ${proxTroca}%0A__________________________%0A%0A` +
-                    `*OBSER
+        var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A==========================%0A%0A%0A*DATA:* ${d}%0A__________________________%0A%0A*CONDUTOR:* ${c}%0A__________________________%0A%0A*TAG:* ${tag}%0A__________________________%0A%0A*VEÍCULO:* ${v}%0A__________________________%0A%0A*PLACA:* ${p}%0A__________________________%0A%0A*COR DO SELO:* ${selo}%0A__________________________%0A%0A*KM INICIAL:* ${ki}%0A__________________________%0A%0A*KM FINAL:* ${kf}%0A__________________________%0A%0A*ÓLEO:* ${oleo}%0A__________________________%0A%0A*PRÓX. TROCA (${tipoTroca.toUpperCase()}):* ${proxTroca}%0A__________________________%0A%0A*OBSERVAÇÕES:* ${obs}`;
+
+        localStorage.removeItem("tjur_temp_" + tag);
+        window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto.replace(/%0A/g, '\n')).replace(/%250A/g, '%0A');
+    }
+</script>
+</body>
+</html>
