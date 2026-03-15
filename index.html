@@ -13,6 +13,7 @@
         h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
+        .readonly-field { background: #eeeeee; color: #777; font-weight: bold; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .hidden { display: none; }
@@ -31,16 +32,19 @@
     <div id="containerForm">
         <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
         <form id="formChecklist">
+            <label>DATA ATUAL</label>
+            <input type="text" id="dataAuto" class="readonly-field" readonly>
+
             <label>TAG DO VEÍCULO</label>
             <select id="tag" onchange="atualizarInterfacePorTag()">
                 <option value="">SELECIONE A TAG</option>
-                <option value="TJUR 04" data-veiculo="SKY MUNCK" data-placa="QFA1I50">TJUR 04</option>
-                <option value="TJUR 06" data-veiculo="SAVEIRO FURGÃO" data-placa="QUJ3E02">TJUR 06</option>
-                <option value="TJUR 07" data-veiculo="SKY MUNCK" data-placa="RWR3C75">TJUR 07</option>
-                <option value="TJUR 08" data-veiculo="CAMINHONETE HILUX" data-placa="QVE5H48">TJUR 08</option>
-                <option value="TJUR 09" data-veiculo="SKY MUNCK" data-placa="RXC6J04">TJUR 09</option>
-                <option value="TJUR 10" data-veiculo="CAMINHONETE" data-placa="PHU1I37">TJUR 10</option>
-                <option value="TJUR 13" data-veiculo="CAMINHONETE HILUX" data-placa="QVD4I38">TJUR 13</option>
+                <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
+                <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
+                <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
+                <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
+                <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
+                <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
+                <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
             </select>
 
             <label>IDENTIFICAÇÃO</label>
@@ -98,6 +102,10 @@
 </div>
 
 <script>
+    // Preenche a data automática ao carregar
+    const hoje = new Date();
+    document.getElementById('dataAuto').value = hoje.toLocaleDateString('pt-BR');
+
     function mascaraKM(input) {
         let value = input.value.replace(/\D/g, "");
         if (value.length > 0) {
@@ -111,7 +119,7 @@
         const option = select.options[select.selectedIndex];
         if(!option || !select.value) return;
 
-        const veiculo = option.getAttribute("data-veiculo");
+        const veiculo = option.getAttribute("data-v");
         const labelOleo = document.getElementById("labelTrocaOleo");
         const inputKM = document.getElementById("proximaTrocaKM");
         const inputData = document.getElementById("proximaTrocaData");
@@ -130,19 +138,18 @@
     function iniciarTrajeto() {
         const selectTag = document.getElementById("tag");
         const option = selectTag.options[selectTag.selectedIndex];
-        
         const kmi = document.getElementById("kmi").value;
         const valSelo = document.getElementById("validadeSelo").value;
 
         if(!selectTag.value || !kmi || !valSelo) { 
-            alert("Preencha TAG, KM e Validade do Selo!"); 
+            alert("Preencha todos os campos obrigatórios!"); 
             return; 
         }
 
         const dados = {
             tag: selectTag.value,
-            veiculo: option.getAttribute("data-veiculo"),
-            placa: option.getAttribute("data-placa"),
+            veiculo: option.getAttribute("data-v"),
+            placa: option.getAttribute("data-p"),
             num: document.getElementById("numCondutor").value,
             nome: document.getElementById("nomeCondutor").value,
             kmi: kmi,
@@ -152,22 +159,21 @@
             oleoData: document.getElementById("proximaTrocaData").value,
             obs: document.getElementById("obs").value,
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            data: new Date().toLocaleDateString('pt-BR')
+            data: document.getElementById('dataAuto').value
         };
 
-        localStorage.setItem("checklist_telejur_ativa", JSON.stringify(dados));
+        localStorage.setItem("checklist_ativa", JSON.stringify(dados));
         location.reload();
     }
 
     function irParaFinalizar() {
-        const salvo = JSON.parse(localStorage.getItem("checklist_telejur_ativa"));
+        const salvo = JSON.parse(localStorage.getItem("checklist_ativa"));
         if(!salvo) return;
 
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
         
-        // Repreenche o formulário com o que estava salvo
         document.getElementById("tag").value = salvo.tag;
         atualizarInterfacePorTag();
         document.getElementById("numCondutor").value = salvo.num;
@@ -183,18 +189,12 @@
     }
 
     function enviarWhatsApp() {
-        const salvo = JSON.parse(localStorage.getItem("checklist_telejur_ativa"));
+        const salvo = JSON.parse(localStorage.getItem("checklist_ativa"));
         const kmf = document.getElementById("kmf").value;
-        
         if(!kmf) { alert("Informe o KM Final!"); return; }
         
-        const vKmi = parseFloat(salvo.kmi);
-        const vKmf = parseFloat(kmf);
-        if(vKmf < vKmi) { alert("KM Final não pode ser menor que o Inicial!"); return; }
-
-        const total = (vKmf - vKmi).toFixed(1);
+        const total = (parseFloat(kmf) - parseFloat(salvo.kmi)).toFixed(1);
         
-        // TRATAMENTO ÓLEO E OBS (SEM ABREVIAÇÕES)
         let proxOleo = "NÃO INFORMADO";
         if (salvo.veiculo === "SKY MUNCK") {
             proxOleo = salvo.oleoData ? salvo.oleoData.split('-').reverse().join('/') : "NÃO INFORMADO";
@@ -227,12 +227,12 @@
             `*PRÓX. TROCA ÓLEO:* ${proxOleo}\n` +
             `*OBS:* ${observacaoFinal}`;
 
-        localStorage.removeItem("checklist_telejur_ativa");
+        localStorage.removeItem("checklist_ativa");
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
     }
 
     window.onload = function() {
-        const salvo = localStorage.getItem("checklist_telejur_ativa");
+        const salvo = localStorage.getItem("checklist_ativa");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
