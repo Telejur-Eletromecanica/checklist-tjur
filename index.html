@@ -43,6 +43,7 @@
                 <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
                 <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
                 <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
+                <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
                 <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
                 <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
             </select>
@@ -61,7 +62,11 @@
                 <option>ADRIANO NASCIMENTO</option>
                 <option>FRANCIVALDO COSTA</option>
                 <option>JOELCINEI GUIMARÃES</option>
+                <option>REGINALDO</option>
                 <option>LAFAITE BATISTA</option>
+                <option>FRANCINILDO TEXEIRA</option>
+                <option>MIRIELLY</option>
+                <option>RAIMUNDO WALTER</option>
             </select>
 
             <label>IDENTIFICAÇÃO (ID)</label>
@@ -69,6 +74,13 @@
                 <option value="">SELECIONE</option>
                 <option value="CONDUTOR 1">CONDUTOR 1</option>
                 <option value="CONDUTOR 2">CONDUTOR 2</option>
+                <option value="CONDUTOR 3">CONDUTOR 3</option>
+                <option value="CONDUTOR 4">CONDUTOR 4</option>
+                <option value="CONDUTOR 5">CONDUTOR 5</option>
+                <option value="CONDUTOR 6">CONDUTOR 6</option>
+                <option value="CONDUTOR 7">CONDUTOR 7</option>
+                <option value="CONDUTOR 8">CONDUTOR 8</option>
+                <option value="CONDUTOR 9">CONDUTOR 9</option>
             </select>
 
             <label>KM INICIAL</label>
@@ -166,6 +178,11 @@
     function iniciarTrajeto() {
         const selectTag = document.getElementById("tag");
         const option = selectTag.options[selectTag.selectedIndex];
+        if(!selectTag.value || !document.getElementById("kmi").value) {
+            alert("Preencha os campos obrigatórios!");
+            return;
+        }
+
         const dados = {
             tag: selectTag.value,
             veiculo: option.getAttribute("data-v"),
@@ -174,9 +191,9 @@
             nome: document.getElementById("nomeCondutor").value,
             kmi: document.getElementById("kmi").value,
             selo: document.getElementById("corSelo").value,
-            valSelo: document.getElementById("validadeSelo").value.split('-').reverse().join('/'),
+            valSelo: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
             oleoKM: document.getElementById("proximaTrocaKM").value,
-            oleoData: document.getElementById("proximaTrocaData").value,
+            oleoData: document.getElementById("proximaTrocaData").value ? document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') : "",
             obs: document.getElementById("obs").value,
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             data: dataHojeStr
@@ -203,7 +220,7 @@
         document.getElementById("numCondutor").value = salvo.num;
         document.getElementById("kmi").value = salvo.kmi;
         document.getElementById("corSelo").value = salvo.selo;
-        document.getElementById("validadeSelo").value = salvo.valSelo.split('/').reverse().join('-');
+        document.getElementById("validadeSelo").value = salvo.valSelo !== "---" ? salvo.valSelo.split('/').reverse().join('-') : "";
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
         btn.className = "btn-verde";
@@ -213,15 +230,22 @@
     function enviarWhatsApp() {
         const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
         const kmf = document.getElementById("kmf").value;
-        const total = (parseFloat(kmf) - parseFloat(salvo.kmi)).toFixed(1);
-        let proxOleo = salvo.veiculo === "SKY MUNCK" ? (salvo.oleoData ? salvo.oleoData.split('-').reverse().join('/') : "---") : (salvo.oleoKM ? salvo.oleoKM + " KM" : "---");
+        if(!kmf) { alert("Informe o KM Final!"); return; }
 
-        // MENSAGEM COM FORMATO DE FORMULÁRIO (SUBLINHADOS E QUEBRAS)
+        const horaFim = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // Lógica para Troca de Óleo (Data para Sky Munck, KM para os demais)
+        let infoOleo = salvo.veiculo === "SKY MUNCK" ? (salvo.oleoData || "---") : (salvo.oleoKM ? salvo.oleoKM + " KM" : "---");
+
         const mensagem = 
             `*CHECKLIST VEÍCULOS - TELEJUR*\n` +
-            `==========================\n\n\n` + // Sublinhado duplo + 2 quebras
+            `==========================\n\n\n` + 
             `*DATA:* ${salvo.data}\n` +
-            `--------------------------\n\n` + // Sublinhado simples + 1 quebra
+            `--------------------------\n\n` + 
+            `*HORA INÍCIO:* ${salvo.horaI}\n` +
+            `--------------------------\n\n` +
+            `*HORA FIM:* ${horaFim}\n` +
+            `--------------------------\n\n` +
             `*ID:* ${salvo.num}\n` +
             `--------------------------\n\n` +
             `*CONDUTOR:* ${salvo.nome}\n` +
@@ -236,9 +260,11 @@
             `--------------------------\n\n` +
             `*KM FINAL:* ${kmf}\n` +
             `--------------------------\n\n` +
-            `*TOTAL:* ${total} KM\n` +
+            `*COR DO SELO:* ${salvo.selo || "---"}\n` +
             `--------------------------\n\n` +
-            `*PRÓX. ÓLEO:* ${proxOleo}\n` +
+            `*VALIDADE DO SELO:* ${salvo.valSelo}\n` +
+            `--------------------------\n\n` +
+            `*PRÓX. TROCA DE ÓLEO:* ${infoOleo}\n` +
             `--------------------------\n\n` +
             `*OBS:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}\n` +
             `--------------------------`;
@@ -253,7 +279,7 @@
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}`;
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
         }
     };
 </script>
