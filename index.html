@@ -7,18 +7,32 @@
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
         .header-text { text-align: center; margin-bottom: 20px; }
         .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
+        
         h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
+        
+        /* LINHA DE SEPARAÇÃO EM CADA CAMPO */
+        .campo-grupo { 
+            border-bottom: 1px solid #ddd; 
+            padding-bottom: 10px; 
+            margin-bottom: 5px; 
+        }
+
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
+        
         .readonly-field { background: #f0f0f0; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
+        
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-azul:disabled { background: #9da3d1; cursor: not-allowed; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        
         .hidden { display: none; }
         .alerta-erro { background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; border: 1px solid #ef9a9a; display: none; text-align: center; line-height: 1.4; }
+        
         #telaEspera { text-align: center; padding: 20px; display: none; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
     </style>
@@ -34,71 +48,92 @@
     <div id="containerForm">
         <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
         <form id="formChecklist">
-            <label>DATA DO CHECKLIST</label>
-            <input type="text" id="dataAuto" class="readonly-field" readonly>
+            
+            <div class="campo-grupo">
+                <label>DATA DO CHECKLIST</label>
+                <input type="text" id="dataAuto" class="readonly-field" readonly>
+            </div>
 
-            <label>TAG DO VEÍCULO</label>
-            <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();">
-                <option value="">SELECIONE A TAG</option>
-                <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
-                <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
-                <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
-                <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
-                <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
-                <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
-                <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
-            </select>
+            <div class="campo-grupo">
+                <label>TAG DO VEÍCULO</label>
+                <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();">
+                    <option value="">SELECIONE A TAG</option>
+                    <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
+                    <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
+                    <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
+                    <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
+                    <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
+                    <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
+                    <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
+                </select>
+            </div>
 
-            <label>VEÍCULO</label>
-            <input type="text" id="displayVeiculo" class="readonly-field" readonly placeholder="---">
+            <div class="campo-grupo">
+                <label>VEÍCULO</label>
+                <input type="text" id="displayVeiculo" class="readonly-field" readonly placeholder="Aguardando Tag...">
+            </div>
 
-            <label>PLACA</label>
-            <input type="text" id="displayPlaca" class="readonly-field" readonly placeholder="---">
+            <div class="campo-grupo">
+                <label>PLACA</label>
+                <input type="text" id="displayPlaca" class="readonly-field" readonly placeholder="---">
+            </div>
 
             <div id="msgErroVinc" class="alerta-erro"></div>
 
-            <label>NOME DO CONDUTOR</label>
-            <select id="nomeCondutor" onchange="validarVinculoFixo()">
-                <option value="">SELECIONE</option>
-                <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-                <option>JOELCINEI GUIMARÃES</option><option>REGINALDO</option>
-                <option>LAFAITE BATISTA</option><option>FRANCINILDO TEXEIRA</option>
-                <option>MIRIELLY</option><option>RAIMUNDO WALTER</option>
-            </select>
+            <div class="campo-grupo">
+                <label>NOME DO CONDUTOR</label>
+                <select id="nomeCondutor" onchange="validarVinculoFixo()">
+                    <option value="">SELECIONE</option>
+                    <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
+                    <option>JOELCINEI GUIMARÃES</option><option>REGINALDO</option>
+                    <option>LAFAITE BATISTA</option><option>FRANCINILDO TEXEIRA</option>
+                    <option>MIRIELLY</option><option>RAIMUNDO WALTER</option>
+                </select>
+            </div>
 
-            <label>IDENTIFICAÇÃO (ID)</label>
-            <select id="numCondutor" onchange="validarVinculoFixo()">
-                <option value="">SELECIONE</option>
-                <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
-                <option value="CONDUTOR 3">CONDUTOR 3</option><option value="CONDUTOR 4">CONDUTOR 4</option>
-                <option value="CONDUTOR 5">CONDUTOR 5</option><option value="CONDUTOR 6">CONDUTOR 6</option>
-            </select>
+            <div class="campo-grupo">
+                <label>IDENTIFICAÇÃO (ID)</label>
+                <select id="numCondutor" onchange="validarVinculoFixo()">
+                    <option value="">SELECIONE</option>
+                    <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
+                    <option value="CONDUTOR 3">CONDUTOR 3</option><option value="CONDUTOR 4">CONDUTOR 4</option>
+                    <option value="CONDUTOR 5">CONDUTOR 5</option><option value="CONDUTOR 6">CONDUTOR 6</option>
+                </select>
+            </div>
 
-            <label>KM INICIAL</label>
-            <input type="text" id="kmi" inputmode="numeric" oninput="mascaraKM(this)">
+            <div class="campo-grupo">
+                <label>KM INICIAL</label>
+                <input type="text" id="kmi" inputmode="numeric" oninput="mascaraKM(this)">
+            </div>
 
-            <label>COR DO SELO</label>
-            <select id="corSelo">
-                <option value="">SELECIONE</option>
-                <option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
-            </select>
+            <div class="campo-grupo">
+                <label>COR DO SELO</label>
+                <select id="corSelo">
+                    <option value="">SELECIONE</option>
+                    <option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
+                </select>
+            </div>
 
-            <label>VALIDADE DO SELO</label>
-            <input type="date" id="validadeSelo">
+            <div class="campo-grupo">
+                <label>VALIDADE DO SELO</label>
+                <input type="date" id="validadeSelo">
+            </div>
 
-            <div id="campoFim" class="hidden">
+            <div id="campoFim" class="hidden campo-grupo">
                 <label>KM FINAL</label>
                 <input type="text" id="kmf" inputmode="numeric" oninput="mascaraKM(this)">
             </div>
 
-            <div id="blocoOleo">
+            <div id="blocoOleo" class="campo-grupo">
                 <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO (KM)</label>
                 <input type="text" id="proximaTrocaKM" inputmode="numeric" oninput="mascaraKM(this)">
                 <input type="date" id="proximaTrocaData" class="hidden">
             </div>
 
-            <label>OBSERVAÇÃO</label>
-            <textarea id="obs" rows="2"></textarea>
+            <div class="campo-grupo" style="border:none;">
+                <label>OBSERVAÇÃO</label>
+                <textarea id="obs" rows="2"></textarea>
+            </div>
 
             <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn-azul">SALVAR INÍCIO DE TRAJETO</button>
         </form>
@@ -112,7 +147,6 @@
 </div>
 
 <script>
-    // Define a data do sistema
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
 
@@ -145,7 +179,6 @@
         }
     }
 
-    // NOVA TRAVA: Vínculo Fixo Condutor + ID + TAG por dia
     function validarVinculoFixo() {
         const tag = document.getElementById("tag").value;
         const nome = document.getElementById("nomeCondutor").value;
@@ -159,19 +192,15 @@
             return;
         }
 
-        // Busca o histórico de vínculos do dia
         let historico = JSON.parse(localStorage.getItem("tjur_historico_dia") || "[]");
-        
-        // Filtra apenas registros de HOJE
         historico = historico.filter(h => h.data === dataHojeStr);
 
-        // Procura se esse NOME já se vinculou a essa TAG hoje com outro ID
         const vinculoExistente = historico.find(h => h.tag === tag && h.nome === nome);
 
         if(vinculoExistente) {
             if(vinculoExistente.id !== idCond) {
                 btn.disabled = true;
-                msg.innerHTML = `⚠ <b>BLOQUEADO:</b> ${nome}, você já foi definido como <b>${vinculoExistente.id}</b> neste veículo hoje.<br>Não pode alterar para ${idCond}.`;
+                msg.innerHTML = `⚠ <b>BLOQUEADO:</b> ${nome}, você já foi definido como <b>${vinculoExistente.id}</b> neste veículo hoje.`;
                 msg.style.display = "block";
                 return true;
             }
@@ -213,7 +242,6 @@
             data: dataHojeStr
         };
 
-        // Salva no histórico do dia para manter o vínculo fixo
         let historico = JSON.parse(localStorage.getItem("tjur_historico_dia") || "[]");
         const jaExiste = historico.some(h => h.tag === dados.tag && h.nome === dados.nome && h.data === dataHojeStr);
         if(!jaExiste) {
@@ -253,7 +281,6 @@
         if(!kmf) { alert("Informe o KM Final!"); return; }
         
         const total = (parseFloat(kmf) - parseFloat(salvo.kmi)).toFixed(1);
-        if(total < 0) { alert("KM Final não pode ser menor que o Inicial!"); return; }
         
         let proxOleo = salvo.veiculo === "SKY MUNCK" ? 
             (salvo.oleoData ? salvo.oleoData.split('-').reverse().join('/') : "NÃO INFORMADO") : 
