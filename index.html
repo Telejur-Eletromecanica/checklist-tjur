@@ -92,11 +92,10 @@
         document.getElementById('data').valueAsDate = new Date();
     };
 
-    // Função que coloca o ponto automaticamente (Ex: 12345 vira 1234.5)
     function mascaraKM(input) {
-        let value = input.value.replace(/\D/g, ""); // Remove tudo que não é número
+        let value = input.value.replace(/\D/g, "");
         if (value.length > 0) {
-            value = (parseInt(value) / 10).toFixed(1); // Divide por 10 e fixa 1 casa decimal
+            value = (parseInt(value) / 10).toFixed(1);
             input.value = value;
         } else {
             input.value = "";
@@ -138,16 +137,27 @@
         var dTrocaRaw = document.getElementById('dataTroca').value;
         var dTroca = dTrocaRaw ? dTrocaRaw.split('-').reverse().join('/') : "NÃO INFORMADO";
 
-        var texto = `*CHECKLIST TELEJUR*%0A` +
-                    `*JORNADA:* ${tipoL}%0A` +
+        // Título formatado com negrito+itálico e sublinhado duplo manual
+        var texto = `*~CHECKLIST VEÍCULOS - TELEJUR~*%0A` +
+                    `==========================%0A%0A%0A` + 
                     `*DATA:* ${d}%0A` +
+                    `__________________________%0A%0A` +
+                    `*JORNADA:* ${tipoL}%0A` +
+                    `__________________________%0A%0A` +
                     `*CONDUTOR:* ${c}%0A` +
+                    `__________________________%0A%0A` +
                     `*TAG:* ${t}%0A` +
+                    `__________________________%0A%0A` +
                     `*VEÍCULO:* ${v}%0A` +
+                    `__________________________%0A%0A` +
                     `*PLACA:* ${p}%0A` +
+                    `__________________________%0A%0A` +
                     `*KM INICIAL:* ${ki}%0A` +
+                    `__________________________%0A%0A` +
                     `*KM FINAL:* ${kf}%0A` +
+                    `__________________________%0A%0A` +
                     `*ÓLEO:* ${oleo}%0A` +
+                    `__________________________%0A%0A` +
                     `*PRÓX. TROCA:* ${dTroca}`;
 
         window.open("https://api.whatsapp.com/send?text=" + texto);
