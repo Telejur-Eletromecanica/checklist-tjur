@@ -13,11 +13,13 @@
         h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
         label { font-weight: bold; font-size: 12px; color: #555; display: block; margin-top: 15px; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .status-memoria { font-size: 12px; font-weight: bold; margin-top: 5px; display: none; padding: 8px; border-radius: 4px; text-align: center; }
+        input[readonly] { background: #f1f3f4; color: #666; cursor: not-allowed; }
+        .status-memoria { font-size: 12px; font-weight: bold; margin-top: 5px; display: none; padding: 10px; border-radius: 8px; text-align: center; }
         .alerta-erro { background: #ffebee; color: #d32f2f; border: 1px solid #ef9a9a; display: block !important; }
+        .alerta-sucesso { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; display: block !important; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; }
-        .btn-bloqueado { background: #9e9e9e !important; cursor: not-allowed !important; }
+        .btn-bloqueado { background: #9e9e9e !important; cursor: not-allowed !important; opacity: 0.6; }
         .hidden { display: none; }
     </style>
 </head>
@@ -47,7 +49,9 @@
             <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
             <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
             <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
+            <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
             <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
+            <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
         </select>
 
         <label>DATA</label>
@@ -57,7 +61,8 @@
         <select id="numCondutor" onchange="verificarReserva()" required>
             <option value="">SELECIONE O NÚMERO</option>
             <option>CONDUTOR 1</option><option>CONDUTOR 2</option><option>CONDUTOR 3</option>
-            <option>CONDUTOR 4</option><option>CONDUTOR 5</option>
+            <option>CONDUTOR 4</option><option>CONDUTOR 5</option><option>CONDUTOR 6</option>
+            <option>CONDUTOR 7</option><option>CONDUTOR 8</option><option>CONDUTOR 9</option>
         </select>
         
         <label>NOME DO CONDUTOR</label>
@@ -68,6 +73,24 @@
             <option>JOELCINEI GUIMARÃES</option>
             <option>REGINALDO</option>
             <option>LAFAITE BATISTA</option>
+            <option>FRANCINILDO TEXEIRA</option>
+            <option>MIRIELLY</option>
+            <option>RAIMUNDO WALTER</option>
+        </select>
+
+        <label>VEÍCULO</label>
+        <input type="text" id="veiculo" readonly>
+
+        <label>PLACA</label>
+        <input type="text" id="placa" readonly>
+
+        <label>COR DO SELO</label>
+        <select id="corSelo" required>
+            <option value="">SELECIONE A COR</option>
+            <option value="VERDE">VERDE</option>
+            <option value="AMARELO">AMARELO</option>
+            <option value="AZUL">AZUL</option>
+            <option value="VERMELHO">VERMELHO</option>
         </select>
 
         <label>KM INICIAL</label>
@@ -77,6 +100,12 @@
             <label>KM FINAL</label>
             <input type="text" id="kmf" inputmode="numeric" placeholder="0.0" oninput="mascaraKM(this)">
         </div>
+
+        <label>TIPO DE ÓLEO</label>
+        <input type="text" id="tipoOleo" placeholder="Ex: 15W40">
+
+        <label>OBSERVAÇÕES / AVARIAS</label>
+        <textarea id="obs" rows="3" placeholder="Descreva problemas se houver..."></textarea>
 
         <button type="button" id="btnAcao" onclick="processar()">SALVAR INÍCIO DE TRAJETO</button>
     </form>
@@ -96,7 +125,6 @@
         } else { input.value = ""; }
     }
 
-    // LÓGICA DE RESERVA: Bloqueia se o Número estiver sendo usado por OUTRO nome hoje
     function verificarReserva() {
         const tag = document.getElementById("tag").value;
         const data = document.getElementById("data").value;
@@ -110,7 +138,6 @@
         const chaveReserva = `reserva_${tag}_${data}_${numC}`;
         const donoDaReserva = localStorage.getItem(chaveReserva);
 
-        // Se já existe um nome salvo para este número e não é o nome atual
         if (donoDaReserva && donoDaReserva !== nomeC) {
             msg.innerText = `⚠ O ${numC} já foi ocupado por ${donoDaReserva} hoje. Escolha outro número!`;
             msg.className = "status-memoria alerta-erro";
@@ -120,6 +147,11 @@
             msg.style.display = "none";
             btn.disabled = false;
             btn.classList.remove("btn-bloqueado");
+            if(document.getElementById("tipoLancamento").value === "FIM") {
+                btn.className = "btn-verde";
+            } else {
+                btn.className = "btn-azul";
+            }
         }
     }
 
@@ -127,10 +159,13 @@
         var tipo = document.getElementById("tipoLancamento").value;
         var btn = document.getElementById("btnAcao");
         var campoFim = document.getElementById("campoFim");
+        var msg = document.getElementById("msgStatus");
+
         if (tipo === "INICIO") {
             btn.innerText = "SALVAR INÍCIO DE TRAJETO";
             btn.className = "btn-azul";
             campoFim.className = "hidden";
+            msg.style.display = "none";
         } else {
             btn.innerText = "ENVIAR CHECKLIST COMPLETO";
             btn.className = "btn-verde";
@@ -157,12 +192,20 @@
         const nomeC = document.getElementById("nomeCondutor").value;
         const data = document.getElementById("data").value;
 
-        // "Reserva" o número para este nome nesta data
+        if(!tag || !numC || !nomeC || !document.getElementById("kmi").value) {
+            alert("Preencha todos os campos!"); return;
+        }
+
         localStorage.setItem(`reserva_${tag}_${data}_${numC}`, nomeC);
 
         const dados = {
             num: numC,
             nome: nomeC,
+            veiculo: document.getElementById("veiculo").value,
+            placa: document.getElementById("placa").value,
+            selo: document.getElementById("corSelo").value,
+            oleo: document.getElementById("tipoOleo").value,
+            obs: document.getElementById("obs").value,
             kmi: document.getElementById("kmi").value,
             horaI: getHoraAtual()
         };
@@ -173,26 +216,59 @@
     function recuperarDados() {
         var tag = document.getElementById("tag").value;
         var salvo = localStorage.getItem("tjur_temp_" + tag);
+        var msg = document.getElementById("msgStatus");
         if (salvo && tag !== "") {
             var d = JSON.parse(salvo);
             document.getElementById("numCondutor").value = d.num;
             document.getElementById("nomeCondutor").value = d.nome;
+            document.getElementById("veiculo").value = d.veiculo;
+            document.getElementById("placa").value = d.placa;
+            document.getElementById("corSelo").value = d.selo;
+            document.getElementById("tipoOleo").value = d.oleo;
+            document.getElementById("obs").value = d.obs;
             document.getElementById("kmi").value = d.kmi;
+            msg.innerText = `✓ DADOS RECUPERADOS (Início às ${d.horaI})`;
+            msg.className = "status-memoria alerta-sucesso";
         }
     }
 
     function processar() {
-        if (document.getElementById("tipoLancamento").value === "INICIO") salvarDados(); 
-        else {
-            const ki = parseFloat(document.getElementById("kmi").value);
-            const kf = parseFloat(document.getElementById("kmf").value);
-            const tag = document.getElementById("tag").value;
-            const percorrido = (kf - ki).toFixed(1);
+        if (document.getElementById("tipoLancamento").value === "INICIO") {
+            salvarDados();
+        } else {
+            var kf = parseFloat(document.getElementById("kmf").value);
+            var ki = parseFloat(document.getElementById("kmi").value);
+            var tag = document.getElementById("tag").value;
+
+            if(!kf) { alert("Preencha o KM FINAL!"); return; }
             
-            const salvo = JSON.parse(localStorage.getItem("tjur_temp_" + tag));
-            const texto = `*CHECKLIST TELEJUR*%0A*TAG:* ${tag}%0A*CONDUTOR:* ${document.getElementById("nomeCondutor").value}%0A*INÍCIO:* ${salvo.horaI}%0A*FIM:* ${getHoraAtual()}%0A*KM TOTAL:* ${percorrido} KM`;
+            var salvo = JSON.parse(localStorage.getItem("tjur_temp_" + tag));
+            if(!salvo) { alert("Erro: Início não encontrado para esta TAG!"); return; }
+
+            var percorrido = (kf - ki).toFixed(1);
+            var d_format = document.getElementById("data").value.split('-').reverse().join('/');
+
+            var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A==========================%0A%0A` +
+                        `*DATA:* ${d_format}%0A` +
+                        `*HORA INÍCIO:* ${salvo.horaI}%0A` +
+                        `*HORA FIM:* ${getHoraAtual()}%0A` +
+                        `__________________________%0A%0A` +
+                        `*ID:* ${document.getElementById("numCondutor").value}%0A` +
+                        `*CONDUTOR:* ${document.getElementById("nomeCondutor").value}%0A` +
+                        `__________________________%0A%0A` +
+                        `*TAG:* ${tag}%0A` +
+                        `*VEÍCULO:* ${document.getElementById("veiculo").value}%0A` +
+                        `*PLACA:* ${document.getElementById("placa").value}%0A` +
+                        `__________________________%0A%0A` +
+                        `*COR DO SELO:* ${document.getElementById("corSelo").value}%0A` +
+                        `*KM INICIAL:* ${ki.toFixed(1)}%0A` +
+                        `*KM FINAL:* ${kf.toFixed(1)}%0A` +
+                        `*TOTAL PERCORRIDO:* ${percorrido} KM%0A` +
+                        `__________________________%0A%0A` +
+                        `*ÓLEO:* ${document.getElementById("tipoOleo").value || "N/I"}%0A` +
+                        `*OBS:* ${document.getElementById("obs").value || "SEM OBS"}`;
             
-            window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
+            window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto.replace(/%0A/g, '\n')).replace(/%250A/g, '%0A');
             localStorage.removeItem("tjur_temp_" + tag);
         }
     }
