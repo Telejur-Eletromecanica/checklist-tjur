@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Relatório de Veículo</title>
+
+<style>
+body{
+font-family: Arial;
+background:#f2f2f2;
+padding:20px;
+}
+
+.container{
+background:white;
+padding:20px;
+border-radius:10px;
+max-width:400px;
+margin:auto;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+h2{
+text-align:center;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin-top:8px;
+margin-bottom:15px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+background:#25D366;
+color:white;
+font-size:16px;
+border:none;
+cursor:pointer;
+}
+
+button:hover{
+background:#1ebe5d;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Relatório de Veículo</h2>
+
+<form onsubmit="enviar(); return false;">
+
+Condutor
+<input type="text" id="condutor" required>
+
+Veículo
+<select id="veiculo" onchange="placaAuto()">
+
+<option value="">Selecione</option>
+<option value="Caminhão SkyMunck Tju" data-placa="QVE5H48">Caminhão SkyMunck Tju</option>
+<option value="Caminhão Baú" data-placa="ABC1D23">Caminhão Baú</option>
+<option value="Pickup Manutenção" data-placa="XYZ9K88">Pickup Manutenção</option>
+
+</select>
+
+Placa
+<input type="text" id="placa" readonly>
+
+KM Início
+<input type="number" id="kmi">
+
+KM Final
+<input type="number" id="kmf">
+
+Cor do Selo
+<input type="text" id="selo">
+
+Validade do Selo
+<input type="date" id="validade">
+
+<button type="submit">Enviar no WhatsApp</button>
+
+</form>
+
+</div>
+
+<script>
+
+function placaAuto(){
+
+var select = document.getElementById("veiculo");
+var placa = select.options[select.selectedIndex].dataset.placa;
+
+document.getElementById("placa").value = placa || "";
+
+}
+
+function enviar(){
+
+var condutor = document.getElementById("condutor").value;
+var veiculo = document.getElementById("veiculo").value;
+var placa = document.getElementById("placa").value;
+var kmi = document.getElementById("kmi").value;
+var kmf = document.getElementById("kmf").value;
+var selo = document.getElementById("selo").value;
+var validade = document.getElementById("validade").value;
+
+var msg =
+"Relatório de Veículo%0A%0A"+
+"Condutor: "+condutor+"%0A"+
+"Veículo: "+veiculo+"%0A"+
+"Placa: "+placa+"%0A"+
+"KM Início: "+kmi+"%0A"+
+"KM Final: "+kmf+"%0A"+
+"Cor do Selo: "+selo+"%0A"+
+"Validade: "+validade;
+
+window.open("https://wa.me/?text="+msg);
+
+}
+
+</script>
+
+</body>
+</html>
