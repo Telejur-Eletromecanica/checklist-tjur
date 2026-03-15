@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checklist Veículos - Telejur</title>
+    <title>TELEJUR - CHECKLIST</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -71,6 +71,15 @@
         <label>PLACA</label>
         <input type="text" id="placa" readonly>
 
+        <label>COR DO SELO</label>
+        <select id="corSelo" required>
+            <option value="">SELECIONE A COR</option>
+            <option value="VERDE">VERDE</option>
+            <option value="AMARELO">AMARELO</option>
+            <option value="AZUL">AZUL</option>
+            <option value="VERMELHO">VERMELHO</option>
+        </select>
+
         <label>KM INICIAL</label>
         <input type="text" id="kmi" inputmode="numeric" placeholder="0.0" oninput="mascaraKM(this)" required>
 
@@ -131,6 +140,7 @@
         var t = document.getElementById('tag').value;
         var v = document.getElementById('veiculo').value;
         var p = document.getElementById('placa').value;
+        var selo = document.getElementById('corSelo').value;
         var ki = document.getElementById('kmi').value;
         var kf = document.getElementById('kmf').value || "---";
         var oleo = document.getElementById('tipoOleo').value || "NÃO INFORMADO";
@@ -150,6 +160,8 @@
                     `*VEÍCULO:* ${v}%0A` +
                     `__________________________%0A%0A` +
                     `*PLACA:* ${p}%0A` +
+                    `__________________________%0A%0A` +
+                    `*COR DO SELO:* ${selo}%0A` +
                     `__________________________%0A%0A` +
                     `*KM INICIAL:* ${ki}%0A` +
                     `__________________________%0A%0A` +
