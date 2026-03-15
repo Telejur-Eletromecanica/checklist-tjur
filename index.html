@@ -17,10 +17,7 @@
         input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         input[readonly], input:disabled { background: #f8f9fa; border: 1px dashed #ccc; color: #999; cursor: not-allowed; }
         
-        .opcional { color: #888; font-size: 10px; font-weight: normal; }
-        
         button { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        button:active { transform: scale(0.98); background: #1ebe5d; }
     </style>
 </head>
 <body>
@@ -75,17 +72,15 @@
         <input type="text" id="placa" readonly>
 
         <label>KM INICIAL</label>
-        <input type="number" id="kmi" step="any" placeholder="0.000" required>
+        <input type="text" id="kmi" inputmode="numeric" placeholder="0.0" oninput="mascaraKM(this)" required>
 
-        <label id="labelKMF">KM FINAL <span class="opcional">(BLOQUEADO NO INÍCIO)</span></label>
-        <input type="number" id="kmf" step="any" placeholder="0.000" disabled>
+        <label id="labelKMF">KM FINAL</label>
+        <input type="text" id="kmf" inputmode="numeric" placeholder="0.0" oninput="mascaraKM(this)" disabled>
 
-        <hr style="margin-top:20px; border: 0; border-top: 1px solid #eee;">
-
-        <label>TIPO DE ÓLEO <span class="opcional">(OPCIONAL)</span></label>
+        <label>TIPO DE ÓLEO</label>
         <input type="text" id="tipoOleo" placeholder="Ex: 15W40">
 
-        <label>DATA DA PRÓXIMA TROCA <span class="opcional">(OPCIONAL)</span></label>
+        <label>DATA DA PRÓXIMA TROCA</label>
         <input type="date" id="dataTroca">
 
         <button type="submit">ENVIAR VIA WHATSAPP</button>
@@ -97,18 +92,25 @@
         document.getElementById('data').valueAsDate = new Date();
     };
 
+    // Função que coloca o ponto automaticamente (Ex: 12345 vira 1234.5)
+    function mascaraKM(input) {
+        let value = input.value.replace(/\D/g, ""); // Remove tudo que não é número
+        if (value.length > 0) {
+            value = (parseInt(value) / 10).toFixed(1); // Divide por 10 e fixa 1 casa decimal
+            input.value = value;
+        } else {
+            input.value = "";
+        }
+    }
+
     function ajustarCamposKM() {
         var tipo = document.getElementById("tipoLancamento").value;
         var campoKMF = document.getElementById("kmf");
-        var labelKMF = document.getElementById("labelKMF");
-
         if (tipo === "INICIO") {
             campoKMF.disabled = true;
             campoKMF.value = "";
-            labelKMF.innerHTML = 'KM FINAL <span class="opcional">(BLOQUEADO NO INÍCIO)</span>';
         } else {
             campoKMF.disabled = false;
-            labelKMF.innerHTML = 'KM FINAL <span class="opcional">(OBRIGATÓRIO NO FIM)</span>';
         }
     }
 
@@ -120,21 +122,6 @@
     }
 
     function validarEEnviar() {
-        var tipo = document.getElementById("tipoLancamento").value;
-        var kf = document.getElementById("kmf").value;
-        var oleo = document.getElementById("tipoOleo").value;
-        var troca = document.getElementById("dataTroca").value;
-
-        if (tipo === "FIM" && (kf === "" || parseFloat(kf) === 0)) {
-            var confKM = confirm("O KM FINAL está vazio ou zerado. Deseja enviar assim mesmo?");
-            if (!confKM) return;
-        }
-
-        if (oleo === "" || troca === "") {
-            var confOleo = confirm("Os campos de ÓLEO estão em branco. Deseja enviar o relatório assim mesmo?");
-            if (!confOleo) return;
-        }
-        
         enviarWhatsApp();
     }
 
@@ -145,38 +132,23 @@
         var t = document.getElementById('tag').value;
         var v = document.getElementById('veiculo').value;
         var p = document.getElementById('placa').value;
-        
-        // Pega o valor exato digitado, sem arredondar
         var ki = document.getElementById('kmi').value;
-        var kf = document.getElementById('kmf').value || "NÃO INFORMADO";
-        
+        var kf = document.getElementById('kmf').value || "---";
         var oleo = document.getElementById('tipoOleo').value || "NÃO INFORMADO";
         var dTrocaRaw = document.getElementById('dataTroca').value;
         var dTroca = dTrocaRaw ? dTrocaRaw.split('-').reverse().join('/') : "NÃO INFORMADO";
 
-        var tituloStyle = "𝘾𝙃𝙀𝘾𝙆𝙇𝙄𝙎𝙏 𝘿𝙀 𝙑𝙀𝙄𝘾𝙐𝙇𝙊𝙎 𝙏𝙀𝙇𝙀𝙅𝙐𝙍";
-
-        var texto = `${tituloStyle}%0A` +
-                    `==========================%0A%0A%0A` + 
-                    `*JORNADA/TRAJETO:* ${tipoL}%0A` +
-                    `--------------------------%0A` +
+        var texto = `*CHECKLIST TELEJUR*%0A` +
+                    `*JORNADA:* ${tipoL}%0A` +
                     `*DATA:* ${d}%0A` +
-                    `--------------------------%0A` +
                     `*CONDUTOR:* ${c}%0A` +
-                    `--------------------------%0A` +
                     `*TAG:* ${t}%0A` +
-                    `--------------------------%0A` +
                     `*VEÍCULO:* ${v}%0A` +
-                    `--------------------------%0A` +
                     `*PLACA:* ${p}%0A` +
-                    `--------------------------%0A` +
-                    `*KM INÍCIO:* ${ki}%0A` +
-                    `--------------------------%0A` +
+                    `*KM INICIAL:* ${ki}%0A` +
                     `*KM FINAL:* ${kf}%0A` +
-                    `--------------------------%0A` +
-                    `*TIPO DE ÓLEO:* ${oleo}%0A` +
-                    `--------------------------%0A` +
-                    `*DATA PRÓX. TROCA:* ${dTroca}`;
+                    `*ÓLEO:* ${oleo}%0A` +
+                    `*PRÓX. TROCA:* ${dTroca}`;
 
         window.open("https://api.whatsapp.com/send?text=" + texto);
     }
