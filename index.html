@@ -16,8 +16,8 @@
         input[readonly], input:disabled { background: #f1f3f4; border: 1px dashed #ccc; color: #666; cursor: not-allowed; }
         .hidden { display: none; }
         .status-memoria { font-size: 12px; font-weight: bold; margin-top: 5px; display: none; background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 4px; text-align: center; border: 1px solid #c8e6c9; }
-        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
-        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         button:active { transform: scale(0.98); opacity: 0.9; }
     </style>
 </head>
@@ -55,25 +55,32 @@
         <label>DATA DO RELATÓRIO</label>
         <input type="date" id="data" required>
 
+        <label>IDENTIFICAÇÃO</label>
+        <select id="numCondutor" required>
+            <option value="">SELECIONE O NÚMERO</option>
+            <option>CONDUTOR 1</option><option>CONDUTOR 2</option><option>CONDUTOR 3</option>
+            <option>CONDUTOR 4</option><option>CONDUTOR 5</option><option>CONDUTOR 6</option>
+            <option>CONDUTOR 7</option><option>CONDUTOR 8</option><option>CONDUTOR 9</option>
+        </select>
+        
+        <label>NOME DO CONDUTOR</label>
+        <select id="nomeCondutor" required>
+            <option value="">SELECIONE O NOME</option>
+            <option>ADRIANO NASCIMENTO</option>
+            <option>FRANCIVALDO COSTA</option>
+            <option>JOELCINEI GUIMARÃES</option>
+            <option>REGINALDO</option>
+            <option>LAFAITE BATISTA</option>
+            <option>FRANCINILDO TEXEIRA</option>
+            <option>MIRIELLY</option>
+            <option>RAIMUNDO WALTER</option>
+        </select>
+
         <label>VEÍCULO</label>
         <input type="text" id="veiculo" readonly>
 
         <label>PLACA</label>
         <input type="text" id="placa" readonly>
-
-        <label>CONDUTOR</label>
-        <select id="condutor" required>
-            <option value="">SELECIONE O CONDUTOR</option>
-            <option>CONDUTOR 1: ADRIANO NASCIMENTO</option>
-            <option>CONDUTOR 2: FRANCIVALDO COSTA</option>
-            <option>CONDUTOR 3: JOELCINEI GUIMARÃES</option>
-            <option>CONDUTOR 4: REGINALDO</option>
-            <option>CONDUTOR 5: LAFAITE BATISTA</option>
-            <option>CONDUTOR 6: FRANCINILDO TEXEIRA</option>
-            <option>CONDUTOR 7: MIRIELLY</option>
-            <option>CONDUTOR 8: RAIMUNDO WALTER</option>
-            <option>CONDUTOR 9: [NOME A DEFINIR]</option>
-        </select>
 
         <label>COR DO SELO</label>
         <select id="corSelo" required>
@@ -176,12 +183,14 @@
 
     function salvarDados() {
         var tag = document.getElementById("tag").value;
-        if (!tag || !document.getElementById("kmi").value) {
-            alert("Preencha a TAG e o KM Inicial.");
+        var nome = document.getElementById("nomeCondutor").value;
+        if (!tag || !document.getElementById("kmi").value || !nome) {
+            alert("Preencha todos os campos obrigatórios!");
             return;
         }
         var dados = {
-            condutor: document.getElementById("condutor").value,
+            numCondutor: document.getElementById("numCondutor").value,
+            nomeCondutor: nome,
             kmi: document.getElementById("kmi").value,
             cor: document.getElementById("corSelo").value,
             oleo: document.getElementById("tipoOleo").value,
@@ -198,72 +207,50 @@
         var salvo = localStorage.getItem("tjur_temp_" + tag);
         if (salvo && tag !== "") {
             var dados = JSON.parse(salvo);
-            document.getElementById("condutor").value = dados.condutor;
+            document.getElementById("numCondutor").value = dados.numCondutor;
+            document.getElementById("nomeCondutor").value = dados.nomeCondutor;
             document.getElementById("kmi").value = dados.kmi;
             document.getElementById("corSelo").value = dados.cor;
             document.getElementById("tipoOleo").value = dados.oleo;
             document.getElementById("obs").value = dados.obs;
-            msg.innerText = "✓ INÍCIO RECUPERADO (Iniciado às " + dados.horaInicio + ")";
+            msg.innerText = "✓ DADOS RECUPERADOS (Início às " + dados.horaInicio + ")";
             msg.style.display = "block";
         }
     }
 
     function enviarWhatsApp() {
-        var ki_val = parseFloat(document.getElementById("kmi").value);
         var kf_val = parseFloat(document.getElementById("kmf").value);
+        var ki_val = parseFloat(document.getElementById("kmi").value);
 
-        if(!kf_val) {
-            alert("Preencha o KM FINAL.");
-            return;
-        }
-
-        if(kf_val < ki_val) {
-            alert("ERRO: O KM Final não pode ser menor que o Inicial!");
-            return;
-        }
+        if(!kf_val) { alert("Preencha o KM FINAL."); return; }
 
         var tag = document.getElementById("tag").value;
         var d = document.getElementById('data').value.split('-').reverse().join('/');
         var horaFim = getHoraAtual();
-        
         var salvo = localStorage.getItem("tjur_temp_" + tag);
         var horaInicio = salvo ? JSON.parse(salvo).horaInicio : "--:--";
 
         var percorrido = (kf_val - ki_val).toFixed(1);
-
-        var c = document.getElementById('condutor').value;
-        var v = document.getElementById('veiculo').value;
-        var p = document.getElementById('placa').value;
-        var selo = document.getElementById('corSelo').value;
-        var oleo = document.getElementById('tipoOleo').value || "NÃO INFORMADO";
-        var obs = document.getElementById('obs').value || "SEM OBSERVAÇÕES";
-        
-        var tipoTroca = document.getElementById("tag").options[document.getElementById("tag").selectedIndex].getAttribute("data-troca");
-        var proxTroca = "NÃO INFORMADO";
-        if(tipoTroca === "data") {
-            var dt = document.getElementById('dataTroca').value;
-            proxTroca = dt ? dt.split('-').reverse().join('/') : "NÃO INFORMADO";
-        } else {
-            proxTroca = document.getElementById('kmTroca').value || "NÃO INFORMADO";
-        }
 
         var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A==========================%0A%0A` +
                     `*DATA:* ${d}%0A` +
                     `*HORA INÍCIO:* ${horaInicio}%0A` +
                     `*HORA FIM:* ${horaFim}%0A` +
                     `__________________________%0A%0A` +
-                    `*CONDUTOR:* ${c}%0A__________________________%0A%0A` +
-                    `*TAG:* ${tag}%0A__________________________%0A%0A` +
-                    `*VEÍCULO:* ${v}%0A__________________________%0A%0A` +
-                    `*PLACA:* ${p}%0A__________________________%0A%0A` +
-                    `*COR DO SELO:* ${selo}%0A__________________________%0A%0A` +
+                    `*ID:* ${document.getElementById('numCondutor').value}%0A` +
+                    `*CONDUTOR:* ${document.getElementById('nomeCondutor').value}%0A` +
+                    `__________________________%0A%0A` +
+                    `*TAG:* ${tag}%0A` +
+                    `*VEÍCULO:* ${document.getElementById('veiculo').value}%0A` +
+                    `*PLACA:* ${document.getElementById('placa').value}%0A` +
+                    `__________________________%0A%0A` +
+                    `*COR DO SELO:* ${document.getElementById('corSelo').value}%0A` +
                     `*KM INICIAL:* ${ki_val.toFixed(1)}%0A` +
                     `*KM FINAL:* ${kf_val.toFixed(1)}%0A` +
                     `*TOTAL PERCORRIDO:* ${percorrido} KM%0A` +
                     `__________________________%0A%0A` +
-                    `*ÓLEO:* ${oleo}%0A__________________________%0A%0A` +
-                    `*PRÓX. TROCA (${tipoTroca.toUpperCase()}):* ${proxTroca}%0A__________________________%0A%0A` +
-                    `*OBSERVAÇÕES:* ${obs}`;
+                    `*ÓLEO:* ${document.getElementById('tipoOleo').value || "N/I"}%0A` +
+                    `*OBS:* ${document.getElementById('obs').value || "SEM OBS"}`;
 
         localStorage.removeItem("tjur_temp_" + tag);
         window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto.replace(/%0A/g, '\n')).replace(/%250A/g, '%0A');
