@@ -19,9 +19,26 @@
         .btn-bloqueado { background: #9e9e9e !important; cursor: not-allowed !important; opacity: 0.6; }
         .hidden { display: none; }
         .alerta-erro { font-size: 13px; font-weight: bold; margin-top: 10px; text-align: center; color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 8px; border: 1px solid #ef9a9a; display: none; }
+
+        /* ESTILO DA TELA DE CONFIRMAÇÃO (MODAL) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-icon { font-size: 50px; color: #25D366; margin-bottom: 10px; }
+        .modal-h3 { color: #1a237e; margin: 10px 0; }
+        .modal-p { color: #555; font-size: 14px; line-height: 1.4; }
+        .btn-fechar { margin-top: 20px; padding: 10px 20px; background: #1a237e; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
+
+<div id="modalConfirmacao" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon">✔</div>
+        <h3 class="modal-h3">Trajeto Salvo!</h3>
+        <p id="modalMsg" class="modal-p"></p>
+        <button class="btn-fechar" onclick="fecharModal()">OK, ENTENDIDO</button>
+    </div>
+</div>
 
 <div class="card">
     <div class="header-text">
@@ -129,6 +146,12 @@
         } else { input.value = ""; }
     }
 
+    function fecharModal() {
+        document.getElementById("modalConfirmacao").style.display = "none";
+        document.getElementById("formChecklist").reset();
+        setarDataHoje();
+    }
+
     function validarDono() {
         const tag = document.getElementById("tag").value;
         const data = document.getElementById("data").value;
@@ -139,12 +162,11 @@
 
         if (!tag || !nome || !idAtual) return;
 
-        // Verifica se este motorista já se "carimbou" neste veículo hoje
         const donoChave = `dono_${tag}_${data}_${nome}`;
         const idRegistrado = localStorage.getItem(donoChave);
 
         if (idRegistrado && idRegistrado !== idAtual) {
-            msg.innerText = `⚠ Atenção ${nome}, você já está registrado como ${idRegistrado} para este veículo hoje! Não altere para ${idAtual}.`;
+            msg.innerText = `⚠ Atenção ${nome}, você já está registrado como ${idRegistrado} para este veículo hoje!`;
             msg.style.display = "block";
             btn.disabled = true;
             btn.classList.add("btn-bloqueado");
@@ -188,12 +210,12 @@
         const data = document.getElementById("data").value;
         const nome = document.getElementById("nomeCondutor").value;
         const idNum = document.getElementById("numCondutor").value;
+        const hora = getHoraAtual();
 
         if(!tag || !idNum || !nome || !document.getElementById("kmi").value) {
             alert("Preencha todos os campos obrigatórios!"); return;
         }
 
-        // Salva quem é o dono desse ID para o resto do dia
         localStorage.setItem(`dono_${tag}_${data}_${nome}`, idNum);
 
         const dados = {
@@ -204,10 +226,13 @@
             kmi: document.getElementById("kmi").value,
             oleo: document.getElementById("tipoOleo").value,
             obs: document.getElementById("obs").value,
-            horaI: getHoraAtual()
+            horaI: hora
         };
         localStorage.setItem("tjur_temp_" + tag, JSON.stringify(dados));
-        alert("✓ INÍCIO SALVO ÀS " + dados.horaI);
+        
+        // ABRE A TELA DE CONFIRMAÇÃO
+        document.getElementById("modalMsg").innerHTML = `O trajeto da TAG <b>${tag}</b> foi iniciado com sucesso às <b>${hora}</b>.<br><br>Ao finalizar o dia, selecione "FIM DE TRAJETO" para enviar o relatório.`;
+        document.getElementById("modalConfirmacao").style.display = "flex";
     }
 
     function recuperarDados() {
@@ -264,8 +289,6 @@
                           `*OBSERVAÇÃO:* ${obsTexto}`;
             
             window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
-            
-            // Limpa o trajeto atual, mas MANTÉM a trava de dono do ID para o dia
             localStorage.removeItem("tjur_temp_" + tag);
         }
     }
