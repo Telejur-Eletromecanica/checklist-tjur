@@ -40,7 +40,7 @@
                 <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
                 <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
                 <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
-                <option value="TJUR 13" data-v="CAMINHONETE" data-p="QVD4I38">TJUR 13</option>
+                <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
             </select>
 
             <label>IDENTIFICAÇÃO</label>
@@ -109,7 +109,7 @@
     function atualizarInterfacePorTag() {
         const select = document.getElementById("tag");
         const option = select.options[select.selectedIndex];
-        const veiculo = option.getAttribute("data-v") || "";
+        const veiculo = option ? option.getAttribute("data-v") : "";
         
         const labelOleo = document.getElementById("labelTrocaOleo");
         const inputKM = document.getElementById("proximaTrocaKM");
@@ -129,7 +129,14 @@
     function iniciarTrajeto() {
         const select = document.getElementById("tag");
         const option = select.options[select.selectedIndex];
-        if(!select.value || !document.getElementById("kmi").value) { alert("Preencha TAG e KM!"); return; }
+        const kmi = document.getElementById("kmi").value;
+        const selo = document.getElementById("corSelo").value;
+        const valSelo = document.getElementById("validadeSelo").value;
+
+        if(!select.value || !kmi || !selo || !valSelo) { 
+            alert("ERRO: Preencha TAG, KM Inicial, Selo e Validade!"); 
+            return; 
+        }
 
         const dados = {
             num: document.getElementById("numCondutor").value,
@@ -137,9 +144,9 @@
             tag: select.value,
             veiculo: option.getAttribute("data-v"),
             placa: option.getAttribute("data-p"),
-            kmi: document.getElementById("kmi").value,
-            selo: document.getElementById("corSelo").value,
-            valSelo: document.getElementById("validadeSelo").value.split('-').reverse().join('/'),
+            kmi: kmi,
+            selo: selo,
+            valSelo: valSelo.split('-').reverse().join('/'),
             oleoKM: document.getElementById("proximaTrocaKM").value,
             oleoData: document.getElementById("proximaTrocaData").value,
             obs: document.getElementById("obs").value,
@@ -151,20 +158,21 @@
     }
 
     function irParaFinalizar() {
-        // Pega a primeira tag que encontrar no storage
-        const tag = Object.keys(localStorage).find(key => key.startsWith("tjur_temp_")).replace("tjur_temp_", "");
-        const salvo = JSON.parse(localStorage.getItem("tjur_temp_" + tag));
+        const tagKey = Object.keys(localStorage).find(key => key.startsWith("tjur_temp_"));
+        if(!tagKey) return;
         
+        const salvo = JSON.parse(localStorage.getItem(tagKey));
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
         
-        document.getElementById("tag").value = tag;
+        document.getElementById("tag").value = salvo.tag;
         atualizarInterfacePorTag();
         document.getElementById("numCondutor").value = salvo.num;
         document.getElementById("nomeCondutor").value = salvo.nome;
         document.getElementById("kmi").value = salvo.kmi;
         document.getElementById("corSelo").value = salvo.selo;
+        document.getElementById("validadeSelo").value = salvo.valSelo.split('/').reverse().join('-');
         document.getElementById("obs").value = salvo.obs;
         
         document.getElementById("btnAcao").innerText = "ENVIAR WHATSAPP";
@@ -179,9 +187,25 @@
         
         if(!kmf) { alert("Informe o KM Final!"); return; }
         
-        const total = (parseFloat(kmf) - parseFloat(salvo.kmi)).toFixed(1);
-        const proxOleo = salvo.oleoData ? salvo.oleoData.split('-').reverse().join('/') : (salvo.oleoKM ? salvo.oleoKM + " KM" : "NÃO INFORMADO");
-        const observacao = document.getElementById("obs").value || "SEM OBSERVAÇÃO";
+        const valKmi = parseFloat(salvo.kmi);
+        const valKmf = parseFloat(kmf);
+
+        if(valKmf < valKmi) {
+            alert(`ERRO: KM Final (${valKmf}) não pode ser menor que o Inicial (${valKmi})!`);
+            return;
+        }
+
+        const total = (valKmf - valKmi).toFixed(1);
+        
+        // Tratamento para evitar N/I e SEM OBS
+        let proxOleo = "NÃO INFORMADO";
+        if(salvo.veiculo === "SKY MUNCK" && salvo.oleoData) {
+            proxOleo = salvo.oleoData.split('-').reverse().join('/');
+        } else if (salvo.oleoKM) {
+            proxOleo = salvo.oleoKM + " KM";
+        }
+
+        const observacao = document.getElementById("obs").value.trim() || "SEM OBSERVAÇÃO";
 
         const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n` +
             `==========================\n\n` +
@@ -216,7 +240,12 @@
             const salvo = JSON.parse(localStorage.getItem(tagAberta));
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>VEÍCULO:</b> ${salvo.veiculo}<br><b>PLACA:</b> ${salvo.placa}<br><b>CONDUTOR:</b> ${salvo.nome}`;
+            document.getElementById("resumoTrajeto").innerHTML = `
+                <b>TAG:</b> ${salvo.tag}<br>
+                <b>VEÍCULO:</b> ${salvo.veiculo}<br>
+                <b>PLACA:</b> ${salvo.placa}<br>
+                <b>CONDUTOR:</b> ${salvo.nome}
+            `;
         }
     };
 </script>
