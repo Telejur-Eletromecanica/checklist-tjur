@@ -107,6 +107,14 @@
         } else { input.value = ""; }
     }
 
+    function getAgora() {
+        return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+
+    function getDataHoje() {
+        return new Date().toLocaleDateString('pt-BR');
+    }
+
     window.onload = function() {
         const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
         for(let t of tags) {
@@ -145,8 +153,8 @@
             selo: document.getElementById("corSelo").value,
             oleo: document.getElementById("tipoOleo").value,
             obs: document.getElementById("obs").value,
-            horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            data: new Date().toLocaleDateString('pt-BR')
+            horaI: getAgora(),
+            data: getDataHoje()
         };
         localStorage.setItem("tjur_temp_" + tag, JSON.stringify(dados));
         exibirTelaEspera(tag);
@@ -177,15 +185,18 @@
         const tag = document.getElementById("tag").value;
         const salvo = JSON.parse(localStorage.getItem("tjur_temp_" + tag));
         const kmf = document.getElementById("kmf").value;
-        const horaFim = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const horaFim = getAgora();
 
         if(!kmf) { alert("Informe o KM Final!"); return; }
 
         const total = (parseFloat(kmf) - parseFloat(salvo.kmi)).toFixed(1);
 
-        const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n\n` +
+        // FORMATAÇÃO DO RELATÓRIO
+        const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n` +
+            `==========================\n\n` +
             `*DATA:* ${salvo.data}\n` +
-            `*INÍCIO:* ${salvo.horaI} | *FIM:* ${horaFim}\n` +
+            `*HORA INÍCIO:* ${salvo.horaI}\n` +
+            `*HORA FIM:* ${horaFim}\n` +
             `__________\n\n` +
             `*ID:* ${salvo.num}\n` +
             `*CONDUTOR:* ${salvo.nome}\n` +
@@ -195,24 +206,22 @@
             `*COR DO SELO:* ${document.getElementById("corSelo").value}\n` +
             `*KM INICIAL:* ${salvo.kmi}\n` +
             `*KM FINAL:* ${kmf}\n` +
-            `*TOTAL:* ${total} KM\n` +
+            `*TOTAL PERCORRIDO:* ${total} KM\n` +
             `__________\n\n` +
             `*ÓLEO:* ${document.getElementById("tipoOleo").value || "NÃO INFORMADO"}\n` +
             `*OBSERVAÇÃO:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}`;
 
-        // Protocolo universal para abrir o APP
         const wpLink = "whatsapp://send?text=" + encodeURIComponent(mensagem);
-        
         localStorage.removeItem("tjur_temp_" + tag);
         
-        // Tenta abrir o link
+        // Redirecionamento Direto
         window.location.href = wpLink;
         
-        // Fallback para navegadores que bloqueiam o protocolo direto
+        // Backup (Abre aba caso falhe)
         setTimeout(() => {
             window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(mensagem), "_blank");
             location.reload();
-        }, 500);
+        }, 800);
     }
 </script>
 </body>
