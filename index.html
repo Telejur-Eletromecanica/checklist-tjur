@@ -7,16 +7,14 @@
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
         .header-text { text-align: center; margin-bottom: 20px; }
         .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
-
         h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
         label { font-weight: bold; font-size: 12px; color: #555; display: block; margin-top: 15px; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         input[readonly], input:disabled { background: #f8f9fa; border: 1px dashed #ccc; color: #999; cursor: not-allowed; }
-        
+        .hidden { display: none; }
         button { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     </style>
 </head>
@@ -56,13 +54,13 @@
         <label>TAG DO VEÍCULO</label>
         <select id="tag" onchange="completar()" required>
             <option value="">SELECIONE A TAG</option>
-            <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
-            <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
-            <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
-            <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
-            <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
-            <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
-            <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
+            <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50" data-troca="data">TJUR 04</option>
+            <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02" data-troca="km">TJUR 06</option>
+            <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75" data-troca="data">TJUR 07</option>
+            <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48" data-troca="km">TJUR 08</option>
+            <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04" data-troca="data">TJUR 09</option>
+            <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37" data-troca="km">TJUR 10</option>
+            <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38" data-troca="km">TJUR 13</option>
         </select>
 
         <label>VEÍCULO</label>
@@ -89,8 +87,18 @@
         <label>TIPO DE ÓLEO</label>
         <input type="text" id="tipoOleo" placeholder="Ex: 15W40">
 
-        <label>DATA DA PRÓXIMA TROCA</label>
-        <input type="date" id="dataTroca">
+        <div id="divTrocaData" class="hidden">
+            <label>DATA DA PRÓXIMA TROCA</label>
+            <input type="date" id="dataTroca">
+        </div>
+
+        <div id="divTrocaKM" class="hidden">
+            <label>KM DA PRÓXIMA TROCA</label>
+            <input type="text" id="kmTroca" inputmode="numeric" placeholder="0.0" oninput="mascaraKM(this)">
+        </div>
+
+        <label>OBSERVAÇÕES / AVARIAS</label>
+        <textarea id="obs" rows="3" placeholder="Descreva problemas ou avarias se houver..."></textarea>
 
         <button type="submit">ENVIAR VIA WHATSAPP</button>
     </form>
@@ -106,20 +114,14 @@
         if (value.length > 0) {
             value = (parseInt(value) / 10).toFixed(1);
             input.value = value;
-        } else {
-            input.value = "";
-        }
+        } else { input.value = ""; }
     }
 
     function ajustarCamposKM() {
         var tipo = document.getElementById("tipoLancamento").value;
         var campoKMF = document.getElementById("kmf");
-        if (tipo === "INICIO") {
-            campoKMF.disabled = true;
-            campoKMF.value = "";
-        } else {
-            campoKMF.disabled = false;
-        }
+        campoKMF.disabled = (tipo === "INICIO");
+        if (tipo === "INICIO") campoKMF.value = "";
     }
 
     function completar() {
@@ -127,10 +129,11 @@
         var sel = s.options[s.selectedIndex];
         document.getElementById("veiculo").value = sel.getAttribute("data-v") || "";
         document.getElementById("placa").value = sel.getAttribute("data-p") || "";
-    }
-
-    function validarEEnviar() {
-        enviarWhatsApp();
+        
+        // Lógica de Troca de Óleo
+        var tipoTroca = sel.getAttribute("data-troca");
+        document.getElementById("divTrocaData").classList.toggle("hidden", tipoTroca !== "data");
+        document.getElementById("divTrocaKM").classList.toggle("hidden", tipoTroca !== "km");
     }
 
     function enviarWhatsApp() {
@@ -144,36 +147,36 @@
         var ki = document.getElementById('kmi').value;
         var kf = document.getElementById('kmf').value || "---";
         var oleo = document.getElementById('tipoOleo').value || "NÃO INFORMADO";
-        var dTrocaRaw = document.getElementById('dataTroca').value;
-        var dTroca = dTrocaRaw ? dTrocaRaw.split('-').reverse().join('/') : "NÃO INFORMADO";
+        var obs = document.getElementById('obs').value || "SEM OBSERVAÇÕES";
+
+        // Valor da troca (Data ou KM)
+        var proxTroca = "NÃO INFORMADO";
+        var s = document.getElementById("tag");
+        var tipoTroca = s.options[s.selectedIndex].getAttribute("data-troca");
+        if(tipoTroca === "data") {
+            var dt = document.getElementById('dataTroca').value;
+            proxTroca = dt ? dt.split('-').reverse().join('/') : "NÃO INFORMADO";
+        } else {
+            proxTroca = document.getElementById('kmTroca').value || "NÃO INFORMADO";
+        }
 
         var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A` +
                     `==========================%0A%0A%0A` + 
-                    `*DATA:* ${d}%0A` +
-                    `__________________________%0A%0A` +
-                    `*TIPO DE TRAJETO:* ${tipoT}%0A` +
-                    `__________________________%0A%0A` +
-                    `*CONDUTOR:* ${c}%0A` +
-                    `__________________________%0A%0A` +
-                    `*TAG:* ${t}%0A` +
-                    `__________________________%0A%0A` +
-                    `*VEÍCULO:* ${v}%0A` +
-                    `__________________________%0A%0A` +
-                    `*PLACA:* ${p}%0A` +
-                    `__________________________%0A%0A` +
-                    `*COR DO SELO:* ${selo}%0A` +
-                    `__________________________%0A%0A` +
-                    `*KM INICIAL:* ${ki}%0A` +
-                    `__________________________%0A%0A` +
-                    `*KM FINAL:* ${kf}%0A` +
-                    `__________________________%0A%0A` +
-                    `*ÓLEO:* ${oleo}%0A` +
-                    `__________________________%0A%0A` +
-                    `*PRÓX. TROCA:* ${dTroca}`;
+                    `*DATA:* ${d}%0A__________________________%0A%0A` +
+                    `*TIPO DE TRAJETO:* ${tipoT}%0A__________________________%0A%0A` +
+                    `*CONDUTOR:* ${c}%0A__________________________%0A%0A` +
+                    `*TAG:* ${t}%0A__________________________%0A%0A` +
+                    `*VEÍCULO:* ${v}%0A__________________________%0A%0A` +
+                    `*PLACA:* ${p}%0A__________________________%0A%0A` +
+                    `*COR DO SELO:* ${selo}%0A__________________________%0A%0A` +
+                    `*KM INICIAL:* ${ki}%0A__________________________%0A%0A` +
+                    `*KM FINAL:* ${kf}%0A__________________________%0A%0A` +
+                    `*ÓLEO:* ${oleo}%0A__________________________%0A%0A` +
+                    `*PRÓX. TROCA (${tipoTroca.toUpperCase()}):* ${proxTroca}%0A__________________________%0A%0A` +
+                    `*OBSERVAÇÕES:* ${obs}`;
 
         window.open("https://api.whatsapp.com/send?text=" + texto);
     }
 </script>
-
 </body>
 </html>
