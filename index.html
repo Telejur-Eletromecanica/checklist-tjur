@@ -17,8 +17,8 @@
         .status-memoria { font-size: 12px; font-weight: bold; margin-top: 5px; display: none; padding: 10px; border-radius: 8px; text-align: center; }
         .alerta-erro { background: #ffebee; color: #d32f2f; border: 1px solid #ef9a9a; display: block !important; }
         .alerta-sucesso { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; display: block !important; }
-        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; }
-        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; }
+        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.3s; }
+        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.3s; }
         .btn-bloqueado { background: #9e9e9e !important; cursor: not-allowed !important; opacity: 0.6; }
         .hidden { display: none; }
     </style>
@@ -107,7 +107,7 @@
         <label>OBSERVAÇÕES / AVARIAS</label>
         <textarea id="obs" rows="3" placeholder="Descreva problemas se houver..."></textarea>
 
-        <button type="button" id="btnAcao" onclick="processar()">SALVAR INÍCIO DE TRAJETO</button>
+        <button type="button" id="btnAcao" onclick="processar()" class="btn-azul">SALVAR INÍCIO DE TRAJETO</button>
     </form>
 </div>
 
@@ -116,6 +116,19 @@
         const agora = new Date();
         return String(agora.getHours()).padStart(2, '0') + ":" + String(agora.getMinutes()).padStart(2, '0');
     }
+
+    // FUNÇÃO PARA AUTOMATIZAR A DATA
+    function setarDataHoje() {
+        const hoje = new Date();
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const ano = hoje.getFullYear();
+        document.getElementById('data').value = `${ano}-${mes}-${dia}`;
+    }
+
+    window.onload = function() {
+        setarDataHoje();
+    };
 
     function mascaraKM(input) {
         let value = input.value.replace(/\D/g, "");
@@ -139,7 +152,7 @@
         const donoDaReserva = localStorage.getItem(chaveReserva);
 
         if (donoDaReserva && donoDaReserva !== nomeC) {
-            msg.innerText = `⚠ O ${numC} já foi ocupado por ${donoDaReserva} hoje. Escolha outro número!`;
+            msg.innerText = `⚠ O ${numC} já foi ocupado por ${donoDaReserva} hoje.`;
             msg.className = "status-memoria alerta-erro";
             btn.disabled = true;
             btn.classList.add("btn-bloqueado");
@@ -147,11 +160,7 @@
             msg.style.display = "none";
             btn.disabled = false;
             btn.classList.remove("btn-bloqueado");
-            if(document.getElementById("tipoLancamento").value === "FIM") {
-                btn.className = "btn-verde";
-            } else {
-                btn.className = "btn-azul";
-            }
+            gerenciarInterface(); // Restaura cor correta
         }
     }
 
@@ -159,13 +168,11 @@
         var tipo = document.getElementById("tipoLancamento").value;
         var btn = document.getElementById("btnAcao");
         var campoFim = document.getElementById("campoFim");
-        var msg = document.getElementById("msgStatus");
 
         if (tipo === "INICIO") {
             btn.innerText = "SALVAR INÍCIO DE TRAJETO";
             btn.className = "btn-azul";
             campoFim.className = "hidden";
-            msg.style.display = "none";
         } else {
             btn.innerText = "ENVIAR CHECKLIST COMPLETO";
             btn.className = "btn-verde";
@@ -176,8 +183,7 @@
     }
 
     function completar() {
-        const hoje = new Date().toISOString().split('T')[0];
-        document.getElementById('data').value = hoje;
+        setarDataHoje();
         var s = document.getElementById("tag");
         var sel = s.options[s.selectedIndex];
         document.getElementById("veiculo").value = sel.getAttribute("data-v") || "";
@@ -199,8 +205,7 @@
         localStorage.setItem(`reserva_${tag}_${data}_${numC}`, nomeC);
 
         const dados = {
-            num: numC,
-            nome: nomeC,
+            num: numC, nome: nomeC,
             veiculo: document.getElementById("veiculo").value,
             placa: document.getElementById("placa").value,
             selo: document.getElementById("corSelo").value,
@@ -239,34 +244,22 @@
             var kf = parseFloat(document.getElementById("kmf").value);
             var ki = parseFloat(document.getElementById("kmi").value);
             var tag = document.getElementById("tag").value;
-
             if(!kf) { alert("Preencha o KM FINAL!"); return; }
-            
             var salvo = JSON.parse(localStorage.getItem("tjur_temp_" + tag));
-            if(!salvo) { alert("Erro: Início não encontrado para esta TAG!"); return; }
-
             var percorrido = (kf - ki).toFixed(1);
             var d_format = document.getElementById("data").value.split('-').reverse().join('/');
 
-            var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A==========================%0A%0A` +
-                        `*DATA:* ${d_format}%0A` +
-                        `*HORA INÍCIO:* ${salvo.horaI}%0A` +
-                        `*HORA FIM:* ${getHoraAtual()}%0A` +
+            var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A%0A` +
+                        `*DATA:* ${d_format}%0A*HORA INÍCIO:* ${salvo.horaI}%0A*HORA FIM:* ${getHoraAtual()}%0A` +
                         `__________________________%0A%0A` +
-                        `*ID:* ${document.getElementById("numCondutor").value}%0A` +
-                        `*CONDUTOR:* ${document.getElementById("nomeCondutor").value}%0A` +
+                        `*ID:* ${document.getElementById("numCondutor").value}%0A*CONDUTOR:* ${document.getElementById("nomeCondutor").value}%0A` +
                         `__________________________%0A%0A` +
-                        `*TAG:* ${tag}%0A` +
-                        `*VEÍCULO:* ${document.getElementById("veiculo").value}%0A` +
-                        `*PLACA:* ${document.getElementById("placa").value}%0A` +
+                        `*TAG:* ${tag}%0A*VEÍCULO:* ${document.getElementById("veiculo").value}%0A*PLACA:* ${document.getElementById("placa").value}%0A` +
                         `__________________________%0A%0A` +
-                        `*COR DO SELO:* ${document.getElementById("corSelo").value}%0A` +
-                        `*KM INICIAL:* ${ki.toFixed(1)}%0A` +
-                        `*KM FINAL:* ${kf.toFixed(1)}%0A` +
+                        `*COR DO SELO:* ${document.getElementById("corSelo").value}%0A*KM INICIAL:* ${ki.toFixed(1)}%0A*KM FINAL:* ${kf.toFixed(1)}%0A` +
                         `*TOTAL PERCORRIDO:* ${percorrido} KM%0A` +
                         `__________________________%0A%0A` +
-                        `*ÓLEO:* ${document.getElementById("tipoOleo").value || "N/I"}%0A` +
-                        `*OBS:* ${document.getElementById("obs").value || "SEM OBS"}`;
+                        `*ÓLEO:* ${document.getElementById("tipoOleo").value || "N/I"}%0A*OBS:* ${document.getElementById("obs").value || "SEM OBS"}`;
             
             window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto.replace(/%0A/g, '\n')).replace(/%250A/g, '%0A');
             localStorage.removeItem("tjur_temp_" + tag);
