@@ -15,9 +15,14 @@
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         input[readonly], input:disabled { background: #f1f3f4; border: 1px dashed #ccc; color: #666; cursor: not-allowed; }
         .hidden { display: none; }
-        .status-memoria { font-size: 11px; color: #2e7d32; font-weight: bold; margin-top: 5px; display: none; }
-        button { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        button:active { background: #128C7E; transform: scale(0.98); }
+        .status-memoria { font-size: 12px; color: #d32f2f; font-weight: bold; margin-top: 5px; display: none; background: #ffebee; padding: 5px; border-radius: 4px; text-align: center; }
+        
+        /* Botão Salvar (Azul) */
+        .btn-save { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        /* Botão Enviar (Verde) */
+        .btn-send { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        button:active { transform: scale(0.98); opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -31,14 +36,16 @@
     <h2>CHECKLIST DE VEÍCULO</h2>
 
     <form id="formChecklist">
-        <label>DATA DO RELATÓRIO</label>
-        <input type="date" id="data" required>
-
         <label>TIPO DE TRAJETO</label>
-        <select id="tipoLancamento" onchange="gerenciarTrajeto()" required>
-            <option value="INICIO">INÍCIO DE TRAJETO</option>
-            <option value="FIM">FIM DE TRAJETO</option>
+        <select id="tipoLancamento" onchange="gerenciarInterface()" required>
+            <option value="INICIO">INÍCIO DE TRAJETO (SALVAR)</option>
+            <option value="FIM">FIM DE TRAJETO (ENVIAR)</option>
         </select>
+
+        <div id="msgStatus" class="status-memoria"></div>
+
+        <label>DATA</label>
+        <input type="date" id="data" required>
 
         <label>CONDUTOR</label>
         <select id="condutor" required>
@@ -82,10 +89,11 @@
 
         <label>KM INICIAL</label>
         <input type="text" id="kmi" inputmode="numeric" placeholder="0.0" oninput="mascaraKM(this)" required>
-        <div id="msgMemoria" class="status-memoria">✓ KM Recuperado do início do trajeto</div>
 
-        <label id="labelKMF">KM FINAL</label>
-        <input type="text" id="kmf" inputmode="numeric" placeholder="0.0" oninput="mascaraKM(this)" disabled>
+        <div id="campoFim" class="hidden">
+            <label>KM FINAL</label>
+            <input type="text" id="kmf" inputmode="numeric" placeholder="0.0" oninput="mascaraKM(this)">
+        </div>
 
         <label>TIPO DE ÓLEO</label>
         <input type="text" id="tipoOleo" placeholder="Ex: 15W40">
@@ -101,15 +109,16 @@
         </div>
 
         <label>OBSERVAÇÕES / AVARIAS</label>
-        <textarea id="obs" rows="3" placeholder="Descreva problemas ou avarias..."></textarea>
+        <textarea id="obs" rows="3" placeholder="Descreva problemas se houver..."></textarea>
 
-        <button type="button" onclick="enviarWhatsApp()">ENVIAR VIA WHATSAPP</button>
+        <button type="button" id="btnAcao" onclick="processar()">SALVAR INÍCIO DE TRAJETO</button>
     </form>
 </div>
 
 <script>
     window.onload = function() {
         document.getElementById('data').valueAsDate = new Date();
+        gerenciarInterface();
     };
 
     function mascaraKM(input) {
@@ -120,28 +129,22 @@
         } else { input.value = ""; }
     }
 
-    function gerenciarTrajeto() {
+    function gerenciarInterface() {
         var tipo = document.getElementById("tipoLancamento").value;
-        var tag = document.getElementById("tag").value;
-        var campoKMI = document.getElementById("kmi");
-        var campoKMF = document.getElementById("kmf");
-        var msg = document.getElementById("msgMemoria");
+        var btn = document.getElementById("btnAcao");
+        var campoFim = document.getElementById("campoFim");
+        var msg = document.getElementById("msgStatus");
 
-        if (tipo === "FIM") {
-            campoKMF.disabled = false;
-            campoKMF.required = true;
-            
-            // Tenta recuperar o KM salvo para esta TAG
-            var salvo = localStorage.getItem("km_inicio_" + tag);
-            if (salvo && tag !== "") {
-                campoKMI.value = salvo;
-                msg.style.display = "block";
-            }
-        } else {
-            campoKMF.disabled = true;
-            campoKMF.value = "";
-            campoKMF.required = false;
+        if (tipo === "INICIO") {
+            btn.innerText = "SALVAR INÍCIO DE TRAJETO";
+            btn.className = "btn-save";
+            campoFim.className = "hidden";
             msg.style.display = "none";
+        } else {
+            btn.innerText = "ENVIAR CHECKLIST COMPLETO";
+            btn.className = "btn-send";
+            campoFim.className = "";
+            recuperarDados();
         }
     }
 
@@ -155,42 +158,81 @@
         document.getElementById("divTrocaData").classList.toggle("hidden", tipoTroca !== "data");
         document.getElementById("divTrocaKM").classList.toggle("hidden", tipoTroca !== "km");
         
-        gerenciarTrajeto(); // Recalcula memória se mudar a TAG
+        if(document.getElementById("tipoLancamento").value === "FIM") recuperarDados();
     }
 
-    function enviarWhatsApp() {
-        var form = document.getElementById('formChecklist');
-        if(!form.checkValidity()){
-            alert("Por favor, preencha todos os campos obrigatórios.");
+    function processar() {
+        var tipo = document.getElementById("tipoLancamento").value;
+        if (tipo === "INICIO") {
+            salvarDados();
+        } else {
+            enviarWhatsApp();
+        }
+    }
+
+    function salvarDados() {
+        var tag = document.getElementById("tag").value;
+        if (!tag || !document.getElementById("kmi").value) {
+            alert("Preencha a TAG e o KM Inicial para salvar.");
             return;
         }
 
-        var tipoT = document.getElementById('tipoLancamento').value;
-        var ki = document.getElementById('kmi').value;
-        var tag = document.getElementById('tag').value;
+        var dados = {
+            condutor: document.getElementById("condutor").value,
+            kmi: document.getElementById("kmi").value,
+            cor: document.getElementById("corSelo").value,
+            oleo: document.getElementById("tipoOleo").value,
+            obs: document.getElementById("obs").value
+        };
 
-        // SALVAR NA MEMÓRIA SE FOR INÍCIO
-        if (tipoT === "INICIO") {
-            localStorage.setItem("km_inicio_" + tag, ki);
-        } else {
-            // Se for FIM, limpa a memória para o próximo dia
-            localStorage.removeItem("km_inicio_" + tag);
+        localStorage.setItem("tjur_temp_" + tag, JSON.stringify(dados));
+        alert("INÍCIO DE TRAJETO SALVO NO CELULAR!\n\nQuando terminar o serviço, mude para 'FIM DE TRAJETO' e envie para o WhatsApp.");
+    }
+
+    function recuperarDados() {
+        var tag = document.getElementById("tag").value;
+        var msg = document.getElementById("msgStatus");
+        var salvo = localStorage.getItem("tjur_temp_" + tag);
+
+        if (salvo && tag !== "") {
+            var dados = JSON.parse(salvo);
+            document.getElementById("condutor").value = dados.condutor;
+            document.getElementById("kmi").value = dados.kmi;
+            document.getElementById("corSelo").value = dados.cor;
+            document.getElementById("tipoOleo").value = dados.oleo;
+            document.getElementById("obs").value = dados.obs;
+            
+            msg.innerText = "✓ DADOS DO INÍCIO RECUPERADOS";
+            msg.style.display = "block";
+            msg.style.color = "#2e7d32";
+            msg.style.background = "#e8f5e9";
+        } else if (tag !== "") {
+            msg.innerText = "⚠ NENHUM INÍCIO SALVO PARA ESTA TAG";
+            msg.style.display = "block";
+            msg.style.color = "#d32f2f";
+            msg.style.background = "#ffebee";
+        }
+    }
+
+    function enviarWhatsApp() {
+        if(!document.getElementById("kmf").value) {
+            alert("Preencha o KM FINAL para enviar.");
+            return;
         }
 
-        // Coleta de dados para o texto
+        var tag = document.getElementById("tag").value;
         var d = document.getElementById('data').value.split('-').reverse().join('/');
-        var tipoT_Text = document.getElementById('tipoLancamento').options[document.getElementById('tipoLancamento').selectedIndex].text;
         var c = document.getElementById('condutor').value;
         var v = document.getElementById('veiculo').value;
         var p = document.getElementById('placa').value;
         var selo = document.getElementById('corSelo').value;
-        var kf = document.getElementById('kmf').value || "---";
+        var ki = document.getElementById('kmi').value;
+        var kf = document.getElementById('kmf').value;
         var oleo = document.getElementById('tipoOleo').value || "NÃO INFORMADO";
         var obs = document.getElementById('obs').value || "SEM OBSERVAÇÕES";
 
         var proxTroca = "NÃO INFORMADO";
-        var s = document.getElementById("tag");
-        var tipoTroca = s.options[s.selectedIndex].getAttribute("data-troca") || "km";
+        var tipoTroca = document.getElementById("tag").options[document.getElementById("tag").selectedIndex].getAttribute("data-troca");
         
         if(tipoTroca === "data") {
             var dt = document.getElementById('dataTroca').value;
@@ -202,7 +244,6 @@
         var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A` +
                     `==========================%0A%0A%0A` + 
                     `*DATA:* ${d}%0A__________________________%0A%0A` +
-                    `*TIPO DE TRAJETO:* ${tipoT_Text}%0A__________________________%0A%0A` +
                     `*CONDUTOR:* ${c}%0A__________________________%0A%0A` +
                     `*TAG:* ${tag}%0A__________________________%0A%0A` +
                     `*VEÍCULO:* ${v}%0A__________________________%0A%0A` +
@@ -212,10 +253,4 @@
                     `*KM FINAL:* ${kf}%0A__________________________%0A%0A` +
                     `*ÓLEO:* ${oleo}%0A__________________________%0A%0A` +
                     `*PRÓX. TROCA (${tipoTroca.toUpperCase()}):* ${proxTroca}%0A__________________________%0A%0A` +
-                    `*OBSERVAÇÕES:* ${obs}`;
-
-        window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto.replace(/%0A/g, '\n')).replace(/%250A/g, '%0A');
-    }
-</script>
-</body>
-</html>
+                    `*OBSER
