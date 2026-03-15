@@ -88,10 +88,12 @@
 </div>
 
 <script>
+    // Define a data atual ao abrir
     window.onload = function() {
         document.getElementById('data').valueAsDate = new Date();
     };
 
+    // Função de Ponto Automático nos KMs
     function mascaraKM(input) {
         let value = input.value.replace(/\D/g, "");
         if (value.length > 0) {
@@ -102,6 +104,7 @@
         }
     }
 
+    // Habilita/Desabilita KM Final baseado na jornada
     function ajustarCamposKM() {
         var tipo = document.getElementById("tipoLancamento").value;
         var campoKMF = document.getElementById("kmf");
@@ -113,6 +116,7 @@
         }
     }
 
+    // Preenchimento automático de Veículo e Placa pela TAG
     function completar() {
         var s = document.getElementById("tag");
         var sel = s.options[s.selectedIndex];
@@ -137,8 +141,8 @@
         var dTrocaRaw = document.getElementById('dataTroca').value;
         var dTroca = dTrocaRaw ? dTrocaRaw.split('-').reverse().join('/') : "NÃO INFORMADO";
 
-        // Título formatado com negrito+itálico e sublinhado duplo manual
-        var texto = `*~CHECKLIST VEÍCULOS - TELEJUR~*%0A` +
+        // FORMATAÇÃO DO RELATÓRIO WHATSAPP
+        var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A` +
                     `==========================%0A%0A%0A` + 
                     `*DATA:* ${d}%0A` +
                     `__________________________%0A%0A` +
