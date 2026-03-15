@@ -34,7 +34,7 @@
         <label>DATA DO RELATÓRIO</label>
         <input type="date" id="data">
 
-        <label>JORNADA/TRAJETO</label>
+        <label>TIPO DE TRAJETO</label>
         <select id="tipoLancamento" onchange="ajustarCamposKM()" required>
             <option value="INICIO">INÍCIO DE TRAJETO</option>
             <option value="FIM">FIM DE TRAJETO</option>
@@ -88,12 +88,10 @@
 </div>
 
 <script>
-    // Define a data atual ao abrir
     window.onload = function() {
         document.getElementById('data').valueAsDate = new Date();
     };
 
-    // Função de Ponto Automático nos KMs
     function mascaraKM(input) {
         let value = input.value.replace(/\D/g, "");
         if (value.length > 0) {
@@ -104,7 +102,6 @@
         }
     }
 
-    // Habilita/Desabilita KM Final baseado na jornada
     function ajustarCamposKM() {
         var tipo = document.getElementById("tipoLancamento").value;
         var campoKMF = document.getElementById("kmf");
@@ -116,7 +113,6 @@
         }
     }
 
-    // Preenchimento automático de Veículo e Placa pela TAG
     function completar() {
         var s = document.getElementById("tag");
         var sel = s.options[s.selectedIndex];
@@ -130,7 +126,7 @@
 
     function enviarWhatsApp() {
         var d = document.getElementById('data').value.split('-').reverse().join('/');
-        var tipoL = document.getElementById('tipoLancamento').options[document.getElementById('tipoLancamento').selectedIndex].text;
+        var tipoT = document.getElementById('tipoLancamento').options[document.getElementById('tipoLancamento').selectedIndex].text;
         var c = document.getElementById('condutor').value;
         var t = document.getElementById('tag').value;
         var v = document.getElementById('veiculo').value;
@@ -141,12 +137,11 @@
         var dTrocaRaw = document.getElementById('dataTroca').value;
         var dTroca = dTrocaRaw ? dTrocaRaw.split('-').reverse().join('/') : "NÃO INFORMADO";
 
-        // FORMATAÇÃO DO RELATÓRIO WHATSAPP
         var texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A` +
                     `==========================%0A%0A%0A` + 
                     `*DATA:* ${d}%0A` +
                     `__________________________%0A%0A` +
-                    `*JORNADA:* ${tipoL}%0A` +
+                    `*TIPO DE TRAJETO:* ${tipoT}%0A` +
                     `__________________________%0A%0A` +
                     `*CONDUTOR:* ${c}%0A` +
                     `__________________________%0A%0A` +
