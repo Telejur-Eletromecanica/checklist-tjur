@@ -17,7 +17,6 @@
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; }
         .hidden { display: none; }
-        .alerta-erro { font-size: 13px; font-weight: bold; margin-top: 10px; text-align: center; color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 8px; border: 1px solid #ef9a9a; display: none; }
         #telaEspera { text-align: center; padding: 20px; display: none; }
         .status-badge { background: #e3f2fd; color: #1a237e; padding: 10px; border-radius: 50px; font-weight: bold; font-size: 12px; text-transform: uppercase; display: inline-block; margin-bottom: 15px; border: 1px solid #1a237e; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 14px; }
@@ -35,7 +34,7 @@
         <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
         <form id="formChecklist">
             <label>TAG DO VEÍCULO</label>
-            <select id="tag" onchange="completar()" required>
+            <select id="tag" onchange="completar()">
                 <option value="">SELECIONE A TAG</option>
                 <option value="TJUR 04">TJUR 04</option>
                 <option value="TJUR 06">TJUR 06</option>
@@ -46,10 +45,8 @@
                 <option value="TJUR 13">TJUR 13</option>
             </select>
 
-            <div id="msgTrava" class="alerta-erro"></div>
-
             <label>IDENTIFICAÇÃO</label>
-            <select id="numCondutor" onchange="validarDono()" required>
+            <select id="numCondutor">
                 <option value="">SELECIONE</option>
                 <option>CONDUTOR 1</option><option>CONDUTOR 2</option><option>CONDUTOR 3</option>
                 <option>CONDUTOR 4</option><option>CONDUTOR 5</option><option>CONDUTOR 6</option>
@@ -57,7 +54,7 @@
             </select>
             
             <label>NOME DO CONDUTOR</label>
-            <select id="nomeCondutor" onchange="validarDono()" required>
+            <select id="nomeCondutor">
                 <option value="">SELECIONE</option>
                 <option>ADRIANO NASCIMENTO</option>
                 <option>FRANCIVALDO COSTA</option>
@@ -70,10 +67,10 @@
             </select>
 
             <label>KM INICIAL</label>
-            <input type="text" id="kmi" inputmode="numeric" oninput="mascaraKM(this)" required>
+            <input type="text" id="kmi" inputmode="numeric" oninput="mascaraKM(this)">
 
             <label>COR DO SELO</label>
-            <select id="corSelo" required>
+            <select id="corSelo">
                 <option value="">SELECIONE</option>
                 <option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
             </select>
@@ -89,7 +86,7 @@
             <label>OBSERVAÇÃO</label>
             <textarea id="obs" rows="2"></textarea>
 
-            <button type="button" id="btnAcao" onclick="processarPrincipal()" class="btn-azul">SALVAR INÍCIO DE TRAJETO</button>
+            <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn-azul">SALVAR INÍCIO DE TRAJETO</button>
         </form>
     </div>
 
@@ -102,11 +99,6 @@
 </div>
 
 <script>
-    function getHoraAtual() {
-        const agora = new Date();
-        return String(agora.getHours()).padStart(2, '0') + ":" + String(agora.getMinutes()).padStart(2, '0');
-    }
-
     function mascaraKM(input) {
         let value = input.value.replace(/\D/g, "");
         if (value.length > 0) {
@@ -125,35 +117,11 @@
         }
     };
 
-    function validarDono() {
-        const tag = document.getElementById("tag").value;
-        const hoje = new Date().toISOString().split('T')[0];
-        const nome = document.getElementById("nomeCondutor").value;
-        const idAtual = document.getElementById("numCondutor").value;
-        const msg = document.getElementById("msgTrava");
-        const btn = document.getElementById("btnAcao");
-
-        if (!tag || !nome || !idAtual) return;
-        const idRegistrado = localStorage.getItem(`dono_${tag}_${hoje}_${nome}`);
-
-        if (idRegistrado && idRegistrado !== idAtual) {
-            msg.innerText = `⚠ Você já é ${idRegistrado} hoje!`;
-            msg.style.display = "block";
-            btn.disabled = true;
-            btn.style.opacity = "0.5";
-        } else {
-            msg.style.display = "none";
-            btn.disabled = false;
-            btn.style.opacity = "1";
-        }
-    }
-
     function completar() {
         const tag = document.getElementById("tag").value;
         if(localStorage.getItem("tjur_temp_" + tag)) {
             exibirTelaEspera(tag);
         }
-        validarDono();
     }
 
     function exibirTelaEspera(tag) {
@@ -162,6 +130,26 @@
         document.getElementById("telaEspera").style.display = "block";
         document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${tag}<br><b>CONDUTOR:</b> ${salvo.nome}<br><b>INÍCIO:</b> ${salvo.horaI}`;
         document.getElementById("telaEspera").setAttribute("data-tag", tag);
+    }
+
+    function iniciarTrajeto() {
+        const tag = document.getElementById("tag").value;
+        const nome = document.getElementById("nomeCondutor").value;
+        const idNum = document.getElementById("numCondutor").value;
+        const kmi = document.getElementById("kmi").value;
+
+        if(!tag || !idNum || !nome || !kmi) { alert("Preencha todos os campos!"); return; }
+
+        const dados = {
+            num: idNum, nome: nome, kmi: kmi,
+            selo: document.getElementById("corSelo").value,
+            oleo: document.getElementById("tipoOleo").value,
+            obs: document.getElementById("obs").value,
+            horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            data: new Date().toLocaleDateString('pt-BR')
+        };
+        localStorage.setItem("tjur_temp_" + tag, JSON.stringify(dados));
+        exibirTelaEspera(tag);
     }
 
     function irParaFinalizar() {
@@ -185,40 +173,19 @@
         document.getElementById("btnAcao").onclick = enviarWhatsApp;
     }
 
-    function processarPrincipal() {
-        const tag = document.getElementById("tag").value;
-        const nome = document.getElementById("nomeCondutor").value;
-        const idNum = document.getElementById("numCondutor").value;
-        const kmi = document.getElementById("kmi").value;
-        const hoje = new Date().toISOString().split('T')[0];
-
-        if(!tag || !idNum || !nome || !kmi) { alert("Preencha os campos!"); return; }
-
-        localStorage.setItem(`dono_${tag}_${hoje}_${nome}`, idNum);
-        const dados = {
-            num: idNum, nome: nome, kmi: kmi,
-            selo: document.getElementById("corSelo").value,
-            oleo: document.getElementById("tipoOleo").value,
-            obs: document.getElementById("obs").value,
-            horaI: getHoraAtual(), data: hoje
-        };
-        localStorage.setItem("tjur_temp_" + tag, JSON.stringify(dados));
-        exibirTelaEspera(tag);
-    }
-
     function enviarWhatsApp() {
         const tag = document.getElementById("tag").value;
         const salvo = JSON.parse(localStorage.getItem("tjur_temp_" + tag));
         const kmf = document.getElementById("kmf").value;
+        const horaFim = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
         if(!kmf) { alert("Informe o KM Final!"); return; }
 
         const total = (parseFloat(kmf) - parseFloat(salvo.kmi)).toFixed(1);
-        const dataF = salvo.data.split('-').reverse().join('/');
 
         const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n\n` +
-            `*DATA:* ${dataF}\n` +
-            `*INÍCIO:* ${salvo.horaI} | *FIM:* ${getHoraAtual()}\n` +
+            `*DATA:* ${salvo.data}\n` +
+            `*INÍCIO:* ${salvo.horaI} | *FIM:* ${horaFim}\n` +
             `__________\n\n` +
             `*ID:* ${salvo.num}\n` +
             `*CONDUTOR:* ${salvo.nome}\n` +
@@ -233,11 +200,19 @@
             `*ÓLEO:* ${document.getElementById("tipoOleo").value || "NÃO INFORMADO"}\n` +
             `*OBSERVAÇÃO:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}`;
 
-        const wpUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(mensagem);
+        // Protocolo universal para abrir o APP
+        const wpLink = "whatsapp://send?text=" + encodeURIComponent(mensagem);
         
-        // Limpeza e Redirecionamento
         localStorage.removeItem("tjur_temp_" + tag);
-        window.location.href = wpUrl;
+        
+        // Tenta abrir o link
+        window.location.href = wpLink;
+        
+        // Fallback para navegadores que bloqueiam o protocolo direto
+        setTimeout(() => {
+            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(mensagem), "_blank");
+            location.reload();
+        }, 500);
     }
 </script>
 </body>
