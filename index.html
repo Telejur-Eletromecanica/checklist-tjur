@@ -12,29 +12,38 @@
         .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
         
-        h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
+        /* TÍTULO COM SUBLINHADO DUPLO E ESPAÇO DE 2 LINHAS */
+        h2 { 
+            text-align: center; 
+            color: #333; 
+            font-size: 18px; 
+            margin-top: 20px; 
+            border-bottom: 3px double #1a237e; 
+            padding-bottom: 5px; 
+            margin-bottom: 30px; /* Equivale a duas quebras de linha */
+        }
         
-        /* LINHA DE SEPARAÇÃO EM CADA CAMPO */
+        /* LINHA DE SEPARAÇÃO E QUEBRA DE LINHA ENTRE CAMPOS */
         .campo-grupo { 
-            border-bottom: 1px solid #ddd; 
-            padding-bottom: 10px; 
-            margin-bottom: 5px; 
+            border-bottom: 1px solid #ccc; 
+            padding-bottom: 8px; 
+            margin-bottom: 15px; /* Equivale a uma quebra de linha de respiro */
         }
 
-        label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
+        label { font-weight: bold; font-size: 11px; color: #555; display: block; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; box-sizing: border-box; background: #fdfdfd; }
         
         .readonly-field { background: #f0f0f0; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
         
-        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-azul:disabled { background: #9da3d1; cursor: not-allowed; }
-        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
         .hidden { display: none; }
-        .alerta-erro { background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; border: 1px solid #ef9a9a; display: none; text-align: center; line-height: 1.4; }
+        .alerta-erro { background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-bottom: 15px; border: 1px solid #ef9a9a; display: none; text-align: center; }
         
         #telaEspera { text-align: center; padding: 20px; display: none; }
-        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
+        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; border-bottom: 1px solid #ccc; }
     </style>
 </head>
 <body>
@@ -47,6 +56,7 @@
 
     <div id="containerForm">
         <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
+        
         <form id="formChecklist">
             
             <div class="campo-grupo">
@@ -70,12 +80,12 @@
 
             <div class="campo-grupo">
                 <label>VEÍCULO</label>
-                <input type="text" id="displayVeiculo" class="readonly-field" readonly placeholder="Aguardando Tag...">
+                <input type="text" id="displayVeiculo" class="readonly-field" readonly placeholder="Aguardando TAG...">
             </div>
 
             <div class="campo-grupo">
                 <label>PLACA</label>
-                <input type="text" id="displayPlaca" class="readonly-field" readonly placeholder="---">
+                <input type="text" id="displayPlaca" class="readonly-field" readonly>
             </div>
 
             <div id="msgErroVinc" class="alerta-erro"></div>
@@ -130,7 +140,7 @@
                 <input type="date" id="proximaTrocaData" class="hidden">
             </div>
 
-            <div class="campo-grupo" style="border:none;">
+            <div class="campo-grupo" style="border-bottom: none;">
                 <label>OBSERVAÇÃO</label>
                 <textarea id="obs" rows="2"></textarea>
             </div>
@@ -281,6 +291,7 @@
         if(!kmf) { alert("Informe o KM Final!"); return; }
         
         const total = (parseFloat(kmf) - parseFloat(salvo.kmi)).toFixed(1);
+        if(total < 0) { alert("KM Final inválido!"); return; }
         
         let proxOleo = salvo.veiculo === "SKY MUNCK" ? 
             (salvo.oleoData ? salvo.oleoData.split('-').reverse().join('/') : "NÃO INFORMADO") : 
@@ -312,7 +323,11 @@
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}`;
+            document.getElementById("resumoTrajeto").innerHTML = `
+                <div style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px;"><b>TAG:</b> ${d.tag}</div>
+                <div style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px;"><b>ID:</b> ${d.num}</div>
+                <div style="border-bottom: 1px solid #ccc; padding-bottom: 5px;"><b>CONDUTOR:</b> ${d.nome}</div>
+            `;
         }
     };
 </script>
