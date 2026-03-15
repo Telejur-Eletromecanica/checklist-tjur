@@ -12,38 +12,52 @@
         .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
         
-        /* TÍTULO COM SUBLINHADO DUPLO E ESPAÇO DE 2 LINHAS */
+        /* TÍTULO COM SUBLINHADO DUPLO */
         h2 { 
             text-align: center; 
             color: #333; 
             font-size: 18px; 
-            margin-top: 20px; 
-            border-bottom: 3px double #1a237e; 
-            padding-bottom: 5px; 
-            margin-bottom: 30px; /* Equivale a duas quebras de linha */
-        }
-        
-        /* LINHA DE SEPARAÇÃO E QUEBRA DE LINHA ENTRE CAMPOS */
-        .campo-grupo { 
-            border-bottom: 1px solid #ccc; 
-            padding-bottom: 8px; 
-            margin-bottom: 15px; /* Equivale a uma quebra de linha de respiro */
+            margin-top: 10px;
+            display: inline-block;
+            width: 100%;
+            text-decoration: underline;
+            text-decoration-style: double; /* Sublinhado duplo no texto */
+            padding-bottom: 5px;
         }
 
-        label { font-weight: bold; font-size: 11px; color: #555; display: block; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; box-sizing: border-box; background: #fdfdfd; }
+        /* ESTILO DOS RÓTULOS COM SUBLINHADO SIMPLES */
+        .sublinhado-simples {
+            text-decoration: underline;
+            font-weight: bold;
+            font-size: 11px;
+            color: #555;
+            text-transform: uppercase;
+        }
+
+        .campo-grupo { margin-bottom: 5px; }
+
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            margin-top: 5px; 
+            border-radius: 8px; 
+            border: 1px solid #ddd; 
+            font-size: 15px; 
+            box-sizing: border-box; 
+            background: #fdfdfd; 
+        }
         
         .readonly-field { background: #f0f0f0; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
         
-        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; }
         .btn-azul:disabled { background: #9da3d1; cursor: not-allowed; }
-        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; }
         
         .hidden { display: none; }
         .alerta-erro { background: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-bottom: 15px; border: 1px solid #ef9a9a; display: none; text-align: center; }
         
         #telaEspera { text-align: center; padding: 20px; display: none; }
-        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; border-bottom: 1px solid #ccc; }
+        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -55,17 +69,17 @@
     </div>
 
     <div id="containerForm">
-        <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
+        <h2>CHECKLIST DE VEÍCULO</h2>
+        <br><br>
         
         <form id="formChecklist">
             
             <div class="campo-grupo">
-                <label>DATA DO CHECKLIST</label>
+                <label class="sublinhado-simples">DATA DO CHECKLIST</label>
                 <input type="text" id="dataAuto" class="readonly-field" readonly>
             </div>
-
-            <div class="campo-grupo">
-                <label>TAG DO VEÍCULO</label>
+            <br> <div class="campo-grupo">
+                <label class="sublinhado-simples">TAG DO VEÍCULO</label>
                 <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();">
                     <option value="">SELECIONE A TAG</option>
                     <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
@@ -77,21 +91,24 @@
                     <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
                 </select>
             </div>
+            <br>
 
             <div class="campo-grupo">
-                <label>VEÍCULO</label>
+                <label class="sublinhado-simples">VEÍCULO</label>
                 <input type="text" id="displayVeiculo" class="readonly-field" readonly placeholder="Aguardando TAG...">
             </div>
+            <br>
 
             <div class="campo-grupo">
-                <label>PLACA</label>
+                <label class="sublinhado-simples">PLACA</label>
                 <input type="text" id="displayPlaca" class="readonly-field" readonly>
             </div>
+            <br>
 
             <div id="msgErroVinc" class="alerta-erro"></div>
 
             <div class="campo-grupo">
-                <label>NOME DO CONDUTOR</label>
+                <label class="sublinhado-simples">NOME DO CONDUTOR</label>
                 <select id="nomeCondutor" onchange="validarVinculoFixo()">
                     <option value="">SELECIONE</option>
                     <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
@@ -100,9 +117,10 @@
                     <option>MIRIELLY</option><option>RAIMUNDO WALTER</option>
                 </select>
             </div>
+            <br>
 
             <div class="campo-grupo">
-                <label>IDENTIFICAÇÃO (ID)</label>
+                <label class="sublinhado-simples">IDENTIFICAÇÃO (ID)</label>
                 <select id="numCondutor" onchange="validarVinculoFixo()">
                     <option value="">SELECIONE</option>
                     <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
@@ -110,40 +128,47 @@
                     <option value="CONDUTOR 5">CONDUTOR 5</option><option value="CONDUTOR 6">CONDUTOR 6</option>
                 </select>
             </div>
+            <br>
 
             <div class="campo-grupo">
-                <label>KM INICIAL</label>
+                <label class="sublinhado-simples">KM INICIAL</label>
                 <input type="text" id="kmi" inputmode="numeric" oninput="mascaraKM(this)">
             </div>
+            <br>
 
             <div class="campo-grupo">
-                <label>COR DO SELO</label>
+                <label class="sublinhado-simples">COR DO SELO</label>
                 <select id="corSelo">
                     <option value="">SELECIONE</option>
                     <option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
                 </select>
             </div>
+            <br>
 
             <div class="campo-grupo">
-                <label>VALIDADE DO SELO</label>
+                <label class="sublinhado-simples">VALIDADE DO SELO</label>
                 <input type="date" id="validadeSelo">
             </div>
+            <br>
 
             <div id="campoFim" class="hidden campo-grupo">
-                <label>KM FINAL</label>
+                <label class="sublinhado-simples">KM FINAL</label>
                 <input type="text" id="kmf" inputmode="numeric" oninput="mascaraKM(this)">
+                <br>
             </div>
 
             <div id="blocoOleo" class="campo-grupo">
-                <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO (KM)</label>
+                <label id="labelTrocaOleo" class="sublinhado-simples">PRÓXIMA TROCA DE ÓLEO (KM)</label>
                 <input type="text" id="proximaTrocaKM" inputmode="numeric" oninput="mascaraKM(this)">
                 <input type="date" id="proximaTrocaData" class="hidden">
             </div>
+            <br>
 
-            <div class="campo-grupo" style="border-bottom: none;">
-                <label>OBSERVAÇÃO</label>
+            <div class="campo-grupo">
+                <label class="sublinhado-simples">OBSERVAÇÃO</label>
                 <textarea id="obs" rows="2"></textarea>
             </div>
+            <br>
 
             <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn-azul">SALVAR INÍCIO DE TRAJETO</button>
         </form>
@@ -204,16 +229,13 @@
 
         let historico = JSON.parse(localStorage.getItem("tjur_historico_dia") || "[]");
         historico = historico.filter(h => h.data === dataHojeStr);
-
         const vinculoExistente = historico.find(h => h.tag === tag && h.nome === nome);
 
-        if(vinculoExistente) {
-            if(vinculoExistente.id !== idCond) {
-                btn.disabled = true;
-                msg.innerHTML = `⚠ <b>BLOQUEADO:</b> ${nome}, você já foi definido como <b>${vinculoExistente.id}</b> neste veículo hoje.`;
-                msg.style.display = "block";
-                return true;
-            }
+        if(vinculoExistente && vinculoExistente.id !== idCond) {
+            btn.disabled = true;
+            msg.innerHTML = `⚠ <b>BLOQUEADO:</b> ${nome}, você já foi definido como <b>${vinculoExistente.id}</b> neste veículo hoje.`;
+            msg.style.display = "block";
+            return true;
         }
         
         btn.disabled = false;
@@ -253,8 +275,7 @@
         };
 
         let historico = JSON.parse(localStorage.getItem("tjur_historico_dia") || "[]");
-        const jaExiste = historico.some(h => h.tag === dados.tag && h.nome === dados.nome && h.data === dataHojeStr);
-        if(!jaExiste) {
+        if(!historico.some(h => h.tag === dados.tag && h.nome === dados.nome && h.data === dataHojeStr)) {
             historico.push({ tag: dados.tag, nome: dados.nome, id: dados.num, data: dataHojeStr });
             localStorage.setItem("tjur_historico_dia", JSON.stringify(historico));
         }
@@ -281,7 +302,6 @@
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
         btn.className = "btn-verde";
-        btn.disabled = false;
         btn.onclick = enviarWhatsApp;
     }
 
@@ -304,13 +324,10 @@
             `*HORA FIM:* ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\n\n` +
             `*ID:* ${salvo.num}\n` +
             `*CONDUTOR:* ${salvo.nome}\n\n` +
-            `*TAG:* ${salvo.tag}\n` +
-            `*VEÍCULO:* ${salvo.veiculo}\n` +
-            `*PLACA:* ${salvo.placa}\n\n` +
+            `*TAG:* ${salvo.tag}\n\n` +
             `*KM INICIAL:* ${salvo.kmi}\n` +
-            `*KM FINAL:* ${kmf}\n` +
+            `*KM FINAL:* ${kmf}\n\n` +
             `*TOTAL:* ${total} KM\n\n` +
-            `*PRÓX. ÓLEO:* ${proxOleo}\n` +
             `*OBS:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}`;
 
         localStorage.removeItem("tjur_checklist_ativo");
@@ -323,11 +340,7 @@
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `
-                <div style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px;"><b>TAG:</b> ${d.tag}</div>
-                <div style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px;"><b>ID:</b> ${d.num}</div>
-                <div style="border-bottom: 1px solid #ccc; padding-bottom: 5px;"><b>CONDUTOR:</b> ${d.nome}</div>
-            `;
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}`;
         }
     };
 </script>
