@@ -16,8 +16,9 @@
         input[readonly] { background: #f1f3f4; color: #666; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 25px; }
+        .btn-bloqueado { background: #9e9e9e !important; cursor: not-allowed !important; opacity: 0.6; }
         .hidden { display: none; }
-        .status-msg { font-size: 12px; font-weight: bold; margin-top: 10px; text-align: center; color: #2e7d32; display: none; background: #e8f5e9; padding: 10px; border-radius: 8px; }
+        .alerta-erro { font-size: 13px; font-weight: bold; margin-top: 10px; text-align: center; color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 8px; border: 1px solid #ef9a9a; display: none; }
     </style>
 </head>
 <body>
@@ -37,7 +38,7 @@
             <option value="FIM">FIM DE TRAJETO (ENVIAR)</option>
         </select>
 
-        <div id="msgStatus" class="status-msg"></div>
+        <div id="msgTrava" class="alerta-erro"></div>
 
         <label>TAG DO VEÍCULO</label>
         <select id="tag" onchange="completar()" required>
@@ -55,14 +56,14 @@
         <input type="date" id="data" readonly required>
 
         <label>IDENTIFICAÇÃO</label>
-        <select id="numCondutor" required>
+        <select id="numCondutor" onchange="validarDono()" required>
             <option value="">SELECIONE O NÚMERO</option>
             <option>CONDUTOR 1</option><option>CONDUTOR 2</option><option>CONDUTOR 3</option>
             <option>CONDUTOR 4</option><option>CONDUTOR 5</option>
         </select>
         
         <label>NOME DO CONDUTOR</label>
-        <select id="nomeCondutor" required>
+        <select id="nomeCondutor" onchange="validarDono()" required>
             <option value="">SELECIONE O NOME</option>
             <option>ADRIANO NASCIMENTO</option>
             <option>FRANCIVALDO COSTA</option>
@@ -128,23 +129,48 @@
         } else { input.value = ""; }
     }
 
+    function validarDono() {
+        const tag = document.getElementById("tag").value;
+        const data = document.getElementById("data").value;
+        const nome = document.getElementById("nomeCondutor").value;
+        const idAtual = document.getElementById("numCondutor").value;
+        const msg = document.getElementById("msgTrava");
+        const btn = document.getElementById("btnAcao");
+
+        if (!tag || !nome || !idAtual) return;
+
+        // Verifica se este motorista já se "carimbou" neste veículo hoje
+        const donoChave = `dono_${tag}_${data}_${nome}`;
+        const idRegistrado = localStorage.getItem(donoChave);
+
+        if (idRegistrado && idRegistrado !== idAtual) {
+            msg.innerText = `⚠ Atenção ${nome}, você já está registrado como ${idRegistrado} para este veículo hoje! Não altere para ${idAtual}.`;
+            msg.style.display = "block";
+            btn.disabled = true;
+            btn.classList.add("btn-bloqueado");
+        } else {
+            msg.style.display = "none";
+            btn.disabled = false;
+            btn.classList.remove("btn-bloqueado");
+        }
+    }
+
     function gerenciarInterface() {
         var tipo = document.getElementById("tipoLancamento").value;
         var btn = document.getElementById("btnAcao");
         var campoFim = document.getElementById("campoFim");
-        var msg = document.getElementById("msgStatus");
-
+        
         if (tipo === "INICIO") {
             btn.innerText = "SALVAR INÍCIO DE TRAJETO";
             btn.className = "btn-azul";
             campoFim.className = "hidden";
-            msg.style.display = "none";
         } else {
             btn.innerText = "ENVIAR CHECKLIST COMPLETO";
             btn.className = "btn-verde";
             campoFim.className = "";
             recuperarDados();
         }
+        validarDono();
     }
 
     function completar() {
@@ -154,17 +180,24 @@
         document.getElementById("veiculo").value = sel.getAttribute("data-v") || "";
         document.getElementById("placa").value = sel.getAttribute("data-p") || "";
         if(document.getElementById("tipoLancamento").value === "FIM") recuperarDados();
+        validarDono();
     }
 
     function salvarDados() {
         const tag = document.getElementById("tag").value;
-        if(!tag || !document.getElementById("kmi").value) {
-            alert("Preencha a TAG e o KM Inicial!"); return;
+        const data = document.getElementById("data").value;
+        const nome = document.getElementById("nomeCondutor").value;
+        const idNum = document.getElementById("numCondutor").value;
+
+        if(!tag || !idNum || !nome || !document.getElementById("kmi").value) {
+            alert("Preencha todos os campos obrigatórios!"); return;
         }
 
+        // Salva quem é o dono desse ID para o resto do dia
+        localStorage.setItem(`dono_${tag}_${data}_${nome}`, idNum);
+
         const dados = {
-            num: document.getElementById("numCondutor").value,
-            nome: document.getElementById("nomeCondutor").value,
+            num: idNum, nome: nome,
             veiculo: document.getElementById("veiculo").value,
             placa: document.getElementById("placa").value,
             selo: document.getElementById("corSelo").value,
@@ -180,7 +213,6 @@
     function recuperarDados() {
         var tag = document.getElementById("tag").value;
         var salvo = localStorage.getItem("tjur_temp_" + tag);
-        var msg = document.getElementById("msgStatus");
         if (salvo && tag !== "") {
             var d = JSON.parse(salvo);
             document.getElementById("numCondutor").value = d.num;
@@ -191,8 +223,6 @@
             document.getElementById("kmi").value = d.kmi;
             document.getElementById("tipoOleo").value = d.oleo;
             document.getElementById("obs").value = d.obs;
-            msg.innerText = `✓ DADOS RECUPERADOS (Início às ${d.horaI})`;
-            msg.style.display = "block";
         }
     }
 
@@ -210,37 +240,33 @@
             const kf = parseFloat(document.getElementById("kmf").value);
             const percorrido = (kf - ki).toFixed(1);
             const dataF = document.getElementById("data").value.split('-').reverse().join('/');
-
-            // Ajuste dos nomes conforme solicitado
             const oleoTexto = document.getElementById("tipoOleo").value || "NÃO INFORMADO";
             const obsTexto = document.getElementById("obs").value || "SEM OBSERVAÇÃO";
 
-            const texto = `*_CHECKLIST VEÍCULOS - TELEJUR_*%0A%0A` +
-                          `*DATA:* ${dataF}%0A` +
-                          `*HORA INÍCIO:* ${salvo.horaI}%0A` +
-                          `*HORA FIM:* ${getHoraAtual()}%0A` +
-                          `__________________________%0A%0A` +
-                          `*ID:* ${salvo.num}%0A` +
-                          `*CONDUTOR:* ${salvo.nome}%0A` +
-                          `__________________________%0A%0A` +
-                          `*TAG:* ${tag}%0A` +
-                          `*VEÍCULO:* ${salvo.veiculo}%0A` +
-                          `*PLACA:* ${salvo.placa}%0A` +
-                          `__________________________%0A%0A` +
-                          `*COR DO SELO:* ${document.getElementById("corSelo").value}%0A` +
-                          `*KM INICIAL:* ${ki.toFixed(1)}%0A` +
-                          `*KM FINAL:* ${kf.toFixed(1)}%0A` +
-                          `*TOTAL PERCORRIDO:* ${percorrido} KM%0A` +
-                          `__________________________%0A%0A` +
-                          `*ÓLEO:* ${oleoTexto}%0A` +
+            const texto = `*CHECKLIST VEÍCULOS - TELEJUR*\n\n` +
+                          `*DATA:* ${dataF}\n` +
+                          `*HORA INÍCIO:* ${salvo.horaI}\n` +
+                          `*HORA FIM:* ${getHoraAtual()}\n` +
+                          `__________\n\n` +
+                          `*ID:* ${salvo.num}\n` +
+                          `*CONDUTOR:* ${salvo.nome}\n` +
+                          `__________\n\n` +
+                          `*TAG:* ${tag}\n` +
+                          `*VEÍCULO:* ${salvo.veiculo}\n` +
+                          `*PLACA:* ${salvo.placa}\n` +
+                          `__________\n\n` +
+                          `*COR DO SELO:* ${document.getElementById("corSelo").value}\n` +
+                          `*KM INICIAL:* ${ki.toFixed(1)}\n` +
+                          `*KM FINAL:* ${kf.toFixed(1)}\n` +
+                          `*TOTAL PERCORRIDO:* ${percorrido} KM\n` +
+                          `__________\n\n` +
+                          `*ÓLEO:* ${oleoTexto}\n` +
                           `*OBSERVAÇÃO:* ${obsTexto}`;
             
             window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
             
-            // LIMPA MEMÓRIA APÓS O ENVIO
+            // Limpa o trajeto atual, mas MANTÉM a trava de dono do ID para o dia
             localStorage.removeItem("tjur_temp_" + tag);
-            document.getElementById("formChecklist").reset();
-            setarDataHoje();
         }
     }
 </script>
