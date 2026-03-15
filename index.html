@@ -17,7 +17,7 @@
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .hidden { display: none; }
         #telaEspera { text-align: center; padding: 20px; display: none; }
-        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; }
+        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -109,7 +109,8 @@
     function atualizarInterfacePorTag() {
         const select = document.getElementById("tag");
         const option = select.options[select.selectedIndex];
-        const veiculo = option ? option.getAttribute("data-v") : "";
+        if(!option) return;
+        const veiculo = option.getAttribute("data-v") || "";
         
         const labelOleo = document.getElementById("labelTrocaOleo");
         const inputKM = document.getElementById("proximaTrocaKM");
@@ -130,13 +131,12 @@
         const select = document.getElementById("tag");
         const option = select.options[select.selectedIndex];
         const kmi = document.getElementById("kmi").value;
-        const selo = document.getElementById("corSelo").value;
-        const valSelo = document.getElementById("validadeSelo").value;
+        
+        if(!select.value || !kmi) { alert("TAG e KM Inicial são obrigatórios!"); return; }
 
-        if(!select.value || !kmi || !selo || !valSelo) { 
-            alert("ERRO: Preencha TAG, KM Inicial, Selo e Validade!"); 
-            return; 
-        }
+        // Formata a Validade do Selo
+        const valSeloRaw = document.getElementById("validadeSelo").value;
+        const valSeloFormatada = valSeloRaw ? valSeloRaw.split('-').reverse().join('/') : "NÃO INFORMADO";
 
         const dados = {
             num: document.getElementById("numCondutor").value,
@@ -145,67 +145,66 @@
             veiculo: option.getAttribute("data-v"),
             placa: option.getAttribute("data-p"),
             kmi: kmi,
-            selo: selo,
-            valSelo: valSelo.split('-').reverse().join('/'),
+            selo: document.getElementById("corSelo").value,
+            valSelo: valSeloFormatada,
             oleoKM: document.getElementById("proximaTrocaKM").value,
             oleoData: document.getElementById("proximaTrocaData").value,
             obs: document.getElementById("obs").value,
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             data: new Date().toLocaleDateString('pt-BR')
         };
-        localStorage.setItem("tjur_temp_" + select.value, JSON.stringify(dados));
+        localStorage.setItem("tjur_ativa", JSON.stringify(dados));
         location.reload();
     }
 
     function irParaFinalizar() {
-        const tagKey = Object.keys(localStorage).find(key => key.startsWith("tjur_temp_"));
-        if(!tagKey) return;
+        const salvo = JSON.parse(localStorage.getItem("tjur_ativa"));
+        if(!salvo) return;
         
-        const salvo = JSON.parse(localStorage.getItem(tagKey));
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
         
+        // Preenche campos fixos
         document.getElementById("tag").value = salvo.tag;
         atualizarInterfacePorTag();
         document.getElementById("numCondutor").value = salvo.num;
         document.getElementById("nomeCondutor").value = salvo.nome;
         document.getElementById("kmi").value = salvo.kmi;
         document.getElementById("corSelo").value = salvo.selo;
-        document.getElementById("validadeSelo").value = salvo.valSelo.split('/').reverse().join('-');
         document.getElementById("obs").value = salvo.obs;
         
-        document.getElementById("btnAcao").innerText = "ENVIAR WHATSAPP";
+        document.getElementById("btnAcao").innerText = "GERAR RELATÓRIO WHATSAPP";
         document.getElementById("btnAcao").className = "btn-verde";
         document.getElementById("btnAcao").onclick = enviarWhatsApp;
     }
 
     function enviarWhatsApp() {
-        const tag = document.getElementById("tag").value;
-        const salvo = JSON.parse(localStorage.getItem("tjur_temp_" + tag));
+        const salvo = JSON.parse(localStorage.getItem("tjur_ativa"));
         const kmf = document.getElementById("kmf").value;
         
         if(!kmf) { alert("Informe o KM Final!"); return; }
         
-        const valKmi = parseFloat(salvo.kmi);
-        const valKmf = parseFloat(kmf);
+        const vKmi = parseFloat(salvo.kmi);
+        const vKmf = parseFloat(kmf);
 
-        if(valKmf < valKmi) {
-            alert(`ERRO: KM Final (${valKmf}) não pode ser menor que o Inicial (${valKmi})!`);
+        if(vKmf < vKmi) {
+            alert("ERRO: O KM Final não pode ser menor que o Inicial!");
             return;
         }
 
-        const total = (valKmf - valKmi).toFixed(1);
+        const total = (vKmf - vKmi).toFixed(1);
         
-        // Tratamento para evitar N/I e SEM OBS
+        // TRATAMENTO DO ÓLEO SEM ABREVIAÇÕES
         let proxOleo = "NÃO INFORMADO";
-        if(salvo.veiculo === "SKY MUNCK" && salvo.oleoData) {
-            proxOleo = salvo.oleoData.split('-').reverse().join('/');
-        } else if (salvo.oleoKM) {
-            proxOleo = salvo.oleoKM + " KM";
+        if (salvo.veiculo === "SKY MUNCK") {
+            proxOleo = salvo.oleoData ? salvo.oleoData.split('-').reverse().join('/') : "NÃO INFORMADO";
+        } else {
+            proxOleo = salvo.oleoKM ? salvo.oleoKM + " KM" : "NÃO INFORMADO";
         }
 
-        const observacao = document.getElementById("obs").value.trim() || "SEM OBSERVAÇÃO";
+        // TRATAMENTO DA OBSERVAÇÃO
+        const observacaoFinal = document.getElementById("obs").value.trim() || "SEM OBSERVAÇÃO";
 
         const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n` +
             `==========================\n\n` +
@@ -213,14 +212,14 @@
             `*HORA INÍCIO:* ${salvo.horaI}\n` +
             `*HORA FIM:* ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\n` +
             `__________\n\n` +
-            `*ID:* ${salvo.num}\n` +
-            `*CONDUTOR:* ${salvo.nome}\n` +
+            `*ID:* ${salvo.num || "NÃO INFORMADO"}\n` +
+            `*CONDUTOR:* ${salvo.nome || "NÃO INFORMADO"}\n` +
             `__________\n\n` +
             `*TAG:* ${salvo.tag}\n` +
             `*VEÍCULO:* ${salvo.veiculo}\n` +
             `*PLACA:* ${salvo.placa}\n` +
             `__________\n\n` +
-            `*COR DO SELO:* ${document.getElementById("corSelo").value}\n` +
+            `*COR DO SELO:* ${document.getElementById("corSelo").value || "NÃO INFORMADO"}\n` +
             `*VALIDADE SELO:* ${salvo.valSelo}\n` +
             `__________\n\n` +
             `*KM INICIAL:* ${salvo.kmi}\n` +
@@ -228,23 +227,23 @@
             `*TOTAL PERCORRIDO:* ${total} KM\n` +
             `__________\n\n` +
             `*PRÓX. TROCA ÓLEO:* ${proxOleo}\n` +
-            `*OBS:* ${observacao}`;
+            `*OBS:* ${observacaoFinal}`;
 
-        localStorage.removeItem("tjur_temp_" + tag);
+        localStorage.removeItem("tjur_ativa");
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
     }
 
     window.onload = function() {
-        const tagAberta = Object.keys(localStorage).find(key => key.startsWith("tjur_temp_"));
-        if(tagAberta) {
-            const salvo = JSON.parse(localStorage.getItem(tagAberta));
+        const salvo = localStorage.getItem("tjur_ativa");
+        if(salvo) {
+            const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
             document.getElementById("resumoTrajeto").innerHTML = `
-                <b>TAG:</b> ${salvo.tag}<br>
-                <b>VEÍCULO:</b> ${salvo.veiculo}<br>
-                <b>PLACA:</b> ${salvo.placa}<br>
-                <b>CONDUTOR:</b> ${salvo.nome}
+                <b>VEÍCULO:</b> ${d.veiculo}<br>
+                <b>PLACA:</b> ${d.placa}<br>
+                <b>TAG:</b> ${d.tag}<br>
+                <b>CONDUTOR:</b> ${d.nome}
             `;
         }
     };
