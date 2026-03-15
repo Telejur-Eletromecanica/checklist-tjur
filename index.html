@@ -84,7 +84,7 @@
             </select>
 
             <label>KM INICIAL</label>
-            <input type="text" id="kmi" inputmode="numeric" oninput="mascaraKM(this)">
+            <input type="text" id="kmi" placeholder="Ex: 100.500,5">
 
             <label>COR DO SELO</label>
             <select id="corSelo">
@@ -97,12 +97,12 @@
 
             <div id="campoFim" class="hidden">
                 <label>KM FINAL</label>
-                <input type="text" id="kmf" inputmode="numeric" oninput="mascaraKM(this)">
+                <input type="text" id="kmf" placeholder="Ex: 100.600,0">
             </div>
 
             <div id="blocoOleo">
                 <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO (KM)</label>
-                <input type="text" id="proximaTrocaKM" inputmode="numeric" oninput="mascaraKM(this)">
+                <input type="text" id="proximaTrocaKM" placeholder="Digite o KM">
                 <input type="date" id="proximaTrocaData" class="hidden">
             </div>
 
@@ -124,13 +124,7 @@
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
 
-    function mascaraKM(input) {
-        let value = input.value.replace(/\D/g, "");
-        if (value.length > 0) {
-            value = (parseInt(value) / 10).toFixed(1);
-            input.value = value;
-        } else { input.value = ""; }
-    }
+    // REMOVIDA A MASCARA DE KM PARA PERMITIR PONTO E VIRGULA MANUAL
 
     function atualizarInterfacePorTag() {
         const select = document.getElementById("tag");
@@ -221,6 +215,7 @@
         document.getElementById("kmi").value = salvo.kmi;
         document.getElementById("corSelo").value = salvo.selo;
         document.getElementById("validadeSelo").value = salvo.valSelo !== "---" ? salvo.valSelo.split('/').reverse().join('-') : "";
+        document.getElementById("proximaTrocaKM").value = salvo.oleoKM;
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
         btn.className = "btn-verde";
@@ -233,9 +228,7 @@
         if(!kmf) { alert("Informe o KM Final!"); return; }
 
         const horaFim = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        // Lógica para Troca de Óleo (Data para Sky Munck, KM para os demais)
-        let infoOleo = salvo.veiculo === "SKY MUNCK" ? (salvo.oleoData || "---") : (salvo.oleoKM ? salvo.oleoKM + " KM" : "---");
+        let infoOleo = salvo.veiculo === "SKY MUNCK" ? (salvo.oleoData || "---") : (document.getElementById("proximaTrocaKM").value ? document.getElementById("proximaTrocaKM").value + " KM" : "---");
 
         const mensagem = 
             `*CHECKLIST VEÍCULOS - TELEJUR*\n` +
