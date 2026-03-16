@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V4</title>
+    <title>TELEJUR - V5</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -62,6 +62,12 @@
                 <option value="CONDUTOR 1">CONDUTOR 1</option>
                 <option value="CONDUTOR 2">CONDUTOR 2</option>
                 <option value="CONDUTOR 3">CONDUTOR 3</option>
+                <option value="CONDUTOR 4">CONDUTOR 4</option>
+                <option value="CONDUTOR 5">CONDUTOR 5</option>
+                <option value="CONDUTOR 6">CONDUTOR 6</option>
+                <option value="CONDUTOR 7">CONDUTOR 7</option>
+                <option value="CONDUTOR 8">CONDUTOR 8</option>
+                <option value="CONDUTOR 9">CONDUTOR 9</option>
             </select>
 
             <label>NOME DO CONDUTOR</label>
@@ -80,7 +86,7 @@
             <label>KM INICIAL</label>
             <input type="text" id="kmi" placeholder="Ex: 100.500,5">
 
-            <label>COR DO SELO</label>
+            <label>COR DO SELO (OBRIGATÓRIO)</label>
             <select id="corSelo">
                 <option value="">SELECIONE</option>
                 <option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
@@ -116,7 +122,6 @@
 </div>
 
 <script>
-    // URL DA SUA PLANILHA
     const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
 
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
@@ -176,8 +181,12 @@
         const selectTag = document.getElementById("tag");
         const option = selectTag.options[selectTag.selectedIndex];
         const kmi = document.getElementById("kmi").value;
+        const selo = document.getElementById("corSelo").value;
 
-        if(!selectTag.value || !kmi) { alert("Preencha os campos obrigatórios!"); return; }
+        if(!selectTag.value || !kmi || !selo) { 
+            alert("Campos obrigatórios: TAG, KM Inicial e COR DO SELO!"); 
+            return; 
+        }
 
         const dados = {
             tag: selectTag.value,
@@ -186,10 +195,12 @@
             num: document.getElementById("numCondutor").value,
             nome: document.getElementById("nomeCondutor").value,
             kmi: kmi,
-            selo: document.getElementById("corSelo").value,
-            valSelo: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
+            selo: selo,
+            valSeloRaw: document.getElementById("validadeSelo").value, // Salva formato original para preenchimento
+            valSeloFormatada: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
             oleoKM: document.getElementById("proximaTrocaKM").value,
             oleoData: document.getElementById("proximaTrocaData").value ? document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') : "",
+            oleoDataRaw: document.getElementById("proximaTrocaData").value,
             obs: document.getElementById("obs").value,
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             data: dataHojeStr
@@ -211,7 +222,7 @@
         if(!salvo) return;
         let infoOleo = salvo.veiculo === "SKY MUNCK" ? (salvo.oleoData || "---") : (salvo.oleoKM ? salvo.oleoKM + " KM" : "---");
 
-        const mensagem = `*INÍCIO DE TRAJETO - TELEJUR*\n==========================\n\n*STATUS:* 🟢 EM ANDAMENTO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n--------------------------\n*COR DO SELO:* ${salvo.selo || "---"}\n*VALIDADE DO SELO:* ${salvo.valSelo}\n*PRÓX. ÓLEO:* ${infoOleo}\n--------------------------\n*OBS:* ${salvo.obs || "SEM OBSERVAÇÃO"}`;
+        const mensagem = `*INÍCIO DE TRAJETO - TELEJUR*\n==========================\n\n*STATUS:* 🟢 EM ANDAMENTO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE DO SELO:* ${salvo.valSeloFormatada}\n*PRÓX. ÓLEO:* ${infoOleo}\n--------------------------\n*OBS:* ${salvo.obs || "SEM OBSERVAÇÃO"}`;
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
     }
 
@@ -220,16 +231,18 @@
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
+        
+        // Preenchimento automático dos campos salvos
         document.getElementById("tag").value = salvo.tag;
         atualizarInterfacePorTag();
         document.getElementById("nomeCondutor").value = salvo.nome;
         document.getElementById("numCondutor").value = salvo.num;
         document.getElementById("kmi").value = salvo.kmi;
         document.getElementById("corSelo").value = salvo.selo;
-        document.getElementById("validadeSelo").value = salvo.valSelo !== "---" ? salvo.valSelo.split('/').reverse().join('-') : "";
-        document.getElementById("proximaTrocaKM").value = salvo.oleoKM;
-        document.getElementById("proximaTrocaData").value = salvo.oleoData !== "" ? salvo.oleoData.split('/').reverse().join('-') : "";
-        document.getElementById("obs").value = salvo.obs;
+        document.getElementById("validadeSelo").value = salvo.valSeloRaw || "";
+        document.getElementById("proximaTrocaKM").value = salvo.oleoKM || "";
+        document.getElementById("proximaTrocaData").value = salvo.oleoDataRaw || "";
+        document.getElementById("obs").value = salvo.obs || "";
         
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
@@ -240,12 +253,14 @@
     function enviarWhatsApp() {
         const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
         const kmf = document.getElementById("kmf").value;
-        if(!kmf) { alert("Informe o KM Final!"); return; }
+        const seloFinal = document.getElementById("corSelo").value;
+        
+        if(!kmf || !seloFinal) { alert("Informe o KM Final e confirme a Cor do Selo!"); return; }
 
         const horaFim = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         let infoOleo = salvo.veiculo === "SKY MUNCK" ? (document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') || "---") : (document.getElementById("proximaTrocaKM").value ? document.getElementById("proximaTrocaKM").value + " KM" : "---");
 
-        const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${horaFim}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${document.getElementById("corSelo").value || "---"}\n*VALIDADE DO SELO:* ${document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---"}\n*PRÓX. ÓLEO:* ${infoOleo}\n--------------------------\n*OBS:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}`;
+        const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${horaFim}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${seloFinal}\n*VALIDADE DO SELO:* ${document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---"}\n*PRÓX. ÓLEO:* ${infoOleo}\n--------------------------\n*OBS:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}`;
 
         localStorage.removeItem("tjur_checklist_ativo");
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
