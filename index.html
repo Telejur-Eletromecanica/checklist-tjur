@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V6</title>
+    <title>TELEJUR - V7</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -13,7 +13,7 @@
         h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
-        .readonly-field { background: #f0f0f0; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
+        .readonly-field { background: #f0f0f0 !important; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; cursor: not-allowed; }
         .campo-destaque { background: #fff9c4; border: 1px solid #fbc02d; color: #827717; font-weight: bold; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
@@ -134,18 +134,13 @@
     function calcularDataLimite() {
         const inputData = document.getElementById("validadeSelo").value;
         if (!inputData) return;
-
         let data = new Date(inputData + "T12:00:00"); 
         let diasUteisAdicionados = 0;
-
         while (diasUteisAdicionados < 5) {
             data.setDate(data.getDate() + 1);
             let diaSemana = data.getDay();
-            if (diaSemana !== 0 && diaSemana !== 6) { // 0 = Domingo, 6 = Sábado
-                diasUteisAdicionados++;
-            }
+            if (diaSemana !== 0 && diaSemana !== 6) diasUteisAdicionados++;
         }
-
         document.getElementById("dataLimiteSelo").value = data.toLocaleDateString('pt-BR');
     }
 
@@ -175,17 +170,13 @@
         const idCond = document.getElementById("numCondutor").value;
         const btn = document.getElementById("btnAcao");
         const msg = document.getElementById("msgErroVinc");
-
         if(!tag || !nome || !idCond) return;
-
         msg.style.display = "block";
         msg.innerHTML = "Verificando disponibilidade...";
         btn.disabled = true;
-
         try {
             const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${dataHojeStr}`);
             const dono = await response.text();
-
             if(dono !== "livre" && dono !== nome && dono !== "") {
                 msg.innerHTML = `⚠ BLOQUEADO: O ${idCond} já está ocupado por ${dono}!`;
                 btn.disabled = true;
@@ -244,7 +235,6 @@
         const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
         if(!salvo) return;
         let infoOleo = salvo.veiculo === "SKY MUNCK" ? (salvo.oleoData || "---") : (salvo.oleoKM ? salvo.oleoKM + " KM" : "---");
-
         const mensagem = `*INÍCIO DE TRAJETO - TELEJUR*\n==========================\n\n*STATUS:* 🟢 EM ANDAMENTO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloFormatada}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${infoOleo}\n--------------------------\n*OBS:* ${salvo.obs || "SEM OBSERVAÇÃO"}`;
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
     }
@@ -254,6 +244,9 @@
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
+        
+        // Preenche e TRAVA os campos solicitados
+        const camposParaTravar = ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"];
         
         document.getElementById("tag").value = salvo.tag;
         atualizarInterfacePorTag();
@@ -266,6 +259,14 @@
         document.getElementById("proximaTrocaKM").value = salvo.oleoKM || "";
         document.getElementById("proximaTrocaData").value = salvo.oleoDataRaw || "";
         document.getElementById("obs").value = salvo.obs || "";
+
+        // Aplica o bloqueio visual e funcional
+        camposParaTravar.forEach(id => {
+            const el = document.getElementById(id);
+            el.classList.add("readonly-field");
+            el.style.pointerEvents = "none"; // Impede cliques em selects
+            el.readOnly = true;
+        });
         
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
@@ -281,7 +282,7 @@
         const horaFim = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         let infoOleo = salvo.veiculo === "SKY MUNCK" ? (document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') || "---") : (document.getElementById("proximaTrocaKM").value ? document.getElementById("proximaTrocaKM").value + " KM" : "---");
 
-        const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${horaFim}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${document.getElementById("corSelo").value}\n*VALIDADE:* ${document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---"}\n*LIMITE (+5D ÚTEIS):* ${document.getElementById("dataLimiteSelo").value}\n*PRÓX. ÓLEO:* ${infoOleo}\n--------------------------\n*OBS:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}`;
+        const mensagem = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${horaFim}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloFormatada}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${infoOleo}\n--------------------------\n*OBS:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}`;
 
         localStorage.removeItem("tjur_checklist_ativo");
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
