@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TELEJUR - CHECKLIST</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
@@ -37,7 +37,7 @@
             <input type="text" id="dataAuto" class="readonly-field" readonly>
 
             <label>TAG DO VEÍCULO</label>
-            <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();">
+            <select id="tag" onchange="atualizarInterfacePorTag();">
                 <option value="">SELECIONE A TAG</option>
                 <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
                 <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
@@ -49,10 +49,10 @@
             </select>
 
             <label>VEÍCULO</label>
-            <input type="text" id="displayVeiculo" class="readonly-field" readonly>
+            <input type="text" id="displayVeiculo" class="readonly-field" readonly placeholder="---">
 
             <label>PLACA</label>
-            <input type="text" id="displayPlaca" class="readonly-field" readonly>
+            <input type="text" id="displayPlaca" class="readonly-field" readonly placeholder="---">
 
             <div id="msgErroVinc" class="alerta-erro"></div>
 
@@ -126,15 +126,23 @@
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
 
+    // 1. FUNÇÃO DE PREENCHIMENTO AUTOMÁTICO (Roda local, sem travar)
     function atualizarInterfacePorTag() {
         const select = document.getElementById("tag");
         const option = select.options[select.selectedIndex];
-        if(!option || !select.value) return;
-        document.getElementById("displayVeiculo").value = option.getAttribute("data-v");
-        document.getElementById("displayPlaca").value = option.getAttribute("data-p");
+        
+        if(!select.value) {
+            document.getElementById("displayVeiculo").value = "";
+            document.getElementById("displayPlaca").value = "";
+            return;
+        }
+
+        document.getElementById("displayVeiculo").value = option.getAttribute("data-v") || "---";
+        document.getElementById("displayPlaca").value = option.getAttribute("data-p") || "---";
         
         const veiculo = option.getAttribute("data-v");
         const labelOleo = document.getElementById("labelTrocaOleo");
+        
         if (veiculo === "SKY MUNCK") {
             labelOleo.innerText = "PRÓXIMA TROCA DE ÓLEO (DATA)";
             document.getElementById("proximaTrocaKM").classList.add("hidden");
@@ -144,8 +152,12 @@
             document.getElementById("proximaTrocaKM").classList.remove("hidden");
             document.getElementById("proximaTrocaData").classList.add("hidden");
         }
+        
+        // Só tenta validar na rede DEPOIS de preencher o local
+        validarVinculoFixo();
     }
 
+    // 2. VALIDAÇÃO COM "ESCUDO" CONTRA TRAVAMENTOS
     async function validarVinculoFixo() {
         const tag = document.getElementById("tag").value;
         const idCond = document.getElementById("numCondutor").value;
@@ -155,13 +167,18 @@
 
         if(!tag || !idCond || !nomeAtual) return;
 
-        msg.innerHTML = "Verificando disponibilidade...";
+        msg.innerHTML = "Sincronizando disponibilidade...";
         msg.style.display = "block";
         btn.disabled = true;
 
         try {
-            const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${tag}&id=${idCond}&data=${dataHojeStr}`);
+            // Se o Google não responder em 4 segundos, ele "desiste" de travar
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+            const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${tag}&id=${idCond}&data=${dataHojeStr}`, { signal: controller.signal });
             const dono = await response.text();
+            clearTimeout(timeoutId);
 
             if(dono !== "livre" && dono !== nomeAtual) {
                 msg.innerHTML = `⚠ BLOQUEIO: O ${idCond} já está ocupado por ${dono} nesta TAG hoje!`;
@@ -171,7 +188,9 @@
                 btn.disabled = false;
             }
         } catch (e) {
-            msg.innerHTML = "Erro de conexão com a rede.";
+            console.warn("Modo offline ativado por lentidão na rede.");
+            msg.style.display = "none";
+            btn.disabled = false;
         }
     }
 
@@ -189,4 +208,69 @@
 
         const dados = {
             tag: selectTag.value,
-            veiculo: option.getAttribute("
+            veiculo: option.getAttribute("data-v"),
+            placa: option.getAttribute("data-p"),
+            num: idCond,
+            nome: nome,
+            kmi: kmi,
+            selo: document.getElementById("corSelo").value,
+            valSelo: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
+            oleoKM: document.getElementById("proximaTrocaKM").value,
+            oleoData: document.getElementById("proximaTrocaData").value ? document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') : "",
+            obs: document.getElementById("obs").value,
+            horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            data: dataHojeStr
+        };
+
+        // Salva na nuvem e local
+        try {
+            fetch(`${URL_PLANILHA}?acao=registrar&tag=${dados.tag}&id=${dados.num}&nome=${dados.nome}&data=${dataHojeStr}`);
+        } catch (e) {}
+
+        localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
+        location.reload();
+    }
+
+    function enviarRelatorioInicial() {
+        const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
+        if(!salvo) return;
+        const mensagem = `*INÍCIO - TELEJUR*\n*DATA:* ${salvo.data}\n*HORA:* ${salvo.horaI}\n*CONDUTOR:* ${salvo.nome}\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*KM:* ${salvo.kmi}\n*OBS:* ${salvo.obs || "---"}`;
+        window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
+    }
+
+    function irParaFinalizar() {
+        const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
+        document.getElementById("telaEspera").style.display = "none";
+        document.getElementById("containerForm").style.display = "block";
+        document.getElementById("campoFim").classList.remove("hidden");
+        document.getElementById("tag").value = salvo.tag;
+        atualizarInterfacePorTag();
+        document.getElementById("nomeCondutor").value = salvo.nome;
+        document.getElementById("numCondutor").value = salvo.num;
+        document.getElementById("kmi").value = salvo.kmi;
+        document.getElementById("obs").value = salvo.obs || "";
+        
+        const btn = document.getElementById("btnAcao");
+        btn.innerText = "FINALIZAR TRAJETO";
+        btn.className = "btn-verde";
+        btn.onclick = function() {
+            const kmf = document.getElementById("kmf").value;
+            if(!kmf) { alert("Informe o KM Final!"); return; }
+            const msgFinal = `*FINALIZADO - TELEJUR*\n*TAG:* ${salvo.tag}\n*KM FIM:* ${kmf}\n*OBS:* ${document.getElementById("obs").value}`;
+            localStorage.removeItem("tjur_checklist_ativo");
+            window.location.href = "whatsapp://send?text=" + encodeURIComponent(msgFinal);
+        };
+    }
+
+    window.onload = function() {
+        const salvo = localStorage.getItem("tjur_checklist_ativo");
+        if(salvo) {
+            const d = JSON.parse(salvo);
+            document.getElementById("containerForm").style.display = "none";
+            document.getElementById("telaEspera").style.display = "block";
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
+        }
+    };
+</script>
+</body>
+</html>
