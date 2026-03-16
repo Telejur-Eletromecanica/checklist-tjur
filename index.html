@@ -71,4 +71,222 @@
 
             <label>IDENTIFICAÇÃO (ID)</label>
             <select id="numCondutor" onchange="validarVinculoFixo()">
-                <option value="">SELECIONE</
+                <option value="">SELECIONE</option>
+                <option value="CONDUTOR 1">CONDUTOR 1</option>
+                <option value="CONDUTOR 2">CONDUTOR 2</option>
+                <option value="CONDUTOR 3">CONDUTOR 3</option>
+                <option value="CONDUTOR 4">CONDUTOR 4</option>
+                <option value="CONDUTOR 5">CONDUTOR 5</option>
+                <option value="CONDUTOR 6">CONDUTOR 6</option>
+                <option value="CONDUTOR 7">CONDUTOR 7</option>
+                <option value="CONDUTOR 8">CONDUTOR 8</option>
+                <option value="CONDUTOR 9">CONDUTOR 9</option>
+            </select>
+
+            <label>KM INICIAL</label>
+            <input type="text" id="kmi" placeholder="Ex: 100.500,5">
+
+            <label>COR DO SELO</label>
+            <select id="corSelo">
+                <option value="">SELECIONE</option>
+                <option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
+            </select>
+
+            <label>VALIDADE DO SELO</label>
+            <input type="date" id="validadeSelo">
+
+            <div id="campoFim" class="hidden">
+                <label>KM FINAL</label>
+                <input type="text" id="kmf" placeholder="Ex: 100.600,0">
+            </div>
+
+            <div id="blocoOleo">
+                <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO (KM)</label>
+                <input type="text" id="proximaTrocaKM" placeholder="Digite o KM">
+                <input type="date" id="proximaTrocaData" class="hidden">
+            </div>
+
+            <label>OBSERVAÇÃO</label>
+            <textarea id="obs" rows="2"></textarea>
+
+            <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn-azul">SALVAR INÍCIO DE TRAJETO</button>
+        </form>
+    </div>
+
+    <div id="telaEspera">
+        <h3 style="color: #1a237e;">TRAJETO EM ANDAMENTO</h3>
+        <div id="resumoTrajeto" class="info-trajeto"></div>
+        <button type="button" onclick="enviarRelatorioInicial()" class="btn-verde">ENVIAR INÍCIO NO WHATSAPP</button>
+        <button type="button" onclick="irParaFinalizar()" class="btn-azul">FINALIZAR TRAJETO</button>
+    </div>
+</div>
+
+<script>
+    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const dataHojeStr = new Date().toLocaleDateString('pt-BR');
+    document.getElementById('dataAuto').value = dataHojeStr;
+
+    function atualizarInterfacePorTag() {
+        const select = document.getElementById("tag");
+        const option = select.options[select.selectedIndex];
+        
+        // Garante o preenchimento automático local antes de qualquer rede
+        if(!select.value) {
+            document.getElementById("displayVeiculo").value = "";
+            document.getElementById("displayPlaca").value = "";
+            return;
+        }
+
+        document.getElementById("displayVeiculo").value = option.getAttribute("data-v") || "---";
+        document.getElementById("displayPlaca").value = option.getAttribute("data-p") || "---";
+        
+        const veiculo = option.getAttribute("data-v");
+        const labelOleo = document.getElementById("labelTrocaOleo");
+        
+        if (veiculo === "SKY MUNCK") {
+            labelOleo.innerText = "PRÓXIMA TROCA DE ÓLEO (DATA)";
+            document.getElementById("proximaTrocaKM").classList.add("hidden");
+            document.getElementById("proximaTrocaData").classList.remove("hidden");
+        } else {
+            labelOleo.innerText = "PRÓXIMA TROCA DE ÓLEO (KM)";
+            document.getElementById("proximaTrocaKM").classList.remove("hidden");
+            document.getElementById("proximaTrocaData").classList.add("hidden");
+        }
+        
+        // Chama a validação de rede agora que os campos locais estão preenchidos
+        validarVinculoFixo();
+    }
+
+    // FUNÇÃO REVISADA E PROTEGIDA CONTRA CONGELAMENTO
+    async function validarVinculoFixo() {
+        const tag = document.getElementById("tag").value;
+        const idCond = document.getElementById("numCondutor").value;
+        const nomeAtual = document.getElementById("nomeCondutor").value;
+        const btn = document.getElementById("btnAcao");
+        const msg = document.getElementById("msgErroVinc");
+
+        if(!tag || !idCond || !nomeAtual) return;
+
+        msg.innerHTML = "Sincronizando com a nuvem...";
+        msg.style.display = "block";
+        msg.style.color = "#1a237e";
+        btn.disabled = true;
+
+        try {
+            // Cria um tempo limite de 4 segundos para a resposta do Google
+            const controller = new AbortController();
+            const idTimeout = setTimeout(() => controller.abort(), 4000);
+
+            // Fetch revisado com tratamento de codificação para evitar erros de acento
+            const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&nome=${encodeURIComponent(nomeAtual)}&data=${dataHojeStr}`, { signal: controller.signal });
+            const dono = await response.text();
+            clearTimeout(idTimeout);
+
+            // Lógica de Bloqueio Real: Se a resposta não for 'livre' e for o nome de outra pessoa
+            if(dono !== "livre" && dono !== nomeAtual && dono !== "") {
+                msg.innerHTML = `⚠ BLOQUEIO: O ${idCond} já está ocupado por ${dono} nesta TAG hoje!`;
+                msg.style.color = "#856404";
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
+            } else {
+                msg.style.display = "none";
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            }
+        } catch (e) {
+            // Se houver erro de rede ou timeout, ele libera o botão para não travar
+            console.warn("Modo offline ativado por falha na rede ou timeout do Google.");
+            msg.style.display = "none";
+            btn.disabled = false;
+            btn.style.opacity = "1";
+        }
+    }
+
+    async function iniciarTrajeto() {
+        const selectTag = document.getElementById("tag");
+        const option = selectTag.options[selectTag.selectedIndex];
+        const kmi = document.getElementById("kmi").value;
+        const nome = document.getElementById("nomeCondutor").value;
+        const idCond = document.getElementById("numCondutor").value;
+
+        if(!selectTag.value || !kmi || !nome || !idCond) {
+            alert("Preencha todos os campos obrigatórios!");
+            return;
+        }
+
+        const dados = {
+            tag: selectTag.value,
+            veiculo: option.getAttribute("data-v"),
+            placa: option.getAttribute("data-p"),
+            num: idCond,
+            nome: nome,
+            kmi: kmi,
+            selo: document.getElementById("corSelo").value,
+            valSelo: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
+            oleoKM: document.getElementById("proximaTrocaKM").value,
+            oleoData: document.getElementById("proximaTrocaData").value ? document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') : "",
+            obs: document.getElementById("obs").value,
+            horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            data: dataHojeStr
+        };
+
+        // Envia o registro para a planilha (nuvem) e continua localmente
+        try {
+            fetch(`${URL_PLANILHA}?acao=registrar&tag=${encodeURIComponent(dados.tag)}&id=${encodeURIComponent(dados.num)}&nome=${encodeURIComponent(dados.nome)}&data=${dataHojeStr}`);
+        } catch (e) { console.error("Erro rede ao registrar:", e); }
+
+        localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
+        location.reload();
+    }
+
+    function enviarRelatorioInicial() {
+        const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
+        if(!salvo) return;
+        let infoOleo = salvo.veiculo === "SKY MUNCK" ? (salvo.oleoData || "---") : (salvo.oleoKM ? salvo.oleoKM + " KM" : "---");
+        const mensagem = `*INÍCIO TRAJETO - TELEJUR*\n==========================\n\n\n*DATA:* ${salvo.data}\n--------------------------\n\n*HORA INÍCIO:* ${salvo.horaI}\n--------------------------\n\n*CONDUTOR:* ${salvo.nome}\n--------------------------\n\n*ID:* ${salvo.num}\n--------------------------\n\n*TAG:* ${salvo.tag}\n--------------------------\n\n*VEÍCULO:* ${salvo.veiculo}\n--------------------------\n\n*PLACA:* ${salvo.placa}\n--------------------------\n\n*KM INICIAL:* ${salvo.kmi}\n--------------------------\n\n*PRÓX. ÓLEO:* ${infoOleo}\n--------------------------\n\n*OBS:* ${salvo.obs || "SEM OBSERVAÇÃO"}\n--------------------------`;
+        window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
+    }
+
+    function irParaFinalizar() {
+        const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
+        document.getElementById("telaEspera").style.display = "none";
+        document.getElementById("containerForm").style.display = "block";
+        document.getElementById("campoFim").classList.remove("hidden");
+        document.getElementById("tag").value = salvo.tag;
+        atualizarInterfacePorTag();
+        document.getElementById("nomeCondutor").value = salvo.nome;
+        document.getElementById("numCondutor").value = salvo.num;
+        document.getElementById("kmi").value = salvo.kmi;
+        document.getElementById("obs").value = salvo.obs || ""; // RECUPERA OBSERVAÇÃO DO INÍCIO
+        
+        const btn = document.getElementById("btnAcao");
+        btn.innerText = "FINALIZAR TRAJETO E ENVIAR";
+        btn.className = "btn-verde";
+        btn.onclick = finalizarTrajeto;
+    }
+
+    function finalizarTrajeto() {
+        const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
+        const kmf = document.getElementById("kmf").value;
+        if(!kmf) { alert("Informe o KM Final!"); return; }
+        
+        // Pega a observação atualizada (pode ter sido editada na finalização)
+        const obsFinal = document.getElementById("obs").value;
+        const mensagemFinal = `*TRAJETO FINALIZADO - TELEJUR*\n==========================\n\n\n*VEÍCULO:* ${salvo.veiculo}\n--------------------------\n\n*TAG:* ${salvo.tag}\n--------------------------\n\n*KM FINAL:* ${kmf}\n--------------------------\n\n*OBSERVAÇÃO:* ${obsFinal || "SEM OBSERVAÇÃO"}\n--------------------------`;
+        
+        localStorage.removeItem("tjur_checklist_ativo");
+        window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagemFinal);
+    }
+
+    window.onload = function() {
+        const salvo = localStorage.getItem("tjur_checklist_ativo");
+        if(salvo) {
+            const d = JSON.parse(salvo);
+            document.getElementById("containerForm").style.display = "none";
+            document.getElementById("telaEspera").style.display = "block";
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
+        }
+    };
+</script>
+</body>
+</html>
