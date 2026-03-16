@@ -189,7 +189,7 @@
             valSelo: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
             oleoKM: document.getElementById("proximaTrocaKM").value,
             oleoData: document.getElementById("proximaTrocaData").value ? document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') : "",
-            obs: document.getElementById("obs").value,
+            obs: document.getElementById("obs").value, // Salva a observação aqui
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             data: dataHojeStr
         };
@@ -204,7 +204,6 @@
         location.reload();
     }
 
-    // FUNÇÃO PARA ENVIAR APENAS O INÍCIO DO TRAJETO
     function enviarRelatorioInicial() {
         const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
         if(!salvo) return;
@@ -237,9 +236,13 @@
 
     function irParaFinalizar() {
         const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
+        if(!salvo) return;
+
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
+        
+        // Preenche os campos com o que foi salvo no início
         document.getElementById("tag").value = salvo.tag;
         atualizarInterfacePorTag();
         document.getElementById("nomeCondutor").value = salvo.nome;
@@ -249,7 +252,9 @@
         document.getElementById("validadeSelo").value = salvo.valSelo !== "---" ? salvo.valSelo.split('/').reverse().join('-') : "";
         document.getElementById("proximaTrocaKM").value = salvo.oleoKM;
         document.getElementById("proximaTrocaData").value = salvo.oleoData !== "" ? salvo.oleoData.split('/').reverse().join('-') : "";
-        document.getElementById("obs").value = salvo.obs;
+        
+        // ESTA LINHA FOI CORRIGIDA: Recupera a observação do início
+        document.getElementById("obs").value = salvo.obs || ""; 
         
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
@@ -263,6 +268,9 @@
         if(!kmf) { alert("Informe o KM Final!"); return; }
 
         const horaFim = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // Pega os valores atuais (podem ter sido editados na finalização)
+        const obsFinal = document.getElementById("obs").value;
         let infoOleo = salvo.veiculo === "SKY MUNCK" ? (document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') || "---") : (document.getElementById("proximaTrocaKM").value ? document.getElementById("proximaTrocaKM").value + " KM" : "---");
 
         const mensagem = 
@@ -286,7 +294,7 @@
             `*VALIDADE DO SELO:* ${document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---"}\n` +
             `*PRÓX. ÓLEO:* ${infoOleo}\n` +
             `--------------------------\n` +
-            `*OBS:* ${document.getElementById("obs").value || "SEM OBSERVAÇÃO"}`;
+            `*OBS:* ${obsFinal || "SEM OBSERVAÇÃO"}`;
 
         localStorage.removeItem("tjur_checklist_ativo");
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(mensagem);
