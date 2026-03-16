@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V2</title>
+    <title>TELEJUR - V3</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -12,7 +12,7 @@
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
         h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
         .readonly-field { background: #f0f0f0; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .alerta-erro { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; border: 1px solid #ffeeba; display: none; text-align: center; }
@@ -48,9 +48,17 @@
 
             <div id="msgErroVinc" class="alerta-erro"></div>
 
+            <label>IDENTIFICAÇÃO (ID)</label>
+            <select id="numCondutor" onchange="validarVinculoFixo()">
+                <option value="">SELECIONE O ID</option>
+                <option value="CONDUTOR 1">CONDUTOR 1</option>
+                <option value="CONDUTOR 2">CONDUTOR 2</option>
+                <option value="CONDUTOR 3">CONDUTOR 3</option>
+            </select>
+
             <label>NOME DO CONDUTOR</label>
             <select id="nomeCondutor" onchange="validarVinculoFixo()">
-                <option value="">SELECIONE</option>
+                <option value="">SELECIONE O NOME</option>
                 <option>ADRIANO NASCIMENTO</option>
                 <option>FRANCIVALDO COSTA</option>
                 <option>JOELCINEI GUIMARÃES</option>
@@ -59,13 +67,6 @@
                 <option>FRANCINILDO TEXEIRA</option>
                 <option>MIRIELLY</option>
                 <option>RAIMUNDO WALTER</option>
-            </select>
-
-            <label>IDENTIFICAÇÃO (ID)</label>
-            <select id="numCondutor" onchange="validarVinculoFixo()">
-                <option value="">SELECIONE</option>
-                <option value="CONDUTOR 1">CONDUTOR 1</option>
-                <option value="CONDUTOR 2">CONDUTOR 2</option>
             </select>
 
             <label>KM INICIAL</label>
@@ -83,7 +84,7 @@
 </div>
 
 <script>
-    // URL ATUALIZADA
+    // URL DA SUA PLANILHA
     const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
@@ -91,22 +92,30 @@
 
     async function validarVinculoFixo() {
         const tag = document.getElementById("tag").value;
+        const idCond = document.getElementById("numCondutor").value;
         const nome = document.getElementById("nomeCondutor").value;
         const btn = document.getElementById("btnAcao");
         const msg = document.getElementById("msgErroVinc");
 
-        if(!tag || !nome) return;
+        // Só verifica se os 3 campos principais estiverem preenchidos
+        if(!tag || !idCond || !nome) return;
 
         msg.style.display = "block";
-        msg.innerHTML = "Verificando disponibilidade...";
+        msg.style.background = "#e3f2fd";
+        msg.style.color = "#1a237e";
+        msg.innerHTML = "Verificando disponibilidade do ID...";
         btn.disabled = true;
 
         try {
-            const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&data=${dataHojeStr}`);
+            // Agora enviamos a TAG e o ID para a planilha conferir
+            const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${dataHojeStr}`);
             const dono = await response.text();
 
+            // Bloqueia se o ID já estiver ocupado por outra pessoa hoje
             if(dono !== "livre" && dono !== nome && dono !== "") {
-                msg.innerHTML = `⚠ BLOQUEIO: TAG já ocupada por ${dono} hoje!`;
+                msg.style.background = "#fff3cd";
+                msg.style.color = "#856404";
+                msg.innerHTML = `⚠ BLOQUEIO: O ${idCond} já foi usado por ${dono} nesta TAG hoje!`;
                 btn.disabled = true;
                 btn.style.opacity = "0.5";
             } else {
@@ -121,31 +130,24 @@
     }
 
     async function iniciarTrajeto() {
-        const selectTag = document.getElementById("tag");
-        const kmi = document.getElementById("kmi").value;
-        const nome = document.getElementById("nomeCondutor").value;
-        const idCond = document.getElementById("numCondutor").value;
-
-        if(!selectTag.value || !kmi || !nome || !idCond) {
-            alert("Preencha todos os campos obrigatórios!");
-            return;
-        }
-
         const dados = {
-            tag: selectTag.value,
-            id: idCond,
-            nome: nome,
-            kmi: kmi,
+            tag: document.getElementById("tag").value,
+            id: document.getElementById("numCondutor").value,
+            nome: document.getElementById("nomeCondutor").value,
+            kmi: document.getElementById("kmi").value,
             data: dataHojeStr,
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         };
 
+        if(!dados.tag || !dados.id || !dados.nome || !dados.kmi) {
+            alert("Preencha todos os campos obrigatórios!");
+            return;
+        }
+
         const urlFinal = `${URL_PLANILHA}?acao=registrar&tag=${encodeURIComponent(dados.tag)}&id=${encodeURIComponent(dados.id)}&nome=${encodeURIComponent(dados.nome)}&data=${encodeURIComponent(dados.data)}&kmi=${encodeURIComponent(dados.kmi)}&horaI=${encodeURIComponent(dados.horaI)}`;
         
         try {
-            // Registra na planilha
             await fetch(urlFinal, { mode: 'no-cors' });
-            // Salva no celular para mostrar a tela de "Em andamento"
             localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
             alert("Início registrado com sucesso!");
             location.reload();
@@ -167,7 +169,7 @@
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>CONDUTOR:</b> ${d.nome}<br><b>KM INICIAL:</b> ${d.kmi}<br><b>HORA:</b> ${d.horaI}`;
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.id}<br><b>CONDUTOR:</b> ${d.nome}<br><b>KM INICIAL:</b> ${d.kmi}<br><b>HORA:</b> ${d.horaI}`;
         }
     };
 </script>
