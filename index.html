@@ -122,6 +122,7 @@
 </div>
 
 <script>
+    // URL DO SEU GOOGLE APPS SCRIPT (Certifique-se de atualizar se mudar de planilha)
     const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
@@ -130,7 +131,6 @@
         const select = document.getElementById("tag");
         const option = select.options[select.selectedIndex];
         
-        // Garante o preenchimento automático local antes de qualquer rede
         if(!select.value) {
             document.getElementById("displayVeiculo").value = "";
             document.getElementById("displayPlaca").value = "";
@@ -153,11 +153,9 @@
             document.getElementById("proximaTrocaData").classList.add("hidden");
         }
         
-        // Chama a validação de rede agora que os campos locais estão preenchidos
         validarVinculoFixo();
     }
 
-    // FUNÇÃO REVISADA E PROTEGIDA CONTRA CONGELAMENTO
     async function validarVinculoFixo() {
         const tag = document.getElementById("tag").value;
         const idCond = document.getElementById("numCondutor").value;
@@ -173,16 +171,15 @@
         btn.disabled = true;
 
         try {
-            // Cria um tempo limite de 4 segundos para a resposta do Google
+            // Limite de 4 segundos para evitar que o motorista fique travado se a rede falhar
             const controller = new AbortController();
             const idTimeout = setTimeout(() => controller.abort(), 4000);
 
-            // Fetch revisado com tratamento de codificação para evitar erros de acento
             const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&nome=${encodeURIComponent(nomeAtual)}&data=${dataHojeStr}`, { signal: controller.signal });
             const dono = await response.text();
             clearTimeout(idTimeout);
 
-            // Lógica de Bloqueio Real: Se a resposta não for 'livre' e for o nome de outra pessoa
+            // Bloqueio: Se a TAG já foi iniciada por um NOME diferente do atual
             if(dono !== "livre" && dono !== nomeAtual && dono !== "") {
                 msg.innerHTML = `⚠ BLOQUEIO: O ${idCond} já está ocupado por ${dono} nesta TAG hoje!`;
                 msg.style.color = "#856404";
@@ -194,8 +191,7 @@
                 btn.style.opacity = "1";
             }
         } catch (e) {
-            // Se houver erro de rede ou timeout, ele libera o botão para não travar
-            console.warn("Modo offline ativado por falha na rede ou timeout do Google.");
+            // Em caso de erro, libera o botão por segurança local
             msg.style.display = "none";
             btn.disabled = false;
             btn.style.opacity = "1";
@@ -230,10 +226,9 @@
             data: dataHojeStr
         };
 
-        // Envia o registro para a planilha (nuvem) e continua localmente
         try {
             fetch(`${URL_PLANILHA}?acao=registrar&tag=${encodeURIComponent(dados.tag)}&id=${encodeURIComponent(dados.num)}&nome=${encodeURIComponent(dados.nome)}&data=${dataHojeStr}`);
-        } catch (e) { console.error("Erro rede ao registrar:", e); }
+        } catch (e) { console.error(e); }
 
         localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
         location.reload();
@@ -257,7 +252,7 @@
         document.getElementById("nomeCondutor").value = salvo.nome;
         document.getElementById("numCondutor").value = salvo.num;
         document.getElementById("kmi").value = salvo.kmi;
-        document.getElementById("obs").value = salvo.obs || ""; // RECUPERA OBSERVAÇÃO DO INÍCIO
+        document.getElementById("obs").value = salvo.obs || "";
         
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR TRAJETO E ENVIAR";
@@ -270,7 +265,6 @@
         const kmf = document.getElementById("kmf").value;
         if(!kmf) { alert("Informe o KM Final!"); return; }
         
-        // Pega a observação atualizada (pode ter sido editada na finalização)
         const obsFinal = document.getElementById("obs").value;
         const mensagemFinal = `*TRAJETO FINALIZADO - TELEJUR*\n==========================\n\n\n*VEÍCULO:* ${salvo.veiculo}\n--------------------------\n\n*TAG:* ${salvo.tag}\n--------------------------\n\n*KM FINAL:* ${kmf}\n--------------------------\n\n*OBSERVAÇÃO:* ${obsFinal || "SEM OBSERVAÇÃO"}\n--------------------------`;
         
