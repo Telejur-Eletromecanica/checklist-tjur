@@ -15,7 +15,6 @@
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
         .readonly-field { background: #f0f0f0; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .alerta-erro { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; border: 1px solid #ffeeba; display: none; text-align: center; }
         #telaEspera { text-align: center; padding: 20px; display: none; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
@@ -79,13 +78,13 @@
     <div id="telaEspera">
         <h3>TRAJETO EM ANDAMENTO</h3>
         <div id="resumoTrajeto" class="info-trajeto"></div>
-        <button type="button" onclick="location.reload()" class="btn-azul">ATUALIZAR STATUS</button>
+        <button type="button" onclick="limparLocal()" class="btn-azul">FINALIZAR NO SISTEMA</button>
     </div>
 </div>
 
 <script>
-    // COLE ABAIXO O LINK QUE VOCÊ COPIOU DO GOOGLE
-    const URL_PLANILHA = "SUA_URL_AQUI_DO_GOOGLE";
+    // URL ATUALIZADA
+    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
@@ -109,9 +108,11 @@
             if(dono !== "livre" && dono !== nome && dono !== "") {
                 msg.innerHTML = `⚠ BLOQUEIO: TAG já ocupada por ${dono} hoje!`;
                 btn.disabled = true;
+                btn.style.opacity = "0.5";
             } else {
                 msg.style.display = "none";
                 btn.disabled = false;
+                btn.style.opacity = "1";
             }
         } catch (e) {
             msg.style.display = "none";
@@ -120,26 +121,43 @@
     }
 
     async function iniciarTrajeto() {
+        const selectTag = document.getElementById("tag");
+        const kmi = document.getElementById("kmi").value;
+        const nome = document.getElementById("nomeCondutor").value;
+        const idCond = document.getElementById("numCondutor").value;
+
+        if(!selectTag.value || !kmi || !nome || !idCond) {
+            alert("Preencha todos os campos obrigatórios!");
+            return;
+        }
+
         const dados = {
-            tag: document.getElementById("tag").value,
-            id: document.getElementById("numCondutor").value,
-            nome: document.getElementById("nomeCondutor").value,
-            kmi: document.getElementById("kmi").value,
+            tag: selectTag.value,
+            id: idCond,
+            nome: nome,
+            kmi: kmi,
             data: dataHojeStr,
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         };
 
-        if(!dados.tag || !dados.nome || !dados.kmi) return alert("Preencha tudo!");
-
         const urlFinal = `${URL_PLANILHA}?acao=registrar&tag=${encodeURIComponent(dados.tag)}&id=${encodeURIComponent(dados.id)}&nome=${encodeURIComponent(dados.nome)}&data=${encodeURIComponent(dados.data)}&kmi=${encodeURIComponent(dados.kmi)}&horaI=${encodeURIComponent(dados.horaI)}`;
         
         try {
+            // Registra na planilha
             await fetch(urlFinal, { mode: 'no-cors' });
+            // Salva no celular para mostrar a tela de "Em andamento"
             localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
-            alert("Registrado com sucesso na planilha!");
+            alert("Início registrado com sucesso!");
             location.reload();
         } catch (e) {
-            alert("Erro ao conectar!");
+            alert("Erro ao conectar com a planilha!");
+        }
+    }
+
+    function limparLocal() {
+        if(confirm("Deseja finalizar este trajeto no celular?")) {
+            localStorage.removeItem("tjur_checklist_ativo");
+            location.reload();
         }
     }
 
@@ -149,7 +167,7 @@
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>CONDUTOR:</b> ${d.nome}<br><b>KM INICIAL:</b> ${d.kmi}`;
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>CONDUTOR:</b> ${d.nome}<br><b>KM INICIAL:</b> ${d.kmi}<br><b>HORA:</b> ${d.horaI}`;
         }
     };
 </script>
