@@ -3,113 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checklist Telejur V21</title>
+    <title>Checklist Telejur - V21.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .readonly-field { background-color: #f3f4f6; color: #6b7280; border-color: #d1d5db; }
+        .readonly-field { background-color: #f3f4f6 !important; color: #6b7280 !important; cursor: not-allowed; }
         .hidden { display: none; }
-        #confirmacaoOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; flex-direction:column; color:white; }
+        #confirmacaoOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center; flex-direction:column; color:white; }
+        .bg-telejur { background-color: #1e40af; }
+        .btn-verde { background-color: #16a34a; color: white; font-weight: bold; }
+        .btn-verde:hover { background-color: #15803d; }
     </style>
 </head>
-<body class="bg-gray-100 p-4">
+<body class="bg-gray-200 p-4">
 
     <div id="confirmacaoOverlay">
-        <div class="text-6xl mb-4">✅</div>
-        <div id="msgConfirmacao" class="text-xl font-bold">Salvo com Sucesso!</div>
+        <div class="text-7xl mb-4">✅</div>
+        <div id="msgConfirmacao" class="text-2xl font-bold uppercase">Sucesso!</div>
     </div>
 
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
-        <h1 class="text-2xl font-bold text-center mb-6 text-blue-800">CHECKLIST TELEJUR</h1>
-
-        <div id="telaEspera" class="hidden text-center p-6 border-2 border-dashed border-blue-300 rounded-lg">
-            <h2 class="text-xl font-bold text-blue-600 mb-4">TRAJETO EM ANDAMENTO</h2>
-            <div id="resumoTrajeto" class="text-sm text-gray-700 mb-6 bg-gray-50 p-3 rounded text-left"></div>
-            <button onclick="enviarRelatorioInicial()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg mb-3 shadow-md">📤 REENVIAR WHATSAPP (INÍCIO)</button>
-            <button onclick="irParaFinalizar()" class="w-full bg-green-600 text-white font-bold py-4 rounded-lg shadow-lg text-lg">🏁 FINALIZAR TRAJETO</button>
+    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div class="bg-telejur p-5 text-center">
+            <h1 class="text-white text-2xl font-black tracking-widest">TELEJUR</h1>
+            <p class="text-blue-200 text-xs font-bold uppercase">Sistema de Checklist de Veículos</p>
         </div>
 
-        <form id="containerForm" onsubmit="event.preventDefault();">
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2 text-sm">TAG DO VEÍCULO:</label>
-                <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();" class="w-full border rounded-lg p-3 bg-white shadow-sm border-blue-200 focus:ring-2 focus:ring-blue-500">
-                    <option value="">Selecione a TAG</option>
-                    <option value="T-01" data-v="CHEVROLET ONIX" data-p="ABC-1234">T-01 - ONIX</option>
-                    <option value="T-02" data-v="FIAT STRADA" data-p="DEF-5678">T-02 - STRADA</option>
-                    <option value="T-03" data-v="SKY MUNCK" data-p="GHI-9012">T-03 - SKY MUNCK</option>
-                </select>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-gray-700 text-xs font-bold">VEÍCULO:</label>
-                    <input type="text" id="displayVeiculo" readonly class="w-full border rounded-lg p-2 bg-gray-100 text-sm font-semibold uppercase">
+        <div class="p-6">
+            <div id="telaEspera" class="hidden">
+                <div class="bg-blue-50 border-2 border-blue-500 rounded-xl p-4 text-center mb-6">
+                    <h2 class="text-blue-800 font-black text-lg mb-2 underline">TRAJETO EM CURSO</h2>
+                    <div id="resumoTrajeto" class="text-sm text-gray-700 text-left space-y-1"></div>
                 </div>
-                <div>
-                    <label class="block text-gray-700 text-xs font-bold">PLACA:</label>
-                    <input type="text" id="displayPlaca" readonly class="w-full border rounded-lg p-2 bg-gray-100 text-sm font-semibold uppercase">
-                </div>
+                <button onclick="enviarRelatorioInicial()" class="w-full bg-gray-700 text-white font-bold py-3 rounded-lg mb-3 flex justify-center items-center gap-2">
+                    <span>📤</span> REENVIAR WHATSAPP (INÍCIO)
+                </button>
+                <button onclick="irParaFinalizar()" class="w-full bg-green-600 text-white font-black py-5 rounded-xl shadow-xl text-xl hover:scale-105 transition-transform">
+                    🏁 FINALIZAR TRAJETO
+                </button>
             </div>
 
-            <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                <label class="block text-gray-700 font-bold mb-2 text-sm">IDENTIFICAÇÃO DO CONDUTOR:</label>
-                <div class="flex gap-2">
-                    <input type="number" id="numCondutor" placeholder="ID" onblur="validarVinculoFixo()" class="w-1/4 border rounded-lg p-3 text-center font-bold border-blue-300">
-                    <input type="text" id="nomeCondutor" placeholder="NOME COMPLETO" class="w-3/4 border rounded-lg p-3 uppercase border-blue-300">
-                </div>
-                <div id="msgErroVinc" class="text-red-600 text-xs mt-2 font-bold hidden"></div>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-1 text-sm">KM INICIAL:</label>
-                <input type="number" id="kmi" class="w-full border rounded-lg p-3 border-blue-200 shadow-sm" placeholder="Ex: 12540">
-            </div>
-
-            <div class="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <label id="labelTrocaOleo" class="block text-gray-800 font-bold mb-1 text-xs">PRÓXIMA TROCA DE ÓLEO (KM)</label>
-                <input type="number" id="proximaTrocaKM" class="w-full border rounded-lg p-2 border-yellow-400" placeholder="Ex: 20000">
-                <input type="date" id="proximaTrocaData" class="w-full border rounded-lg p-2 border-yellow-400 hidden">
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-gray-700 font-bold mb-1 text-xs text-red-600">COR DO SELO:</label>
-                    <select id="corSelo" class="w-full border rounded-lg p-3 border-red-200 font-bold">
-                        <option value="">Selecione</option>
-                        <option value="AZUL">AZUL</option>
-                        <option value="VERMELHO">VERMELHO</option>
-                        <option value="VERDE">VERDE</option>
-                        <option value="AMARELO">AMARELO</option>
+            <form id="containerForm">
+                <div class="mb-4">
+                    <label class="block text-gray-800 font-extrabold mb-1 text-xs uppercase italic">1. Selecione o Veículo (TAG):</label>
+                    <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();" class="w-full border-2 border-blue-200 rounded-lg p-3 font-bold text-gray-700 focus:border-blue-500 outline-none">
+                        <option value="">-- ESCOLHA A TAG --</option>
+                        <option value="T-01" data-v="CHEVROLET ONIX" data-p="ABC-1234">T-01 - ONIX</option>
+                        <option value="T-02" data-v="FIAT STRADA" data-p="DEF-5678">T-02 - STRADA</option>
+                        <option value="T-03" data-v="SKY MUNCK" data-p="GHI-9012">T-03 - SKY MUNCK</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-gray-700 font-bold mb-1 text-xs">VALIDADE SELO:</label>
-                    <input type="date" id="validadeSelo" onchange="calcularDataLimite()" class="w-full border rounded-lg p-3 border-blue-200">
+
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <input type="text" id="displayVeiculo" readonly placeholder="VEÍCULO" class="bg-gray-100 border rounded p-2 text-xs font-bold uppercase text-center">
+                    <input type="text" id="displayPlaca" readonly placeholder="PLACA" class="bg-gray-100 border rounded p-2 text-xs font-bold uppercase text-center">
                 </div>
-            </div>
 
-            <input type="hidden" id="dataLimiteSelo">
-            <input type="hidden" id="dataAuto">
+                <div class="mb-4 p-3 bg-gray-50 border-l-4 border-blue-600 rounded">
+                    <label class="block text-blue-900 font-bold mb-1 text-xs uppercase">2. Condutor:</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="numCondutor" placeholder="ID" onblur="validarVinculoFixo()" class="w-1/4 border-2 border-blue-100 rounded p-2 font-bold text-center">
+                        <input type="text" id="nomeCondutor" placeholder="NOME DO MOTORISTA" class="w-3/4 border-2 border-blue-100 rounded p-2 font-bold uppercase">
+                    </div>
+                    <div id="msgErroVinc" class="text-red-600 text-[10px] mt-1 font-black hidden uppercase"></div>
+                </div>
 
-            <div id="campoFim" class="hidden mt-6 pt-6 border-t-4 border-green-500">
                 <div class="mb-4">
-                    <label class="block text-green-700 font-bold mb-1">KM FINAL:</label>
-                    <input type="number" id="kmf" class="w-full border-2 border-green-500 rounded-lg p-4 text-xl font-bold shadow-lg" placeholder="KM de Chegada">
+                    <label class="block text-gray-800 font-extrabold mb-1 text-xs uppercase italic">3. Quilometragem Inicial:</label>
+                    <input type="number" id="kmi" class="w-full border-2 border-gray-300 rounded-lg p-3 font-black text-xl text-blue-700" placeholder="00000">
                 </div>
-                <div id="avisoFoto" class="bg-orange-100 text-orange-800 p-3 rounded mb-4 text-xs text-center border border-orange-200"></div>
-            </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-1 text-sm">OBSERVAÇÕES:</label>
-                <textarea id="obs" rows="2" class="w-full border rounded-lg p-2 text-sm border-blue-200" placeholder="Alguma avaria ou observação?"></textarea>
-            </div>
+                <div class="mb-4 p-3 bg-yellow-100 border-2 border-yellow-400 rounded-lg">
+                    <label id="labelTrocaOleo" class="block text-yellow-800 font-black mb-1 text-[10px] uppercase">PRÓXIMA TROCA DE ÓLEO (KM)</label>
+                    <input type="number" id="proximaTrocaKM" class="w-full border rounded p-2 font-bold text-yellow-900" placeholder="KM">
+                    <input type="date" id="proximaTrocaData" class="w-full border rounded p-2 font-bold text-yellow-900 hidden">
+                </div>
 
-            <button id="btnAcao" onclick="iniciarTrajeto()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg shadow-lg text-lg transition-all">INICIAR TRAJETO</button>
-        </form>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-red-700 font-extrabold mb-1 text-[10px] uppercase">Cor do Selo:</label>
+                        <select id="corSelo" class="w-full border-2 border-red-200 rounded p-2 font-bold">
+                            <option value="">---</option>
+                            <option value="AZUL">AZUL</option>
+                            <option value="VERMELHO">VERMELHO</option>
+                            <option value="VERDE">VERDE</option>
+                            <option value="AMARELO">AMARELO</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-800 font-extrabold mb-1 text-[10px] uppercase">Validade:</label>
+                        <input type="date" id="validadeSelo" onchange="calcularDataLimite()" class="w-full border-2 border-gray-200 rounded p-2 font-bold text-xs">
+                    </div>
+                </div>
+
+                <div id="campoFim" class="hidden mt-4 pt-4 border-t-4 border-green-600 bg-green-50 p-3 rounded-lg">
+                    <label class="block text-green-800 font-black mb-1 text-sm uppercase">4. KM Final (Chegada):</label>
+                    <input type="number" id="kmf" class="w-full border-4 border-green-600 rounded-xl p-4 text-2xl font-black text-center" placeholder="DIGITE O KM">
+                    <div id="avisoFoto" class="mt-2 text-center text-orange-700 text-[10px] font-bold"></div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-gray-600 font-bold mb-1 text-xs uppercase">Observações:</label>
+                    <textarea id="obs" rows="2" class="w-full border border-gray-300 rounded p-2 text-sm italic" placeholder="Opcional..."></textarea>
+                </div>
+
+                <input type="hidden" id="dataLimiteSelo">
+                <input type="hidden" id="dataAuto">
+
+                <button id="btnAcao" onclick="iniciarTrajeto()" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white font-black py-4 rounded-xl shadow-lg text-lg uppercase tracking-widest transition-all">
+                    Registrar Início
+                </button>
+            </form>
+        </div>
     </div>
 
     <script>
-        const URL_PLANILHA = "SUA_NOVA_URL_DO_GOOGLE_SCRIPT_AQUI"; // <--- COLOQUE SUA URL AQUI
+        const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
         const dataHojeStr = new Date().toLocaleDateString('pt-BR');
 
         window.onload = function() {
@@ -117,9 +124,14 @@
             const salvo = localStorage.getItem("tjur_checklist_ativo");
             if(salvo) {
                 const d = JSON.parse(salvo);
-                document.getElementById("containerForm").classList.add("hidden");
+                document.getElementById("containerForm").style.display = "none";
                 document.getElementById("telaEspera").classList.remove("hidden");
-                document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag} | <b>ID:</b> ${d.num}<br><b>VEÍCULO:</b> ${d.veiculo}<br><b>INÍCIO:</b> ${d.horaI}`;
+                document.getElementById("resumoTrajeto").innerHTML = `
+                    <b>📌 TAG:</b> ${d.tag} | <b>ID:</b> ${d.num}<br>
+                    <b>🚗 VEÍCULO:</b> ${d.veiculo}<br>
+                    <b>⏱ INÍCIO:</b> ${d.horaI}<br>
+                    <b>🛢 ÓLEO:</b> ${d.oleo}
+                `;
             }
         };
 
@@ -139,18 +151,20 @@
         async function validarVinculoFixo() {
             const tag = document.getElementById("tag").value;
             const idC = document.getElementById("numCondutor").value;
+            const msg = document.getElementById("msgErroVinc");
             if(!tag || !idC) return;
             try {
                 const r = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${tag}&id=${idC}&data=${dataHojeStr}`);
                 const dono = await r.text();
-                const msg = document.getElementById("msgErroVinc");
                 if(dono !== "livre" && dono !== document.getElementById("nomeCondutor").value) {
-                    msg.innerHTML = `⚠ TAG ${tag} ocupada por ${dono}!`;
+                    msg.innerHTML = `⚠ TAG ${tag} JÁ OCUPADA POR: ${dono}`;
                     msg.classList.remove("hidden");
                     document.getElementById("btnAcao").disabled = true;
+                    document.getElementById("btnAcao").style.opacity = "0.5";
                 } else {
                     msg.classList.add("hidden");
                     document.getElementById("btnAcao").disabled = false;
+                    document.getElementById("btnAcao").style.opacity = "1";
                 }
             } catch(e) {}
         }
@@ -159,7 +173,7 @@
             const tag = document.getElementById("tag").value;
             const kmi = document.getElementById("kmi").value;
             const idC = document.getElementById("numCondutor").value;
-            if(!tag || !kmi || !idC) { alert("Preencha TAG, ID e KM Inicial!"); return; }
+            if(!tag || !kmi || !idC) { alert("PREENCHA OS CAMPOS OBRIGATÓRIOS!"); return; }
 
             const campoKM = document.getElementById("proximaTrocaKM");
             const campoData = document.getElementById("proximaTrocaData");
@@ -184,17 +198,17 @@
             try {
                 await fetch(`${URL_PLANILHA}?${query.toString()}`, {mode:'no-cors'});
                 localStorage.setItem("tjur_checklist_ativo", JSON.stringify(d));
-                mostrarSucesso("Iniciado!", () => location.reload());
-            } catch(e) { alert("Erro de conexão!"); }
+                mostrarSucesso("REGISTRADO!", () => location.reload());
+            } catch(e) { alert("ERRO DE CONEXÃO!"); }
         }
 
         function irParaFinalizar() {
             const d = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
             document.getElementById("telaEspera").classList.add("hidden");
-            document.getElementById("containerForm").classList.remove("hidden");
+            document.getElementById("containerForm").style.display = "block";
             document.getElementById("campoFim").classList.remove("hidden");
+            document.getElementById("avisoFoto").innerHTML = "📸 ANEXE A FOTO DO CHECKLIST FÍSICO NO WHATSAPP AO FINALIZAR.";
             
-            // Preenche e Bloqueia
             document.getElementById("obs").value = d.obs || "";
             ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"].forEach(id => {
                 const el = document.getElementById(id);
@@ -207,39 +221,39 @@
                 el.style.pointerEvents = "none";
             });
 
-            // Mostra o Óleo que foi salvo no início
             const campoKM = document.getElementById("proximaTrocaKM");
             const campoData = document.getElementById("proximaTrocaData");
             if(d.oleo.includes("KM")) {
                 campoKM.value = d.oleo.replace(" KM", "");
                 campoKM.classList.remove("hidden");
+                campoData.classList.add("hidden");
             } else if(d.oleo !== "---") {
                 campoData.value = d.oleo.split('/').reverse().join('-');
                 campoData.classList.remove("hidden");
+                campoKM.classList.add("hidden");
             }
 
             const btn = document.getElementById("btnAcao");
             btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
-            btn.className = "w-full bg-green-600 text-white font-bold py-4 rounded-lg shadow-lg text-lg";
+            btn.className = "mt-6 w-full btn-verde py-5 rounded-xl shadow-2xl text-lg uppercase tracking-tighter";
             btn.onclick = async function() {
                 const kmf = document.getElementById("kmf").value;
-                if(!kmf) { alert("Informe o KM Final!"); return; }
+                if(!kmf) { alert("DIGITE O KM FINAL!"); return; }
                 const hF = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 
-                // Recaptura óleo caso tenha sido editado
                 let oleoFinal = !campoKM.classList.contains("hidden") ? (campoKM.value + " KM") : (campoData.value ? campoData.value.split('-').reverse().join('/') : d.oleo);
                 const obsFinal = document.getElementById("obs").value;
 
                 const params = new URLSearchParams({ acao:"finalizar", data:d.data, tag:d.tag, id:d.num, horaF:hF, kmf, oleo:oleoFinal, obs:obsFinal });
-                const msg = `*CHECKLIST - FINALIZADO*\n*CONDUTOR:* ${d.nome}\n*TAG:* ${d.tag}\n*KM INICIAL:* ${d.kmi}\n*KM FINAL:* ${kmf}\n*ÓLEO:* ${oleoFinal}\n*OBS:* ${obsFinal}`;
+                const msg = `*CHECKLIST TELEJUR - FINALIZADO*\n--------------------------\n*CONDUTOR:* ${d.nome}\n*VEÍCULO:* ${d.veiculo}\n*TAG:* ${d.tag}\n*KM INICIAL:* ${d.kmi}\n*KM FINAL:* ${kmf}\n*PRÓX. ÓLEO:* ${oleoFinal}\n--------------------------\n*OBS:* ${obsFinal || "Nenhuma"}`;
 
                 try {
                     await fetch(`${URL_PLANILHA}?${params.toString()}`, {mode:'no-cors'});
                     localStorage.removeItem("tjur_checklist_ativo");
-                    mostrarSucesso("Finalizado!", () => {
+                    mostrarSucesso("FINALIZADO!", () => {
                         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
                     });
-                } catch(e) { alert("Erro ao finalizar!"); }
+                } catch(e) { alert("ERRO AO FINALIZAR!"); }
             };
         }
 
@@ -260,7 +274,7 @@
 
         function enviarRelatorioInicial() {
             const d = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
-            const msg = `*CHECKLIST - EM ANDAMENTO*\n*CONDUTOR:* ${d.nome}\n*TAG:* ${d.tag}\n*KM INICIAL:* ${d.kmi}\n*ÓLEO:* ${d.oleo}`;
+            const msg = `*CHECKLIST TELEJUR - INÍCIO*\n--------------------------\n*CONDUTOR:* ${d.nome}\n*VEÍCULO:* ${d.veiculo}\n*TAG:* ${d.tag}\n*KM INICIAL:* ${d.kmi}\n*PRÓX. ÓLEO:* ${d.oleo}\n--------------------------\n*OBS:* ${d.obs || "Nenhuma"}`;
             window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
         }
     </script>
