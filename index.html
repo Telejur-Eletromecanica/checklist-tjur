@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - SISTEMA V19</title>
+    <title>TELEJUR - V19 FIX</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header-text { text-align: center; margin-bottom: 20px; }
-        .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
-        .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
-        h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
+        .header-text { text-align: center; margin-bottom: 15px; }
+        .brand { font-size: 28px; font-weight: bold; color: #1a237e; margin: 0; }
+        .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; }
+        h2 { text-align: center; font-size: 16px; border-bottom: 2px solid #1a237e; padding-bottom: 8px; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
-        .readonly-field { background: #f0f0f0 !important; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; cursor: not-allowed; }
+        .readonly-field { background: #f0f0f0 !important; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-azul:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
+        .btn-azul:disabled { background: #ccc; opacity: 0.6; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         #msgErroVinc { display:none; padding:12px; border-radius:8px; margin-top:10px; text-align:center; font-weight:bold; font-size: 13px; border: 2px solid; }
         .hidden { display: none; }
-        #telaEspera { text-align: center; padding: 20px; display: none; }
+        #telaEspera { text-align: center; display: none; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; }
     </style>
 </head>
@@ -33,7 +33,6 @@
 
     <div id="containerForm">
         <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
-        
         <form id="formChecklist">
             <label>DATA</label>
             <input type="text" id="dataAuto" class="readonly-field" readonly>
@@ -82,8 +81,8 @@
             <input type="number" id="kmi" placeholder="000000">
 
             <div id="campoFim" class="hidden">
-                <label style="color: #1b5e20;">KM FINAL</label>
-                <input type="number" id="kmf" placeholder="KM de Chegada">
+                <label style="color: #d32f2f;">KM FINAL (RETORNO)</label>
+                <input type="number" id="kmf" placeholder="Digite o KM de chegada">
             </div>
 
             <label>COR DO SELO</label>
@@ -105,14 +104,15 @@
     </div>
 
     <div id="telaEspera">
-        <h3>TRAJETO EM ANDAMENTO</h3>
+        <h3>TRAJETO ATIVO</h3>
         <div id="resumoTrajeto" class="info-trajeto"></div>
         <button type="button" onclick="irParaFinalizar()" class="btn-azul">FINALIZAR TRAJETO</button>
     </div>
 </div>
 
 <script>
-    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    // COLE SUA URL NOVA ABAIXO
+    const URL_PLANILHA = "SUA_URL_DA_PLANILHA_AQUI";
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
 
@@ -139,7 +139,7 @@
         btn.disabled = true;
         msg.style.display = "block";
         msg.style.background = "#fff3cd"; msg.style.color = "#856404";
-        msg.innerHTML = "🔍 Consultando banco de dados...";
+        msg.innerHTML = "🔍 Verificando disponibilidade...";
 
         try {
             const res = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${tag}&id=${idC}&data=${dataHojeStr}`);
@@ -147,7 +147,7 @@
 
             if(dono !== "livre" && dono.trim().toUpperCase() !== nomeS.trim().toUpperCase() && dono !== "") {
                 msg.style.background = "#f8d7da"; msg.style.color = "#721c24";
-                msg.innerHTML = `🚫 <b>BLOQUEADO:</b> TAG ou ID já em uso por <b>${dono}</b>!`;
+                msg.innerHTML = `🚫 BLOQUEADO: ${tag}/${idC} em uso por ${dono}!`;
                 btn.disabled = true;
             } else {
                 msg.style.display = "none";
@@ -159,7 +159,7 @@
     async function iniciarTrajeto() {
         const tag = document.getElementById("tag").value;
         const kmi = document.getElementById("kmi").value;
-        if(!tag || !kmi) return alert("Preencha TAG e KM!");
+        if(!tag || !kmi) return alert("Preencha TAG e KM Inicial!");
 
         const d = {
             tag, kmi,
@@ -177,7 +177,7 @@
             await fetch(`${URL_PLANILHA}?acao=registrar&` + new URLSearchParams(d), { mode: 'no-cors' });
             localStorage.setItem("tjur_checklist_ativo", JSON.stringify(d));
             location.reload();
-        } catch (e) { alert("Erro ao salvar!"); }
+        } catch (e) { alert("Erro ao salvar início!"); }
     }
 
     function irParaFinalizar() {
@@ -197,12 +197,12 @@
 
         document.getElementById("btnAcao").onclick = async function() {
             const kmf = document.getElementById("kmf").value;
-            if(!kmf) return alert("Digite o KM Final!");
+            if(!kmf) return alert("Informe o KM Final!");
             const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             const q = new URLSearchParams({ acao: "finalizar", data: d.data, tag: d.tag, id: d.num, horaF: hF, kmf: kmf, obs: document.getElementById("obs").value });
             await fetch(`${URL_PLANILHA}?${q.toString()}`, { mode: 'no-cors' });
             localStorage.removeItem("tjur_checklist_ativo");
-            window.location.href = "whatsapp://send?text=Finalizado: " + d.tag;
+            window.location.href = "whatsapp://send?text=Checklist Finalizado: " + d.tag + " - KM: " + kmf;
         };
     }
 
@@ -212,7 +212,7 @@
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag} | <b>INÍCIO:</b> ${d.horaI}`;
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
         }
     };
 </script>
