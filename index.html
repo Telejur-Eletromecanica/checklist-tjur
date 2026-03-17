@@ -1,284 +1,5 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V19</title>
-    <style>
-        body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
-        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
-        .header-text { text-align: center; margin-bottom: 20px; }
-        .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
-        .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
-        h2 { text-align: center; color: #333; font-size: 18px; margin-top: 20px; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
-        label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
-        .readonly-field { background: #f0f0f0 !important; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; cursor: not-allowed; }
-        .campo-destaque { background: #fff9c4; border: 1px solid #fbc02d; color: #827717; font-weight: bold; }
-        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        .alerta-foto-vmelho { background: #ffebee; color: #b71c1c; padding: 15px; border-radius: 10px; font-size: 14px; border: 3px solid #ef5350; margin-top: 10px; margin-bottom: 10px; font-weight: bold; text-align: center; line-height: 1.4; animation: blinker 1.5s linear infinite; }
-        @keyframes blinker { 50% { border-color: transparent; } }
-
-        #confirmacaoOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 35, 126, 0.9); z-index: 9999; color: white; text-align: center; flex-direction: column; justify-content: center; align-items: center; }
-        .check-icon { font-size: 80px; margin-bottom: 10px; }
-
-        .hidden { display: none; }
-        #telaEspera { text-align: center; padding: 20px; display: none; }
-        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
-    </style>
-</head>
-<body>
-
-<div id="confirmacaoOverlay">
-    <div class="check-icon">✅</div>
-    <h2 style="color: white; border: none;">REGISTRADO!</h2>
-    <p id="msgConfirmacao">Sincronizando dados...</p>
-</div>
-
-<div class="card">
-    <div class="header-text">
-        <p class="brand">TELEJUR</p>
-        <p class="subtitle">ELETROMECÂNICA</p>
-    </div>
-
-    <div id="containerForm">
-        <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
-        
-        <div id="avisoFoto" class="alerta-foto-vmelho">
-            📸 <b>ATENÇÃO - AVISO DE FOTO:</b><br>
-            Após enviar o texto no WhatsApp, anexe IMEDIATAMENTE a foto do checklist físico.
-        </div>
-
-        <form id="formChecklist">
-            <label>DATA DO CHECKLIST</label>
-            <input type="text" id="dataAuto" class="readonly-field" readonly>
-
-            <label>TAG DO VEÍCULO</label>
-            <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();">
-                <option value="">SELECIONE A TAG</option>
-                <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
-                <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
-                <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
-                <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
-                <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
-                <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
-                <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
-            </select>
-
-            <label>VEÍCULO</label>
-            <input type="text" id="displayVeiculo" class="readonly-field" readonly>
-
-            <label>PLACA</label>
-            <input type="text" id="displayPlaca" class="readonly-field" readonly>
-
-            <div id="msgErroVinc" style="display:none; background:#fff3cd; color:#856404; padding:10px; border-radius:8px; margin-top:10px; text-align:center; font-weight:bold;"></div>
-
-            <label>IDENTIFICAÇÃO (ID)</label>
-            <select id="numCondutor" onchange="validarVinculoFixo()">
-                <option value="">SELECIONE</option>
-                <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
-                <option value="CONDUTOR 3">CONDUTOR 3</option><option value="CONDUTOR 4">CONDUTOR 4</option>
-                <option value="CONDUTOR 5">CONDUTOR 5</option><option value="CONDUTOR 6">CONDUTOR 6</option>
-                <option value="CONDUTOR 7">CONDUTOR 7</option><option value="CONDUTOR 8">CONDUTOR 8</option>
-                <option value="CONDUTOR 9">CONDUTOR 9</option>
-            </select>
-
-            <label>NOME DO CONDUTOR</label>
-            <select id="nomeCondutor" onchange="validarVinculoFixo()">
-                <option value="">SELECIONE</option>
-                <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-                <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARÃES</option>
-                <option>LAFAITE BATISTA</option><option>MIRIELLY</option>
-                <option>RAIMUNDO WALTER</option><option>REGINALDO</option>
-            </select>
-
-            <label>KM INICIAL</label>
-            <input type="text" id="kmi" placeholder="Ex: 149615">
-
-            <label>COR DO SELO</label>
-            <select id="corSelo">
-                <option value="">SELECIONE</option>
-                <option value="VERDE">VERDE</option><option value="AMARELO">AMARELO</option>
-                <option value="AZUL">AZUL</option><option value="VERMELHO">VERMELHO</option>
-            </select>
-
-            <label>VALIDADE DO SELO</label>
-            <input type="date" id="validadeSelo" onchange="calcularDataLimite()">
-
-            <label>DATA LIMITE (+5 DIAS ÚTEIS)</label>
-            <input type="text" id="dataLimiteSelo" class="readonly-field campo-destaque" readonly>
-
-            <div id="campoFim" class="hidden">
-                <label>KM FINAL</label>
-                <input type="text" id="kmf" placeholder="Digite o KM Final">
-            </div>
-
-            <div id="blocoOleo">
-                <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO (KM)</label>
-                <input type="text" id="proximaTrocaKM" placeholder="Ex: 155000">
-                <input type="date" id="proximaTrocaData" class="hidden">
-            </div>
-
-            <label>OBSERVAÇÃO</label>
-            <textarea id="obs" rows="2"></textarea>
-
-            <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn-azul">SALVAR INÍCIO DE TRAJETO</button>
-        </form>
-    </div>
-
-    <div id="telaEspera">
-        <h3 style="color: #1a237e;">TRAJETO EM ANDAMENTO</h3>
-        <div id="resumoTrajeto" class="info-trajeto"></div>
-        <button type="button" onclick="enviarRelatorioInicial()" class="btn-verde">ENVIAR INÍCIO NO WHATSAPP</button>
-        <button type="button" onclick="irParaFinalizar()" class="btn-azul">FINALIZAR TRAJETO</button>
-    </div>
-</div>
-
 <script>
-    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const dataHojeStr = new Date().toLocaleDateString('pt-BR');
-    document.getElementById('dataAuto').value = dataHojeStr;
-
-    function tocarSomConfirmacao() {
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.2);
-        } catch(e) {}
-    }
-
-    function mostrarSucesso(mensagem, callback) {
-        tocarSomConfirmacao();
-        const overlay = document.getElementById("confirmacaoOverlay");
-        document.getElementById("msgConfirmacao").innerText = mensagem;
-        overlay.style.display = "flex";
-        setTimeout(() => {
-            overlay.style.display = "none";
-            callback();
-        }, 1500);
-    }
-
-    function calcularDataLimite() {
-        const inputData = document.getElementById("validadeSelo").value;
-        if (!inputData) return;
-        let data = new Date(inputData + "T12:00:00"); 
-        let diasUteisAdicionados = 0;
-        while (diasUteisAdicionados < 5) {
-            data.setDate(data.getDate() + 1);
-            if (data.getDay() !== 0 && data.getDay() !== 6) diasUteisAdicionados++;
-        }
-        document.getElementById("dataLimiteSelo").value = data.toLocaleDateString('pt-BR');
-    }
-
-    function atualizarInterfacePorTag() {
-        const select = document.getElementById("tag");
-        const option = select.options[select.selectedIndex];
-        if(!option || !select.value) return;
-        document.getElementById("displayVeiculo").value = option.getAttribute("data-v");
-        document.getElementById("displayPlaca").value = option.getAttribute("data-p");
-        
-        const labelOleo = document.getElementById("labelTrocaOleo");
-        if (option.getAttribute("data-v") === "SKY MUNCK") {
-            labelOleo.innerText = "PRÓXIMA TROCA DE ÓLEO (DATA)";
-            document.getElementById("proximaTrocaKM").classList.add("hidden");
-            document.getElementById("proximaTrocaData").classList.remove("hidden");
-        } else {
-            labelOleo.innerText = "PRÓXIMA TROCA DE ÓLEO (KM)";
-            document.getElementById("proximaTrocaKM").classList.remove("hidden");
-            document.getElementById("proximaTrocaData").classList.add("hidden");
-        }
-    }
-
-    async function validarVinculoFixo() {
-        const tag = document.getElementById("tag").value;
-        const nome = document.getElementById("nomeCondutor").value;
-        const idCond = document.getElementById("numCondutor").value;
-        const btn = document.getElementById("btnAcao");
-        const msg = document.getElementById("msgErroVinc");
-        if(!tag || !nome || !idCond) return;
-        msg.style.display = "block"; msg.innerHTML = "Validando condutor...";
-        btn.disabled = true;
-        try {
-            const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${dataHojeStr}`);
-            const dono = await response.text();
-            if(dono !== "livre" && dono !== nome && dono !== "") {
-                msg.innerHTML = `⚠ BLOQUEADO: ${idCond} já ocupado por ${dono}!`;
-                btn.disabled = true;
-            } else { msg.style.display = "none"; btn.disabled = false; }
-        } catch (e) { msg.style.display = "none"; btn.disabled = false; }
-    }
-
-    async function iniciarTrajeto() {
-        const tag = document.getElementById("tag").value;
-        const kmi = document.getElementById("kmi").value;
-        const selo = document.getElementById("corSelo").value;
-        const obsCapturada = document.getElementById("obs").value;
-
-        // Lógica Óleo
-        let oleoFormatado = "";
-        const kmOleo = document.getElementById("proximaTrocaKM").value;
-        const dataOleo = document.getElementById("proximaTrocaData").value;
-        if (kmOleo && !document.getElementById("proximaTrocaKM").classList.contains("hidden")) {
-            oleoFormatado = kmOleo + " KM";
-        } else if (dataOleo) {
-            oleoFormatado = dataOleo.split('-').reverse().join('/');
-        }
-
-        if(!tag || !kmi || !selo) { alert("Preencha Tag, KM Inicial e Selo!"); return; }
-
-        const dados = {
-            tag: tag,
-            veiculo: document.getElementById("displayVeiculo").value,
-            placa: document.getElementById("displayPlaca").value,
-            num: document.getElementById("numCondutor").value,
-            nome: document.getElementById("nomeCondutor").value,
-            kmi: kmi,
-            selo: selo,
-            valSeloRaw: document.getElementById("validadeSelo").value,
-            valSeloF: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
-            dataLimite: document.getElementById("dataLimiteSelo").value || "---",
-            oleo: oleoFormatado || "Não informado",
-            obs: obsCapturada,
-            horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            data: dataHojeStr
-        };
-
-        // ENVIO PARA A PLANILHA COM TODOS OS PARÂMETROS
-        const urlFinal = `${URL_PLANILHA}?acao=registrar` +
-            `&data=${encodeURIComponent(dados.data)}` +
-            `&horaI=${encodeURIComponent(dados.horaI)}` +
-            `&nome=${encodeURIComponent(dados.nome)}` +
-            `&id=${encodeURIComponent(dados.num)}` +
-            `&tag=${encodeURIComponent(dados.tag)}` +
-            `&veiculo=${encodeURIComponent(dados.veiculo)}` +
-            `&placa=${encodeURIComponent(dados.placa)}` +
-            `&kmi=${encodeURIComponent(dados.kmi)}` +
-            `&selo=${encodeURIComponent(dados.selo)}` +
-            `&valSelo=${encodeURIComponent(dados.valSeloF)}` +
-            `&oleo=${encodeURIComponent(dados.oleo)}` +
-            `&obs=${encodeURIComponent(dados.obs)}`;
-        
-        try {
-            await fetch(urlFinal, { mode: 'no-cors' });
-            localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
-            mostrarSucesso("Sincronizado com a Planilha!", () => location.reload());
-        } catch (e) { alert("Erro ao salvar!"); }
-    }
-
-    function enviarRelatorioInicial() {
-        const d = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
-        const msg = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* 🟢 EM ANDAMENTO\n\n*DATA:* ${d.data}\n*HORA INÍCIO:* ${d.horaI}\n--------------------------\n*CONDUTOR:* ${d.nome}\n*ID:* ${d.num}\n--------------------------\n*VEÍCULO:* ${d.veiculo}\n*TAG:* ${d.tag}\n*PLACA:* ${d.placa}\n*KM INICIAL:* ${d.kmi}\n--------------------------\n*COR DO SELO:* ${d.selo}\n*VALIDADE:* ${d.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${d.dataLimite}\n*PRÓX. ÓLEO:* ${d.oleo}\n--------------------------\n*OBS:* ${d.obs || "Nenhuma"}`;
-        window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
-    }
+    // ... (Funções auxiliares permanecem iguais) ...
 
     function irParaFinalizar() {
         const salvo = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
@@ -287,8 +8,9 @@
         document.getElementById("campoFim").classList.remove("hidden");
         document.getElementById("avisoFoto").innerHTML = "📸 <b>AVISO DE FOTO:</b><br>Finalize o trajeto e anexe a foto do checklist físico no WhatsApp.";
 
-        const campos = ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"];
-        campos.forEach(id => {
+        // CAMPOS QUE FICARÃO VISÍVEIS MAS BLOQUEADOS (Somente Leitura)
+        const camposTravados = ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"];
+        camposTravados.forEach(id => {
             const el = document.getElementById(id);
             if(id === "numCondutor") el.value = salvo.num;
             else if(id === "nomeCondutor") el.value = salvo.nome;
@@ -300,7 +22,23 @@
             el.classList.add("readonly-field");
             el.style.pointerEvents = "none";
         });
+
+        // MANTER O ÓLEO VISÍVEL E EDITÁVEL (Caso precise corrigir no fim)
+        const campoKM = document.getElementById("proximaTrocaKM");
+        const campoData = document.getElementById("proximaTrocaData");
+        
+        if (salvo.oleo.includes("KM")) {
+            campoKM.value = salvo.oleo.replace(" KM", "");
+            campoKM.classList.remove("hidden");
+            campoData.classList.add("hidden");
+        } else if (salvo.oleo !== "Não informado") {
+            campoData.value = salvo.oleo.split('/').reverse().join('-');
+            campoData.classList.remove("hidden");
+            campoKM.classList.add("hidden");
+        }
+        
         document.getElementById("dataLimiteSelo").value = salvo.dataLimite;
+        document.getElementById("obs").value = salvo.obs;
 
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
@@ -308,34 +46,38 @@
         btn.onclick = async function() {
             const kmf = document.getElementById("kmf").value;
             const obsFinal = document.getElementById("obs").value;
+            
+            // Recaptura o óleo caso tenha sido alterado na finalização
+            let oleoFinal = "";
+            if (!campoKM.classList.contains("hidden")) {
+                oleoFinal = campoKM.value + " KM";
+            } else {
+                oleoFinal = campoData.value ? campoData.value.split('-').reverse().join('/') : "Não informado";
+            }
+
             if(!kmf) { alert("Informe o KM Final!"); return; }
             
             const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
-            // ENVIO DA FINALIZAÇÃO PARA A PLANILHA
-            const urlFinalizar = `${URL_PLANILHA}?acao=finalizar&data=${encodeURIComponent(salvo.data)}&tag=${encodeURIComponent(salvo.tag)}&id=${encodeURIComponent(salvo.num)}&horaF=${encodeURIComponent(hF)}&kmf=${encodeURIComponent(kmf)}&obs=${encodeURIComponent(obsFinal)}`;
+            const urlFinalizar = `${URL_PLANILHA}?acao=finalizar` +
+                `&data=${encodeURIComponent(salvo.data)}` +
+                `&tag=${encodeURIComponent(salvo.tag)}` +
+                `&id=${encodeURIComponent(salvo.num)}` +
+                `&horaF=${encodeURIComponent(hF)}` +
+                `&kmf=${encodeURIComponent(kmf)}` +
+                `&oleo=${encodeURIComponent(oleoFinal)}` + // Garante o envio do óleo atualizado
+                `&obs=${encodeURIComponent(obsFinal)}`;
 
-            const msgF = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${hF}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${salvo.oleo}\n--------------------------\n*OBS:* ${obsFinal || "Nenhuma"}`;
+            const msgF = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${hF}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${oleoFinal}\n--------------------------\n*OBS:* ${obsFinal || "Nenhuma"}`;
             
             try {
                 await fetch(urlFinalizar, { mode: 'no-cors' });
-                mostrarSucesso("Finalizado na Planilha!", () => {
+                mostrarSucesso("Finalizado com Sucesso!", () => {
                     localStorage.removeItem("tjur_checklist_ativo");
                     window.location.href = "whatsapp://send?text=" + encodeURIComponent(msgF);
                 });
             } catch(e) { alert("Erro ao finalizar!"); }
         };
     }
-
-    window.onload = function() {
-        const salvo = localStorage.getItem("tjur_checklist_ativo");
-        if(salvo) {
-            const d = JSON.parse(salvo);
-            document.getElementById("containerForm").style.display = "none";
-            document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
-        }
-    };
+    // ...
 </script>
-</body>
-</html>
