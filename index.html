@@ -1,42 +1,188 @@
-async function validarVinculo() {
-    const tag = document.getElementById("tag").value;
-    const idCond = document.getElementById("numCondutor").value; // Ex: "CONDUTOR 1"
-    const nomeAtual = document.getElementById("nomeCondutor").value;
-    const btn = document.getElementById("btnAcao");
-    const msg = document.getElementById("msgErroVinc");
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TELEJUR - SMART FROTA V41</title>
+    <style>
+        :root { --primary: #1a237e; --success: #25D366; --bg: #f4f7f9; --danger: #d32f2f; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
+        .card { max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 12px solid var(--primary); }
+        .brand { font-size: 28px; font-weight: 900; color: var(--primary); text-align: center; margin: 0; letter-spacing: 2px; }
+        .subtitle { font-size: 10px; color: #888; text-align: center; font-weight: bold; margin-bottom: 20px; }
 
-    // Só valida se tiver TAG e ID selecionados
-    if (!tag || !idCond) {
-        msg.style.display = "none";
-        return;
+        label { font-weight: 700; font-size: 11px; color: #666; display: block; margin-top: 15px; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 14px; margin-top: 5px; border-radius: 12px; border: 2px solid #eee; font-size: 16px; box-sizing: border-box; }
+        
+        .readonly { background: #f0f2f5 !important; color: var(--primary); font-weight: bold; pointer-events: none; }
+        .msg-vinc { padding: 12px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-top: 15px; display: none; text-align: center; }
+        .foto-banner { background: #e8f5e9; color: #2e7d32; padding: 12px; border-radius: 10px; border: 2px solid #c8e6c9; margin: 10px 0; font-weight: bold; text-align: center; font-size: 12px; }
+
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; }
+        .btn-azul { background: var(--primary); }
+        .btn-verde { background: var(--success); }
+        .btn:disabled { background: #ccc !important; }
+
+        #confirmScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,35,126,0.95); z-index: 9999; color: white; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid var(--success); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="confirmScreen">
+    <div class="loader"></div>
+    <h2 id="msgStatus">PROCESSANDO...</h2>
+</div>
+
+<div class="card">
+    <div class="brand">TELEJUR</div>
+    <div class="subtitle">LOGÍSTICA OPERACIONAL</div>
+
+    <div id="formBody">
+        <div id="check-foto-1" class="foto-banner">📸 FOTO 1: KM DA ETIQUETA DE ÓLEO</div>
+        
+        <label>TAG DO VEÍCULO</label>
+        <select id="tag" onchange="autoVeiculo(); validar()">
+            <option value="">SELECIONE</option>
+            <option value="TJUR 03" data-v="HILUX" data-p="PHG0639">TJUR 03</option>
+            <option value="TJUR 04" data-v="MUNCK" data-p="QFA1I50">TJUR 04</option>
+            <option value="TJUR 06" data-v="SAVEIRO" data-p="QUJ3E02">TJUR 06</option>
+            <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
+            <option value="TJUR 13" data-v="HILUX" data-p="QVD4I38">TJUR 13</option>
+        </select>
+
+        <div style="display:flex; gap:10px;">
+            <div style="flex:2"><label>VEÍCULO</label><input type="text" id="v_nome" class="readonly" readonly></div>
+            <div style="flex:1"><label>PLACA</label><input type="text" id="v_placa" class="readonly" readonly></div>
+        </div>
+
+        <div id="msgAlerta" class="msg-vinc"></div>
+
+        <label>CONDUTOR (ID & NOME)</label>
+        <div style="display:flex; gap:5px;">
+            <select id="idCond" style="flex:1" onchange="validar()"><option value="">ID</option><option>CONDUTOR 1</option><option>CONDUTOR 2</option><option>CONDUTOR 3</option></select>
+            <select id="nomeCond" style="flex:3" onchange="validar()"><option value="">NOME</option><option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option><option>LAFAITE BATISTA</option><option>REGINALDO</option></select>
+        </div>
+
+        <label>KM INICIAL</label>
+        <input type="number" id="kmi" placeholder="KM de saída">
+
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1"><label>COR SELO</label><select id="corSelo"><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select></div>
+            <div style="flex:1"><label>VALIDADE</label><input type="date" id="valSelo"></div>
+        </div>
+
+        <div id="fimForm" class="hidden">
+            <hr style="margin:20px 0">
+            <div class="foto-banner" style="background:#e3f2fd; color:#0d47a1;">📸 FOTO 2: CHECKLIST FÍSICO ASSINADO</div>
+            <label style="color:var(--danger)">📍 KM FINAL (CHEGADA)</label>
+            <input type="number" id="kmf" style="border: 2px solid var(--danger)">
+            <label>OBSERVAÇÃO</label>
+            <textarea id="obs"></textarea>
+        </div>
+
+        <button id="btnAcao" onclick="iniciar()" class="btn btn-azul">SALVAR INÍCIO 🟢</button>
+    </div>
+
+    <div id="telaAndamento" class="hidden" style="text-align:center;">
+        <h2 style="color:var(--primary)">🚀 EM ROTA</h2>
+        <div id="resumo" style="background:#f8f9fa; padding:15px; border-radius:15px; text-align:left; margin-bottom:15px;"></div>
+        <button onclick="enviarWpp('INICIO')" class="btn btn-verde">WHATSAPP INÍCIO</button>
+        <button onclick="prepararFim()" class="btn btn-azul" style="background:#444">FINALIZAR TRAJETO</button>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "SUA_URL_AQUI"; // Coloque o link do Google Apps Script
+    const dataH = new Date().toLocaleDateString('pt-BR');
+
+    function playBip(f) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = f; g.gain.value = 0.05;
+        o.start(); o.stop(ctx.currentTime + 0.15);
     }
 
-    msg.style.display = "block";
-    msg.style.background = "#fff3cd";
-    msg.innerHTML = "Verificando disponibilidade do ID para esta TAG...";
-    btn.disabled = true;
+    function autoVeiculo() {
+        const opt = document.getElementById("tag").options[document.getElementById("tag").selectedIndex];
+        document.getElementById("v_nome").value = opt.getAttribute("data-v") || "";
+        document.getElementById("v_placa").value = opt.getAttribute("data-p") || "";
+    }
 
-    try {
-        // A URL envia a TAG e o ID para o seu script (acao=verificar)
-        const urlBusca = `${SCRIPT_URL}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${hoje}`;
-        const response = await fetch(urlBusca);
-        const ocupante = await response.text();
-
-        // LÓGICA: Se o script retornar um nome que NÃO é o meu, e não estiver "livre", bloqueia.
-        if (ocupante !== "livre" && ocupante !== "" && ocupante !== nomeAtual) {
-            msg.style.background = "#f8d7da";
-            msg.style.color = "#721c24";
-            msg.innerHTML = `🚫 **BLOQUEADO:** O **${idCond}** na **${tag}** já está ocupado por **${ocupante}**.`;
-            btn.disabled = true;
+    async function validar() {
+        const tag = document.getElementById("tag").value;
+        const id = document.getElementById("idCond").value;
+        const msg = document.getElementById("msgAlerta");
+        const btn = document.getElementById("btnAcao");
+        if(!tag || !id) return;
+        
+        msg.style.display = "block"; msg.innerText = "Validando...";
+        const res = await fetch(`${SCRIPT_URL}?acao=verificar&tag=${tag}&id=${id}&data=${dataH}`);
+        const ocupante = await res.text();
+        
+        if(ocupante !== "livre" && ocupante !== "" && ocupante !== document.getElementById("nomeCond").value) {
+            msg.style.background = "#fee2e2"; msg.innerText = `🚫 BLOQUEADO: ${id} na ${tag} está com ${ocupante}`;
+            btn.disabled = true; playBip(300);
         } else {
-            // Está livre para este ID ou o ocupante sou eu mesmo
-            msg.style.display = "none";
-            btn.disabled = false;
+            msg.style.display = "none"; btn.disabled = false;
         }
-    } catch (e) {
-        // Em caso de falha na internet, libera para não travar a operação
-        console.error("Erro na validação:", e);
-        msg.style.display = "none";
-        btn.disabled = false;
     }
-}
+
+    async function iniciar() {
+        const d = { acao: "registrar", tag: document.getElementById("tag").value, id: document.getElementById("idCond").value, nome: document.getElementById("nomeCond").value, kmi: document.getElementById("kmi").value, selo: document.getElementById("corSelo").value, valSelo: document.getElementById("valSelo").value, horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), data: dataH, veiculo: document.getElementById("v_nome").value, placa: document.getElementById("v_placa").value };
+        if(!d.tag || !d.kmi) return alert("Preencha tudo!");
+        
+        document.getElementById("confirmScreen").style.display = "flex";
+        await fetch(`${SCRIPT_URL}?${new URLSearchParams(d).toString()}`, {mode:'no-cors'});
+        playBip(800);
+        localStorage.setItem("tjur_sessao", JSON.stringify(d));
+        location.reload();
+    }
+
+    function prepararFim() {
+        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
+        document.getElementById("telaAndamento").classList.add("hidden");
+        document.getElementById("formBody").classList.remove("hidden");
+        document.getElementById("fimForm").classList.remove("hidden");
+        document.getElementById("tag").value = d.tag; document.getElementById("idCond").value = d.id;
+        document.getElementById("nomeCond").value = d.nome; document.getElementById("kmi").value = d.kmi;
+        autoVeiculo();
+        ["tag", "idCond", "nomeCond", "kmi"].forEach(id => document.getElementById(id).classList.add("readonly"));
+        const btn = document.getElementById("btnAcao"); btn.innerText = "ENCERRAR ✅"; btn.className = "btn btn-verde";
+        btn.onclick = finalizar;
+    }
+
+    async function finalizar() {
+        const s = JSON.parse(localStorage.getItem("tjur_sessao"));
+        const kmf = document.getElementById("kmf").value;
+        if(!kmf) return alert("KM Final!");
+        
+        document.getElementById("confirmScreen").style.display = "flex";
+        const dF = { acao: "finalizar", data: s.data, tag: s.tag, id: s.id, kmf: kmf, horaF: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), obs: document.getElementById("obs").value };
+        await fetch(`${SCRIPT_URL}?${new URLSearchParams(dF).toString()}`, {mode:'no-cors'});
+        playBip(900); enviarWpp('FIM', dF);
+        localStorage.removeItem("tjur_sessao");
+        setTimeout(() => location.reload(), 2000);
+    }
+
+    function enviarWpp(tipo, dF = null) {
+        const s = JSON.parse(localStorage.getItem("tjur_sessao"));
+        let txt = `*CHECKLIST - TELEJUR*\n====================\n*STATUS:* ${tipo === 'INICIO' ? '🟢 EM ROTA' : '✅ FINALIZADO'}\n*DATA:* ${dataH}\n*MOTORISTA:* ${s.nome}\n*ID:* ${s.id}\n*TAG:* ${s.tag}\n*KM:* ${tipo === 'INICIO' ? s.kmi : dF.kmf}\n*HORA:* ${tipo === 'INICIO' ? s.horaI : dF.horaF}\n====================`;
+        window.location.href = `whatsapp://send?text=${encodeURIComponent(txt)}`;
+    }
+
+    window.onload = () => {
+        const s = localStorage.getItem("tjur_sessao");
+        if(s) {
+            const d = JSON.parse(s);
+            document.getElementById("formBody").classList.add("hidden");
+            document.getElementById("telaAndamento").classList.remove("hidden");
+            document.getElementById("resumo").innerHTML = `<b>TAG:</b> ${d.tag} | <b>ID:</b> ${d.id}<br><b>SAÍDA:</b> ${d.horaI}`;
+        }
+    };
+</script>
+</body>
+</html>
