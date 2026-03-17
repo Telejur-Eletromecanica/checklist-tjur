@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V19 FIX</title>
+    <title>TELEJUR - V20</title>
     <style>
-        body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
-        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header-text { text-align: center; margin-bottom: 15px; }
+        body { font-family: sans-serif; background: #f0f4f8; margin: 0; padding: 10px; }
+        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .header-text { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .brand { font-size: 28px; font-weight: bold; color: #1a237e; margin: 0; }
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; }
-        h2 { text-align: center; font-size: 16px; border-bottom: 2px solid #1a237e; padding-bottom: 8px; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
-        .readonly-field { background: #f0f0f0 !important; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; }
+        .readonly-field { background: #f1f1f1 !important; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-azul:disabled { background: #ccc; opacity: 0.6; }
-        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        #msgErroVinc { display:none; padding:12px; border-radius:8px; margin-top:10px; text-align:center; font-weight:bold; font-size: 13px; border: 2px solid; }
+        .btn-azul:disabled { background: #ccc; opacity: 0.7; }
+        #msgErroVinc { display:none; padding:12px; border-radius:8px; margin-top:10px; text-align:center; font-weight:bold; font-size: 14px; }
         .hidden { display: none; }
-        #telaEspera { text-align: center; display: none; }
-        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; }
+        #telaEspera { text-align: center; display: none; padding: 20px; }
+        .info-trajeto { background: #fdfdfd; border: 1px solid #ddd; border-left: 5px solid #1a237e; padding: 15px; margin: 15px 0; border-radius: 8px; text-align: left; }
     </style>
 </head>
 <body>
@@ -32,13 +30,12 @@
     </div>
 
     <div id="containerForm">
-        <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
         <form id="formChecklist">
             <label>DATA</label>
             <input type="text" id="dataAuto" class="readonly-field" readonly>
 
             <label>TAG DO VEÍCULO</label>
-            <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();">
+            <select id="tag" onchange="atualizarDadosVeiculo(); validarBloqueio();">
                 <option value="">SELECIONE A TAG</option>
                 <option value="TJUR 03" data-v="CAMINHONETE HILUX" data-p="PHG0639">TJUR 03</option>
                 <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
@@ -50,16 +47,13 @@
                 <option value="TJUR 13" data-v="CAMINHONETE" data-p="QVD4I38">TJUR 13</option>
             </select>
 
-            <label>VEÍCULO / PLACA</label>
             <div style="display: flex; gap: 5px;">
-                <input type="text" id="displayVeiculo" class="readonly-field" readonly>
-                <input type="text" id="displayPlaca" class="readonly-field" readonly>
+                <div style="flex:1"><label>VEÍCULO</label><input type="text" id="v_nome" class="readonly-field" readonly></div>
+                <div style="flex:1"><label>PLACA</label><input type="text" id="v_placa" class="readonly-field" readonly></div>
             </div>
 
-            <div id="msgErroVinc"></div>
-
-            <label>IDENTIFICAÇÃO (ID)</label>
-            <select id="numCondutor" onchange="validarVinculoFixo()">
+            <label>ID CONDUTOR</label>
+            <select id="idCondutor" onchange="validarBloqueio()">
                 <option value="">SELECIONE</option>
                 <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
                 <option value="CONDUTOR 3">CONDUTOR 3</option><option value="CONDUTOR 4">CONDUTOR 4</option>
@@ -69,7 +63,7 @@
             </select>
 
             <label>NOME DO CONDUTOR</label>
-            <select id="nomeCondutor" onchange="validarVinculoFixo()">
+            <select id="nomeCondutor" onchange="validarBloqueio()">
                 <option value="">SELECIONE</option>
                 <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
                 <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARÃES</option>
@@ -77,142 +71,123 @@
                 <option>RAIMUNDO WALTER</option><option>REGINALDO</option>
             </select>
 
+            <div id="msgErroVinc"></div>
+
             <label>KM INICIAL</label>
-            <input type="number" id="kmi" placeholder="000000">
+            <input type="number" id="kmi" placeholder="Ex: 125430">
 
             <div id="campoFim" class="hidden">
                 <label style="color: #d32f2f;">KM FINAL (RETORNO)</label>
-                <input type="number" id="kmf" placeholder="Digite o KM de chegada">
+                <input type="number" id="kmf" placeholder="KM de Chegada">
             </div>
 
             <label>COR DO SELO</label>
-            <select id="corSelo">
-                <option value="">SELECIONE</option>
-                <option value="VERDE">VERDE</option><option value="AMARELO">AMARELO</option>
-                <option value="AZUL">AZUL</option><option value="VERMELHO">VERMELHO</option>
-            </select>
-
-            <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO</label>
-            <input type="number" id="proximaTrocaKM" placeholder="KM">
-            <input type="date" id="proximaTrocaData" class="hidden">
+            <select id="selo"><option value="">SELECIONE</option><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select>
 
             <label>OBSERVAÇÃO</label>
             <textarea id="obs" rows="2"></textarea>
 
-            <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn-azul">SALVAR INÍCIO</button>
+            <button type="button" id="btnAcao" onclick="iniciar()" class="btn-azul">SALVAR INÍCIO</button>
         </form>
     </div>
 
     <div id="telaEspera">
-        <h3>TRAJETO ATIVO</h3>
+        <h3>TRAJETO EM CURSO</h3>
         <div id="resumoTrajeto" class="info-trajeto"></div>
-        <button type="button" onclick="irParaFinalizar()" class="btn-azul">FINALIZAR TRAJETO</button>
+        <button type="button" onclick="ativarFinalizacao()" class="btn-azul">FINALIZAR AGORA</button>
     </div>
 </div>
 
 <script>
-    // COLE SUA URL NOVA ABAIXO
-    const URL_PLANILHA = "SUA_URL_DA_PLANILHA_AQUI";
-    const dataHojeStr = new Date().toLocaleDateString('pt-BR');
-    document.getElementById('dataAuto').value = dataHojeStr;
+    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+    document.getElementById('dataAuto').value = dataAtual;
 
-    function atualizarInterfacePorTag() {
-        const select = document.getElementById("tag");
-        const opt = select.options[select.selectedIndex];
-        if(!opt.value) return;
-        document.getElementById("displayVeiculo").value = opt.getAttribute("data-v");
-        document.getElementById("displayPlaca").value = opt.getAttribute("data-p");
-        const isMunck = opt.getAttribute("data-v").includes("MUNCK");
-        document.getElementById("proximaTrocaKM").classList.toggle("hidden", isMunck);
-        document.getElementById("proximaTrocaData").classList.toggle("hidden", !isMunck);
+    function atualizarDadosVeiculo() {
+        const s = document.getElementById("tag");
+        const o = s.options[s.selectedIndex];
+        document.getElementById("v_nome").value = o.getAttribute("data-v") || "";
+        document.getElementById("v_placa").value = o.getAttribute("data-p") || "";
     }
 
-    async function validarVinculoFixo() {
+    async function validarBloqueio() {
         const tag = document.getElementById("tag").value;
-        const nomeS = document.getElementById("nomeCondutor").value;
-        const idC = document.getElementById("numCondutor").value;
-        const btn = document.getElementById("btnAcao");
+        const idC = document.getElementById("idCondutor").value;
+        const nome = document.getElementById("nomeCondutor").value;
         const msg = document.getElementById("msgErroVinc");
+        const btn = document.getElementById("btnAcao");
 
-        if(!tag || !nomeS || !idC) return;
+        if(!tag || !idC || !nome) return;
 
         btn.disabled = true;
         msg.style.display = "block";
-        msg.style.background = "#fff3cd"; msg.style.color = "#856404";
-        msg.innerHTML = "🔍 Verificando disponibilidade...";
+        msg.style.background = "#e3f2fd"; msg.style.color = "#0d47a1"; msg.style.border = "1px solid #0d47a1";
+        msg.innerHTML = "⏳ Verificando no banco de dados...";
 
         try {
-            const res = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${tag}&id=${idC}&data=${dataHojeStr}`);
+            const res = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${tag}&id=${idC}&data=${dataAtual}`);
             const dono = await res.text();
 
-            if(dono !== "livre" && dono.trim().toUpperCase() !== nomeS.trim().toUpperCase() && dono !== "") {
-                msg.style.background = "#f8d7da"; msg.style.color = "#721c24";
-                msg.innerHTML = `🚫 BLOQUEADO: ${tag}/${idC} em uso por ${dono}!`;
+            if(dono !== "livre" && dono.trim().toUpperCase() !== nome.trim().toUpperCase() && !dono.includes("404")) {
+                msg.style.background = "#ffebee"; msg.style.color = "#c62828"; msg.style.border = "1px solid #c62828";
+                msg.innerHTML = `🚫 BLOQUEADO: ${tag} está com ${dono}`;
                 btn.disabled = true;
             } else {
                 msg.style.display = "none";
                 btn.disabled = false;
             }
-        } catch(e) { btn.disabled = false; }
+        } catch(e) { btn.disabled = false; msg.style.display = "none"; }
     }
 
-    async function iniciarTrajeto() {
+    async function iniciar() {
         const tag = document.getElementById("tag").value;
         const kmi = document.getElementById("kmi").value;
-        if(!tag || !kmi) return alert("Preencha TAG e KM Inicial!");
+        if(!tag || !kmi) return alert("Preencha TAG e KM!");
 
         const d = {
-            tag, kmi,
-            veiculo: document.getElementById("displayVeiculo").value,
-            placa: document.getElementById("displayPlaca").value,
-            num: document.getElementById("numCondutor").value,
+            acao: "registrar", data: dataAtual,
+            horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
             nome: document.getElementById("nomeCondutor").value,
-            selo: document.getElementById("corSelo").value,
-            obs: document.getElementById("obs").value,
-            horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            data: dataHojeStr
+            id: document.getElementById("idCondutor").value,
+            tag: tag, veiculo: document.getElementById("v_nome").value,
+            placa: document.getElementById("v_placa").value,
+            kmi: kmi, selo: document.getElementById("selo").value,
+            obs: document.getElementById("obs").value
         };
 
-        try {
-            await fetch(`${URL_PLANILHA}?acao=registrar&` + new URLSearchParams(d), { mode: 'no-cors' });
-            localStorage.setItem("tjur_checklist_ativo", JSON.stringify(d));
-            location.reload();
-        } catch (e) { alert("Erro ao salvar início!"); }
+        await fetch(URL_PLANILHA + "?" + new URLSearchParams(d), { mode: 'no-cors' });
+        localStorage.setItem("tjur_ativo", JSON.stringify(d));
+        location.reload();
     }
 
-    function irParaFinalizar() {
-        const d = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
+    function ativarFinalizacao() {
+        const d = JSON.parse(localStorage.getItem("tjur_ativo"));
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
-        document.getElementById("btnAcao").innerText = "FINALIZAR E ENVIAR WHATSAPP";
-        document.getElementById("btnAcao").className = "btn-verde";
+        document.getElementById("btnAcao").innerText = "FINALIZAR TRAJETO";
+        document.getElementById("tag").value = d.tag;
+        document.getElementById("idCondutor").value = d.id;
+        document.getElementById("nomeCondutor").value = d.nome;
+        atualizarDadosVeiculo();
         
-        ["tag", "numCondutor", "nomeCondutor", "kmi"].forEach(id => {
-            const el = document.getElementById(id);
-            el.value = d[id] || (id === "numCondutor" ? d.num : "");
-            el.classList.add("readonly-field");
-            el.style.pointerEvents = "none";
-        });
-
         document.getElementById("btnAcao").onclick = async function() {
             const kmf = document.getElementById("kmf").value;
             if(!kmf) return alert("Informe o KM Final!");
-            const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const q = new URLSearchParams({ acao: "finalizar", data: d.data, tag: d.tag, id: d.num, horaF: hF, kmf: kmf, obs: document.getElementById("obs").value });
-            await fetch(`${URL_PLANILHA}?${q.toString()}`, { mode: 'no-cors' });
-            localStorage.removeItem("tjur_checklist_ativo");
-            window.location.href = "whatsapp://send?text=Checklist Finalizado: " + d.tag + " - KM: " + kmf;
+            const hF = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            await fetch(`${URL_PLANILHA}?acao=finalizar&data=${d.data}&tag=${d.tag}&id=${d.id}&horaF=${hF}&kmf=${kmf}`, { mode: 'no-cors' });
+            localStorage.removeItem("tjur_ativo");
+            window.location.href = `whatsapp://send?text=Checklist Finalizado: ${d.tag} - KM: ${kmf}`;
         };
     }
 
     window.onload = function() {
-        const salvo = localStorage.getItem("tjur_checklist_ativo");
+        const salvo = localStorage.getItem("tjur_ativo");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>SAÍDA:</b> ${d.horaI}`;
         }
     };
 </script>
