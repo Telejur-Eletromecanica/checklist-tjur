@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V10</title>
+    <title>TELEJUR - V11</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -62,13 +62,30 @@
                 <option value="">SELECIONE</option>
                 <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
                 <option value="CONDUTOR 3">CONDUTOR 3</option><option value="CONDUTOR 4">CONDUTOR 4</option>
+                <option value="CONDUTOR 5">CONDUTOR 5</option><option value="CONDUTOR 6">CONDUTOR 6</option>
+                <option value="CONDUTOR 7">CONDUTOR 7</option><option value="CONDUTOR 8">CONDUTOR 8</option>
+                <option value="CONDUTOR 9">CONDUTOR 9</option><option value="CONDUTOR 10">CONDUTOR 10</option>
+                <option value="CONDUTOR 11">CONDUTOR 11</option><option value="CONDUTOR 12">CONDUTOR 12</option>
+                <option value="CONDUTOR 13">CONDUTOR 13</option><option value="CONDUTOR 14">CONDUTOR 14</option>
+                <option value="CONDUTOR 15">CONDUTOR 15</option>
             </select>
 
             <label>NOME DO CONDUTOR</label>
             <select id="nomeCondutor" onchange="validarVinculoFixo()">
                 <option value="">SELECIONE</option>
-                <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-                <option>JOELCINEI GUIMARÃES</option><option>REGINALDO</option>
+                <option>ADRIANO NASCIMENTO</option>
+                <option>ADRIANO FERREIRA</option>
+                <option>EZEQUIEL</option>
+                <option>FRANCE</option>
+                <option>FRANCIVALDO COSTA</option>
+                <option>FRANCINILDO TEXEIRA</option>
+                <option>GABRIELA</option>
+                <option>JEAN</option>
+                <option>JOELCINEI GUIMARÃES</option>
+                <option>LAFAITE BATISTA</option>
+                <option>MIRIELLY</option>
+                <option>RAIMUNDO WALTER</option>
+                <option>REGINALDO</option>
             </select>
 
             <label>KM INICIAL</label>
@@ -212,11 +229,14 @@
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
         
-        // Bloquear e restaurar valores
         const campos = ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"];
         campos.forEach(id => {
             const el = document.getElementById(id);
-            el.value = salvo[id === "numCondutor" ? "num" : id === "nomeCondutor" ? "nome" : id === "validadeSelo" ? "valSeloRaw" : id];
+            if(id === "numCondutor") el.value = salvo.num;
+            else if(id === "nomeCondutor") el.value = salvo.nome;
+            else if(id === "validadeSelo") el.value = salvo.valSeloRaw;
+            else el.value = salvo[id];
+
             if(id === "tag") atualizarInterfacePorTag();
             el.classList.add("readonly-field");
             el.style.pointerEvents = "none";
@@ -230,21 +250,4 @@
             const kmf = document.getElementById("kmf").value;
             if(!kmf) { alert("Informe o KM Final!"); return; }
             const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const msgF = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${hF}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${salvo.oleo}\n--------------------------\n*OBS:* ${document.getElementById("obs").value || "Nenhuma"}`;
-            localStorage.removeItem("tjur_checklist_ativo");
-            window.location.href = "whatsapp://send?text=" + encodeURIComponent(msgF);
-        };
-    }
-
-    window.onload = function() {
-        const salvo = localStorage.getItem("tjur_checklist_ativo");
-        if(salvo) {
-            const d = JSON.parse(salvo);
-            document.getElementById("containerForm").style.display = "none";
-            document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
-        }
-    };
-</script>
-</body>
-</html>
+            const msgF = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n
