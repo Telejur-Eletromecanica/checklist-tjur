@@ -3,227 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - GESTÃO AUTOMATIZADA</title>
+    <title>TELEJUR - GESTÃO COMPLETA</title>
     <style>
         :root { --primary: #1a237e; --success: #25D366; --bg: #f4f7f9; --warning: #ffc107; --danger: #d32f2f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 12px solid var(--primary); }
-        .header { text-align: center; margin-bottom: 15px; }
-        .brand { font-size: 28px; font-weight: 900; color: var(--primary); margin: 0; }
         
+        .brand { font-size: 28px; font-weight: 900; color: var(--primary); text-align: center; margin: 0; }
+        .subtitle { font-size: 11px; color: #666; font-weight: bold; text-align: center; margin-bottom: 20px; }
+
         label { font-weight: 700; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 14px; margin-top: 5px; border-radius: 10px; border: 2px solid #e0e0e0; font-size: 16px; box-sizing: border-box; }
         
-        .readonly { background: #f0f2f5 !important; color: var(--primary); font-weight: bold; border: 1px dashed var(--primary); }
-        .campo-sugestao { background: #e8f5e9; border: 2px solid var(--success); font-weight: bold; color: #1b5e20; }
+        /* Estados de Campos */
+        .readonly { background: #f0f2f5 !important; color: var(--primary); font-weight: bold; border: 1px dashed var(--primary); pointer-events: none; }
+        .campo-alerta { background: #fff9c4 !important; border: 2px solid #fbc02d !important; font-weight: bold; }
         
-        #avisoManutencao { display: none; padding: 12px; border-radius: 10px; font-weight: bold; text-align: center; margin-top: 10px; font-size: 14px; }
-        .revisao-proxima { background: var(--warning); color: #000; border: 2px solid #b8860b; }
-        .revisao-vencida { background: var(--danger); color: #fff; border: 2px solid #8b0000; animation: blink 1s infinite; }
-        
+        /* Alertas e Mensagens */
+        .aviso-foto { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 10px; border: 2px solid #c8e6c9; margin-top: 15px; font-weight: bold; text-align: center; }
+        #msgRevisao { display: none; padding: 12px; border-radius: 10px; font-weight: bold; text-align: center; margin-top: 10px; }
+        .rev-vencida { background: var(--danger); color: white; animation: blink 1s infinite; }
+        .rev-proxima { background: var(--warning); color: black; }
         @keyframes blink { 50% { opacity: 0.8; } }
+
+        /* Botões */
         .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-azul { background: var(--primary); }
         .btn-verde { background: var(--success); }
+
+        /* Overlays */
+        #overlaySalvo { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,35,126,0.95); z-index: 1000; color: white; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="header">
-        <p class="brand">TELEJUR</p>
-        <p style="color: #666; font-size: 11px; font-weight: bold; margin: 0;">SISTEMA DE MANUTENÇÃO AUTOMÁTICA</p>
-    </div>
+<div id="overlaySalvo">
+    <div style="font-size: 80px;">✅</div>
+    <h1>DADOS REGISTRADOS!</h1>
+    <p>O sistema salvou as informações com sucesso.</p>
+</div>
 
-    <div id="formContainer">
-        <form id="checklistForm">
+<div class="card">
+    <div class="brand">TELEJUR</div>
+    <div class="subtitle">ELETROMECÂNICA - FROTA</div>
+
+    <div id="containerForm">
+        <form id="checklist">
             <label>VEÍCULO (TAG)</label>
-            <select id="tag" onchange="carregarDadosVeiculo()">
+            <select id="tag" onchange="carregarHistoricoVeiculo()">
                 <option value="">SELECIONE</option>
                 <option value="TJUR 03" data-v="HILUX" data-p="PHG0639">TJUR 03 (HILUX)</option>
                 <option value="TJUR 04" data-v="MUNCK" data-p="QFA1I50">TJUR 04 (MUNCK)</option>
                 <option value="TJUR 06" data-v="SAVEIRO" data-p="QUJ3E02">TJUR 06 (SAVEIRO)</option>
                 <option value="TJUR 07" data-v="MUNCK" data-p="RWR3C75">TJUR 07 (MUNCK)</option>
                 <option value="TJUR 08" data-v="HILUX" data-p="QVE5H48">TJUR 08 (HILUX)</option>
-                <option value="TJUR 09" data-v="MUNCK" data-p="RXC6J04">TJUR 09 (MUNCK)</option>
-                <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10 (CAMINHONETE)</option>
-                <option value="TJUR 13" data-v="CAMINHONETE" data-p="QVD4I38">TJUR 13 (CAMINHONETE)</option>
+                <option value="TJUR 13" data-v="HILUX" data-p="QVD4I38">TJUR 13 (HILUX)</option>
             </select>
 
-            <label>KM DA ÚLTIMA TROCA (PAINEL NO DIA DA TROCA)</label>
-            <input type="number" id="kmUltimaTroca" placeholder="Ex: 164257" oninput="calcularProximaTroca()">
+            <label>KM DA ÚLTIMA TROCA (ETIQUETA)</label>
+            <input type="number" id="kmUltima" placeholder="KM escrito na etiqueta" oninput="calcularTroca()">
 
-            <label>PRÓXIMA TROCA SUGERIDA (+5.000 KM)</label>
-            <input type="number" id="kmRevisao" class="campo-sugestao" placeholder="Cálculo automático...">
+            <label>PRÓXIMA TROCA (+5.000 KM)</label>
+            <input type="number" id="kmRev" class="readonly" readonly>
 
-            <label>KM ATUAL NO PAINEL (AGORA)</label>
-            <input type="number" id="kmi" placeholder="KM que marca agora" oninput="calcularAlertas()">
-
-            <div id="avisoManutencao"></div>
+            <label>KM ATUAL NO PAINEL</label>
+            <input type="number" id="kmi" placeholder="KM agora" oninput="alertasRevisao()">
+            <div id="msgRevisao"></div>
 
             <label>CONDUTOR</label>
-            <select id="condutor" onchange="salvarMotorista()">
-                <option value="">SELECIONE SEU NOME</option>
+            <select id="condutor" onchange="localStorage.setItem('pref_moto', this.value)">
+                <option value="">QUEM É O MOTORISTA?</option>
                 <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
                 <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARÃES</option>
                 <option>LAFAITE BATISTA</option><option>REGINALDO</option>
             </select>
 
             <div style="display: flex; gap: 10px;">
-                <div style="flex: 1;">
-                    <label>COR DO SELO</label>
-                    <select id="selo"><option value="">COR</option><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select>
-                </div>
-                <div style="flex: 1;">
-                    <label>VALIDADE</label>
-                    <input type="date" id="valSelo" onchange="gerarCarencia()">
-                </div>
+                <div style="flex:1"><label>COR SELO</label><select id="selo"><option value="">COR</option><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select></div>
+                <div style="flex:1"><label>VALIDADE</label><input type="date" id="valSelo" onchange="carencia()"></div>
             </div>
 
-            <label>LIMITE (+5 DIAS ÚTEIS)</label>
-            <input type="text" id="limite" class="readonly" style="background:#fff9c4 !important" readonly>
+            <label>DATA LIMITE (+5 DIAS ÚTEIS)</label>
+            <input type="text" id="limite" class="readonly campo-alerta" readonly>
 
-            <div id="campoFinal" class="hidden">
-                <hr><label style="color: var(--danger);">📍 KM FINAL (AO CHEGAR)</label>
-                <input type="number" id="kmf" style="border: 2px solid var(--danger);">
+            <div id="blocoFim" class="hidden">
+                <hr style="margin-top:20px">
+                <label style="color:var(--danger)">📍 KM FINAL (AO CHEGAR)</label>
+                <input type="number" id="kmf" style="border: 2px solid var(--danger)">
+                <div class="aviso-foto">📸 TIRE FOTO DA ETIQUETA E DO CHECKLIST!</div>
             </div>
 
-            <button type="button" id="btnAcao" onclick="registrarInicio()" class="btn btn-azul">SALVAR E INICIAR 🟢</button>
+            <button type="button" id="btnPrincipal" onclick="salvarInicio()" class="btn btn-azul">INICIAR TRAJETO 🟢</button>
         </form>
     </div>
 
-    <div id="esperaContainer" class="hidden">
-        <div id="resumo" style="background: #f0f4f8; padding: 15px; border-radius: 10px; font-size: 14px; margin-bottom:15px;"></div>
-        <button onclick="enviarZap('INICIO')" class="btn btn-verde">ENVIAR WHATSAPP</button>
-        <button onclick="prepararFim()" class="btn btn-azul">FINALIZAR TRAJETO</button>
+    <div id="containerEspera" class="hidden">
+        <div class="aviso-foto" style="background:#e3f2fd; border-color:#2196f3; color:#0d47a1">🚀 TRAJETO EM ANDAMENTO</div>
+        <div id="resumoAtivo" style="padding:15px; font-size:14px; line-height:1.6"></div>
+        <button onclick="enviarWhatsapp('INICIO')" class="btn btn-verde">ENVIAR NO WHATSAPP</button>
+        <button onclick="liberarFim()" class="btn btn-azul">CHEGUEI NA EMPRESA</button>
     </div>
 </div>
 
 <script>
-    // Carrega o KM da última troca salvo para esta TAG específica
-    function carregarDadosVeiculo() {
+    // 1. BIP E TELA DE CONFIRMAÇÃO
+    function acaoConfirmada() {
+        const audio = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audio.createOscillator();
+        osc.connect(audio.destination);
+        osc.start(); osc.stop(audio.currentTime + 0.15);
+        
+        document.getElementById("overlaySalvo").style.display = "flex";
+    }
+
+    // 2. MEMÓRIA E CÁLCULOS
+    function carregarHistoricoVeiculo() {
         const tag = document.getElementById("tag").value;
         if(!tag) return;
-        const kmSalvo = localStorage.getItem(`ultimo_km_troca_${tag}`);
-        if(kmSalvo) {
-            document.getElementById("kmUltimaTroca").value = kmSalvo;
-            calcularProximaTroca();
-        } else {
-            document.getElementById("kmUltimaTroca").value = "";
-            document.getElementById("kmRevisao").value = "";
+        const ultimoKM = localStorage.getItem(`km_troca_${tag}`);
+        if(ultimoKM) {
+            document.getElementById("kmUltima").value = ultimoKM;
+            calcularTroca();
         }
     }
 
-    // Calcula automaticamente +5000 km
-    function calcularProximaTroca() {
-        const ultima = parseInt(document.getElementById("kmUltimaTroca").value);
-        if(ultima) {
-            document.getElementById("kmRevisao").value = ultima + 5000;
-            calcularAlertas();
+    function calcularTroca() {
+        const u = parseInt(document.getElementById("kmUltima").value);
+        if(u) {
+            document.getElementById("kmRev").value = u + 5000;
+            alertasRevisao();
         }
     }
 
-    function calcularAlertas() {
-        const kmi = parseInt(document.getElementById("kmi").value);
-        const kmr = parseInt(document.getElementById("kmRevisao").value);
-        const aviso = document.getElementById("avisoManutencao");
-
-        if (!kmi || !kmr) { aviso.style.display = "none"; return; }
-        aviso.style.display = "block";
-        const falta = kmr - kmi;
-
-        if (falta <= 0) {
-            aviso.className = "revisao-vencida";
-            aviso.innerHTML = `🚨 REVISÃO VENCIDA!<br>Passou ${Math.abs(falta)} KM do limite.`;
-        } else if (falta <= 500) {
-            aviso.className = "revisao-proxima";
-            aviso.innerHTML = `⚠️ ATENÇÃO: Revisão em ${falta} KM.`;
-        } else {
-            aviso.style.display = "none";
-        }
+    function alertasRevisao() {
+        const atual = parseInt(document.getElementById("kmi").value);
+        const alvo = parseInt(document.getElementById("kmRev").value);
+        const msg = document.getElementById("msgRevisao");
+        if(!atual || !alvo) { msg.style.display="none"; return; }
+        
+        msg.style.display = "block";
+        const saldo = alvo - atual;
+        if(saldo <= 0) {
+            msg.className = "rev-vencida";
+            msg.innerHTML = `🚨 REVISÃO VENCIDA EM ${Math.abs(saldo)} KM!`;
+        } else if(saldo <= 500) {
+            msg.className = "rev-proxima";
+            msg.innerHTML = `⚠️ REVISÃO EM ${saldo} KM!`;
+        } else { msg.style.display="none"; }
     }
 
-    function gerarCarencia() {
-        const val = document.getElementById("valSelo").value;
-        if(!val) return;
-        let d = new Date(val + "T12:00:00");
-        let dias = 0;
-        while(dias < 5) {
-            d.setDate(d.getDate() + 1);
-            if(d.getDay() !== 0 && d.getDay() !== 6) dias++;
-        }
+    function carencia() {
+        const v = document.getElementById("valSelo").value;
+        if(!v) return;
+        let d = new Date(v + "T12:00:00");
+        let i = 0;
+        while(i < 5) { d.setDate(d.getDate()+1); if(d.getDay()!==0 && d.getDay()!==6) i++; }
         document.getElementById("limite").value = d.toLocaleDateString('pt-BR');
     }
 
-    function registrarInicio() {
-        const tag = document.getElementById("tag").value;
-        const ult = document.getElementById("kmUltimaTroca").value;
+    // 3. SALVAMENTO E TRAVAMENTO
+    function salvarInicio() {
         const d = {
-            tag: tag,
+            tag: document.getElementById("tag").value,
             moto: document.getElementById("condutor").value,
             kmi: document.getElementById("kmi").value,
-            kmr: document.getElementById("kmRevisao").value,
+            kmr: document.getElementById("kmRev").value,
+            kmu: document.getElementById("kmUltima").value,
             selo: document.getElementById("selo").value,
-            limite: document.getElementById("limite").value,
-            horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+            lim: document.getElementById("limite").value,
+            hI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         };
-        if(!d.tag || !d.kmi || !ult) return alert("Preencha KM da última troca e KM atual!");
+        if(!d.tag || !d.kmi || !d.moto) return alert("Preencha todos os campos!");
+
+        acaoConfirmada();
+        localStorage.setItem(`km_troca_${d.tag}`, d.kmu); // Salva histórico da TAG
+        localStorage.setItem("trajeto_telejur", JSON.stringify(d)); // Salva trajeto ativo
         
-        // Salva o KM da última troca para a próxima vez que usar este veículo
-        localStorage.setItem(`ultimo_km_troca_${tag}`, ult);
-        localStorage.setItem("tjur_trajeto_ativo", JSON.stringify(d));
-        location.reload();
+        setTimeout(() => location.reload(), 1500);
     }
 
-    function prepararFim() {
-        const s = JSON.parse(localStorage.getItem("tjur_trajeto_ativo"));
-        document.getElementById("esperaContainer").classList.add("hidden");
-        document.getElementById("formContainer").classList.remove("hidden");
-        document.getElementById("campoFinal").classList.remove("hidden");
+    function liberarFim() {
+        const s = JSON.parse(localStorage.getItem("trajeto_telejur"));
+        document.getElementById("containerEspera").classList.add("hidden");
+        document.getElementById("containerForm").classList.remove("hidden");
+        document.getElementById("blocoFim").classList.remove("hidden");
+
+        // Preenche e TRAVA campos (Readonly)
+        const f = document.getElementById("checklist").elements;
         document.getElementById("tag").value = s.tag;
         document.getElementById("condutor").value = s.moto;
         document.getElementById("kmi").value = s.kmi;
-        document.getElementById("kmRevisao").value = s.kmr;
-        
-        ["tag", "condutor", "kmi", "kmUltimaTroca", "kmRevisao", "selo", "valSelo"].forEach(id => {
-            const el = document.getElementById(id);
-            el.classList.add("readonly");
-            el.style.pointerEvents = "none";
+        document.getElementById("kmUltima").value = s.kmu;
+        document.getElementById("kmRev").value = s.kmr;
+        document.getElementById("selo").value = s.selo;
+        document.getElementById("limite").value = s.lim;
+
+        ["tag", "condutor", "kmi", "kmUltima", "selo", "valSelo"].forEach(id => {
+            document.getElementById(id).classList.add("readonly");
         });
-        const btn = document.getElementById("btnAcao");
-        btn.innerText = "FINALIZAR E ENVIAR ✅";
+
+        const btn = document.getElementById("btnPrincipal");
+        btn.innerText = "FINALIZAR TUDO ✅";
         btn.className = "btn btn-verde";
-        btn.onclick = () => enviarZap('FIM');
+        btn.onclick = () => enviarWhatsapp('FIM');
     }
 
-    function enviarZap(tipo) {
-        const s = JSON.parse(localStorage.getItem("tjur_trajeto_ativo"));
+    function enviarWhatsapp(tipo) {
+        const s = JSON.parse(localStorage.getItem("trajeto_telejur"));
         const kmf = document.getElementById("kmf").value;
-        let txt = "";
+        let msg = "";
+
         if(tipo === 'INICIO') {
-            txt = `*TELEJUR - INÍCIO*\n🚗 *TAG:* ${s.tag}\n👤 *CONDUTOR:* ${s.moto}\n📍 *KM ATUAL:* ${s.kmi}\n🛠️ *PREVISÃO TROCA:* ${s.kmr}\n🛡️ *SELO:* ${s.selo}`;
+            msg = `*TELEJUR - INÍCIO*\n🚗 *TAG:* ${s.tag}\n👤 *MOTORISTA:* ${s.moto}\n📍 *KM:* ${s.kmi}\n🛠️ *PRÓX. TROCA:* ${s.kmr}\n🛡️ *SELO:* ${s.selo}`;
         } else {
-            if(!kmf) return alert("Digite o KM Final!");
-            txt = `*TELEJUR - FINALIZADO*\n🚗 *TAG:* ${s.tag}\n👤 *CONDUTOR:* ${s.moto}\n📍 *KM FINAL:* ${kmf}\n⏰ *HORA:* ${new Date().toLocaleTimeString()}`;
-            localStorage.removeItem("tjur_trajeto_ativo");
+            if(!kmf) return alert("Digite o KM FINAL!");
+            msg = `*TELEJUR - FINALIZADO*\n🚗 *TAG:* ${s.tag}\n👤 *MOTORISTA:* ${s.moto}\n📍 *KM FINAL:* ${kmf}\n⏰ *HORA:* ${new Date().toLocaleTimeString()}`;
+            localStorage.removeItem("trajeto_telejur");
         }
-        window.location.href = "whatsapp://send?text=" + encodeURIComponent(txt);
+        window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
         if(tipo === 'FIM') setTimeout(() => location.reload(), 2000);
     }
 
     window.onload = () => {
-        const s = localStorage.getItem("tjur_trajeto_ativo");
-        const pref = localStorage.getItem("tjur_pref_moto");
-        if(pref) document.getElementById("condutor").value = pref;
+        const s = localStorage.getItem("trajeto_telejur");
+        const m = localStorage.getItem("pref_moto");
+        if(m) document.getElementById("condutor").value = m;
         if(s) {
             const d = JSON.parse(s);
-            document.getElementById("formContainer").classList.add("hidden");
-            document.getElementById("esperaContainer").classList.remove("hidden");
-            document.getElementById("resumo").innerHTML = `<b>VEÍCULO:</b> ${d.tag}<br><b>KM ATUAL:</b> ${d.kmi}<br><b>TROCA PREVISTA:</b> ${d.kmr}`;
+            document.getElementById("containerForm").classList.add("hidden");
+            document.getElementById("containerEspera").classList.remove("hidden");
+            document.getElementById("resumoAtivo").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>SAÍDA:</b> ${d.hI}<br><b>KM INICIAL:</b> ${d.kmi}`;
         }
     };
-    function salvarMotorista() { localStorage.setItem("tjur_pref_moto", document.getElementById("condutor").value); }
 </script>
 </body>
 </html>
