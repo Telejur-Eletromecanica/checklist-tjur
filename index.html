@@ -1,253 +1,42 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - SISTEMA OPERACIONAL</title>
-    <style>
-        :root { --primary: #1a237e; --success: #25D366; --bg: #f4f7f9; --warning: #ffc107; --danger: #d32f2f; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 12px solid var(--primary); }
-        .brand { font-size: 28px; font-weight: 900; color: var(--primary); text-align: center; margin: 0; letter-spacing: 2px; }
-        .subtitle { font-size: 11px; color: #666; font-weight: bold; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
+async function validarVinculo() {
+    const tag = document.getElementById("tag").value;
+    const idCond = document.getElementById("numCondutor").value; // Ex: "CONDUTOR 1"
+    const nomeAtual = document.getElementById("nomeCondutor").value;
+    const btn = document.getElementById("btnAcao");
+    const msg = document.getElementById("msgErroVinc");
 
-        label { font-weight: 700; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 14px; margin-top: 5px; border-radius: 10px; border: 2px solid #e0e0e0; font-size: 16px; box-sizing: border-box; }
-        
-        .readonly-field { background: #f0f2f5 !important; color: var(--primary); font-weight: bold; border: 1px dashed var(--primary); pointer-events: none; }
-        .campo-destaque { background: #fff9c4 !important; font-weight: bold; }
-        
-        .alerta-erro { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; border: 1px solid #ffeeba; display: none; text-align: center; }
-        .aviso-foto { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 10px; border: 2px solid #c8e6c9; margin-top: 10px; font-weight: bold; text-align: center; font-size: 13px; }
-
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; }
-        .btn-azul { background: var(--primary); }
-        .btn-verde { background: var(--success); }
-        .btn-azul:disabled { background: #ccc; cursor: not-allowed; }
-
-        #telaEspera { text-align: center; display: none; padding: 10px; }
-        .info-box { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: left; border-left: 6px solid var(--primary); margin: 15px 0; font-size: 14px; line-height: 1.6; }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-
-<div class="card">
-    <div class="brand">TELEJUR</div>
-    <div class="subtitle">Eletromecânica & Logística</div>
-
-    <div id="containerForm">
-        <form id="formChecklist">
-            <label>DATA DO CHECKLIST</label>
-            <input type="text" id="dataAuto" class="readonly-field" readonly>
-
-            <label>TAG DO VEÍCULO</label>
-            <select id="tag" onchange="atualizarInterface(); validarVinculo();">
-                <option value="">SELECIONE A TAG</option>
-                <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
-                <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
-                <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
-                <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
-                <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
-            </select>
-
-            <div style="display: flex; gap: 10px;">
-                <div style="flex:2"><label>VEÍCULO</label><input type="text" id="displayVeiculo" class="readonly-field" readonly></div>
-                <div style="flex:1"><label>PLACA</label><input type="text" id="displayPlaca" class="readonly-field" readonly></div>
-            </div>
-
-            <div id="msgErroVinc" class="alerta-erro"></div>
-
-            <label>ID CONDUTOR & NOME</label>
-            <div style="display: flex; gap: 5px;">
-                <select id="numCondutor" style="flex:1" onchange="validarVinculo()">
-                    <option value="">ID</option>
-                    <option value="CONDUTOR 1">1</option><option value="CONDUTOR 2">2</option>
-                    <option value="CONDUTOR 3">3</option><option value="CONDUTOR 4">4</option>
-                    <option value="CONDUTOR 5">5</option><option value="CONDUTOR 6">6</option>
-                </select>
-                <select id="nomeCondutor" style="flex:3" onchange="validarVinculo()">
-                    <option value="">SELECIONE O NOME</option>
-                    <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-                    <option>REGINALDO</option><option>LAFAITE BATISTA</option>
-                </select>
-            </div>
-
-            <label>KM INICIAL</label>
-            <input type="number" id="kmi" placeholder="KM atual do painel">
-
-            <div style="display: flex; gap: 10px;">
-                <div style="flex:1"><label>SELO</label><select id="corSelo"><option value="">COR</option><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select></div>
-                <div style="flex:1"><label>VALIDADE</label><input type="date" id="validadeSelo" onchange="calcLimite()"></div>
-            </div>
-
-            <label>LIMITE (+5 DIAS ÚTEIS)</label>
-            <input type="text" id="dataLimiteSelo" class="readonly-field campo-destaque" readonly>
-
-            <label id="labelOleo">PRÓXIMA TROCA DE ÓLEO</label>
-            <input type="number" id="oleoKM" placeholder="Digite o KM">
-            <input type="date" id="oleoData" class="hidden">
-
-            <div id="campoFim" class="hidden">
-                <hr style="margin:20px 0">
-                <div class="aviso-foto">📸 FOTO: CHECKLIST FÍSICO ASSINADO</div>
-                <label style="color:var(--danger)">📍 KM FINAL (AO CHEGAR)</label>
-                <input type="number" id="kmf" style="border: 2px solid var(--danger)">
-            </div>
-
-            <label>OBSERVAÇÃO</label>
-            <textarea id="obs" rows="2"></textarea>
-
-            <button type="button" id="btnAcao" onclick="iniciar()" class="btn btn-azul">SALVAR INÍCIO DE TRAJETO</button>
-        </form>
-    </div>
-
-    <div id="telaEspera">
-        <h3 style="color: var(--primary);">🟢 TRAJETO EM CURSO</h3>
-        <div id="resumo" class="info-box"></div>
-        <button type="button" onclick="enviarWhatsApp('INICIO')" class="btn btn-verde">NOTIFICAR INÍCIO (WHATSAPP)</button>
-        <button type="button" onclick="prepararFinalizacao()" class="btn btn-azul">FINALIZAR TRAJETO</button>
-    </div>
-</div>
-
-<script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    document.getElementById('dataAuto').value = hoje;
-
-    function atualizarInterface() {
-        const opt = document.getElementById("tag").options[document.getElementById("tag").selectedIndex];
-        if(!opt.value) return;
-        document.getElementById("displayVeiculo").value = opt.getAttribute("data-v");
-        document.getElementById("displayPlaca").value = opt.getAttribute("data-p");
-        
-        const isMunck = opt.getAttribute("data-v").includes("MUNCK");
-        document.getElementById("labelOleo").innerText = isMunck ? "PRÓXIMA TROCA (DATA)" : "PRÓXIMA TROCA (KM)";
-        document.getElementById("oleoKM").classList.toggle("hidden", isMunck);
-        document.getElementById("oleoData").classList.toggle("hidden", !isMunck);
+    // Só valida se tiver TAG e ID selecionados
+    if (!tag || !idCond) {
+        msg.style.display = "none";
+        return;
     }
 
-    function calcLimite() {
-        const val = document.getElementById("validadeSelo").value;
-        if(!val) return;
-        let d = new Date(val + "T12:00:00");
-        let i = 0; while(i < 5) { d.setDate(d.getDate()+1); if(d.getDay()!==0 && d.getDay()!==6) i++; }
-        document.getElementById("dataLimiteSelo").value = d.toLocaleDateString('pt-BR');
-    }
+    msg.style.display = "block";
+    msg.style.background = "#fff3cd";
+    msg.innerHTML = "Verificando disponibilidade do ID para esta TAG...";
+    btn.disabled = true;
 
-    async function validarVinculo() {
-        const tag = document.getElementById("tag").value;
-        const id = document.getElementById("numCondutor").value;
-        const nome = document.getElementById("nomeCondutor").value;
-        const btn = document.getElementById("btnAcao");
-        const msg = document.getElementById("msgErroVinc");
+    try {
+        // A URL envia a TAG e o ID para o seu script (acao=verificar)
+        const urlBusca = `${SCRIPT_URL}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${hoje}`;
+        const response = await fetch(urlBusca);
+        const ocupante = await response.text();
 
-        if(!tag || !id || !nome) return;
-        msg.style.display = "block"; msg.innerText = "Consultando disponibilidade...";
-        btn.disabled = true;
-
-        try {
-            const res = await fetch(`${SCRIPT_URL}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(id)}&data=${hoje}`);
-            const status = await res.text();
-            if(status !== "livre" && status !== nome && status !== "") {
-                msg.innerText = `⚠ BLOQUEADO: ${id} já está em uso por ${status}!`;
-            } else {
-                msg.style.display = "none";
-                btn.disabled = false;
-            }
-        } catch (e) { btn.disabled = false; msg.style.display = "none"; }
-    }
-
-    async function iniciar() {
-        const d = {
-            acao: "registrar",
-            tag: document.getElementById("tag").value,
-            id: document.getElementById("numCondutor").value,
-            nome: document.getElementById("nomeCondutor").value,
-            veiculo: document.getElementById("displayVeiculo").value,
-            placa: document.getElementById("displayPlaca").value,
-            kmi: document.getElementById("kmi").value,
-            selo: document.getElementById("corSelo").value,
-            valSelo: document.getElementById("validadeSelo").value,
-            data: hoje,
-            horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            oleo: document.getElementById("oleoKM").value || document.getElementById("oleoData").value,
-            limite: document.getElementById("dataLimiteSelo").value
-        };
-
-        if(!d.tag || !d.kmi || !d.selo) return alert("Preencha Tag, KM e Selo!");
-
-        await fetch(`${SCRIPT_URL}?${new URLSearchParams(d).toString()}`, {mode:'no-cors'});
-        localStorage.setItem("tjur_ativo_v35", JSON.stringify(d));
-        location.reload();
-    }
-
-    function prepararFinalizacao() {
-        const d = JSON.parse(localStorage.getItem("tjur_ativo_v35"));
-        document.getElementById("telaEspera").style.display = "none";
-        document.getElementById("containerForm").style.display = "block";
-        document.getElementById("campoFim").classList.remove("hidden");
-
-        // Preencher e Bloquear
-        document.getElementById("tag").value = d.tag;
-        document.getElementById("numCondutor").value = d.id;
-        document.getElementById("nomeCondutor").value = d.nome;
-        document.getElementById("kmi").value = d.kmi;
-        document.getElementById("corSelo").value = d.selo;
-        document.getElementById("validadeSelo").value = d.valSelo;
-        atualizarInterface();
-
-        ["tag", "numCondutor", "nomeCondutor", "kmi", "corSelo", "validadeSelo", "oleoKM", "oleoData"].forEach(id => {
-            document.getElementById(id).classList.add("readonly-field");
-        });
-
-        const btn = document.getElementById("btnAcao");
-        btn.innerText = "ENCERRAR E ENVIAR ✅";
-        btn.className = "btn btn-verde";
-        btn.onclick = finalizar;
-    }
-
-    async function finalizar() {
-        const s = JSON.parse(localStorage.getItem("tjur_ativo_v35"));
-        const kmf = document.getElementById("kmf").value;
-        if(!kmf) return alert("Informe o KM Final!");
-
-        const dFinal = {
-            acao: "finalizar",
-            data: s.data,
-            tag: s.tag,
-            id: s.id,
-            kmf: kmf,
-            horaF: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            obs: document.getElementById("obs").value
-        };
-
-        await fetch(`${SCRIPT_URL}?${new URLSearchParams(dFinal).toString()}`, {mode:'no-cors'});
-        enviarWhatsApp('FIM', dFinal);
-        localStorage.removeItem("tjur_ativo_v35");
-        setTimeout(() => location.reload(), 2000);
-    }
-
-    function enviarWhatsApp(tipo, dF = null) {
-        const s = JSON.parse(localStorage.getItem("tjur_ativo_v35"));
-        let msg = "";
-        if(tipo === 'INICIO') {
-            msg = `*TELEJUR - INÍCIO*\n🚗 TAG: ${s.tag}\n👤 MOTORISTA: ${s.nome}\n📍 KM: ${s.kmi}\n🛡️ SELO: ${s.selo}\n⏰ HORA: ${s.horaI}`;
+        // LÓGICA: Se o script retornar um nome que NÃO é o meu, e não estiver "livre", bloqueia.
+        if (ocupante !== "livre" && ocupante !== "" && ocupante !== nomeAtual) {
+            msg.style.background = "#f8d7da";
+            msg.style.color = "#721c24";
+            msg.innerHTML = `🚫 **BLOQUEADO:** O **${idCond}** na **${tag}** já está ocupado por **${ocupante}**.`;
+            btn.disabled = true;
         } else {
-            msg = `*TELEJUR - FINALIZADO*\n🚗 TAG: ${s.tag}\n👤 MOTORISTA: ${s.nome}\n📍 KM FINAL: ${dF.kmf}\n⏰ FIM: ${dF.horaF}\n📝 OBS: ${dF.obs || "Nenhuma"}`;
+            // Está livre para este ID ou o ocupante sou eu mesmo
+            msg.style.display = "none";
+            btn.disabled = false;
         }
-        window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
+    } catch (e) {
+        // Em caso de falha na internet, libera para não travar a operação
+        console.error("Erro na validação:", e);
+        msg.style.display = "none";
+        btn.disabled = false;
     }
-
-    window.onload = () => {
-        const salvo = localStorage.getItem("tjur_ativo_v35");
-        if(salvo) {
-            const d = JSON.parse(salvo);
-            document.getElementById("containerForm").style.display = "none";
-            document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumo").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.id}<br><b>SAÍDA:</b> ${d.horaI}`;
-        }
-    }
-</script>
-</body>
-</html>
+}
