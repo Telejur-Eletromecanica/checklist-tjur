@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V13</title>
+    <title>TELEJUR - V14</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -18,10 +18,7 @@
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .alerta-erro { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; border: 1px solid #ffeeba; display: none; text-align: center; }
-        
-        /* QUADRO DE AVISO DA FOTO */
         .alerta-foto { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 10px; font-size: 14px; border: 2px solid #c8e6c9; margin-top: 20px; font-weight: bold; text-align: center; line-height: 1.4; }
-        
         .hidden { display: none; }
         #telaEspera { text-align: center; padding: 20px; display: none; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
@@ -64,28 +61,20 @@
             <label>IDENTIFICAÇÃO (ID)</label>
             <select id="numCondutor" onchange="validarVinculoFixo()">
                 <option value="">SELECIONE</option>
-                <option value="CONDUTOR 1">CONDUTOR 1</option>
-                <option value="CONDUTOR 2">CONDUTOR 2</option>
-                <option value="CONDUTOR 3">CONDUTOR 3</option>
-                <option value="CONDUTOR 4">CONDUTOR 4</option>
-                <option value="CONDUTOR 5">CONDUTOR 5</option>
-                <option value="CONDUTOR 6">CONDUTOR 6</option>
-                <option value="CONDUTOR 7">CONDUTOR 7</option>
-                <option value="CONDUTOR 8">CONDUTOR 8</option>
+                <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
+                <option value="CONDUTOR 3">CONDUTOR 3</option><option value="CONDUTOR 4">CONDUTOR 4</option>
+                <option value="CONDUTOR 5">CONDUTOR 5</option><option value="CONDUTOR 6">CONDUTOR 6</option>
+                <option value="CONDUTOR 7">CONDUTOR 7</option><option value="CONDUTOR 8">CONDUTOR 8</option>
                 <option value="CONDUTOR 9">CONDUTOR 9</option>
             </select>
 
             <label>NOME DO CONDUTOR</label>
             <select id="nomeCondutor" onchange="validarVinculoFixo()">
                 <option value="">SELECIONE</option>
-                <option>ADRIANO NASCIMENTO</option>
-                <option>FRANCIVALDO COSTA</option>
-                <option>FRANCINILDO TEXEIRA</option>
-                <option>JOELCINEI GUIMARÃES</option>
-                <option>LAFAITE BATISTA</option>
-                <option>MIRIELLY</option>
-                <option>RAIMUNDO WALTER</option>
-                <option>REGINALDO</option>
+                <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
+                <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARÃES</option>
+                <option>LAFAITE BATISTA</option><option>MIRIELLY</option>
+                <option>RAIMUNDO WALTER</option><option>REGINALDO</option>
             </select>
 
             <label>KM INICIAL</label>
@@ -94,10 +83,8 @@
             <label>COR DO SELO</label>
             <select id="corSelo">
                 <option value="">SELECIONE</option>
-                <option value="VERDE">VERDE</option>
-                <option value="AMARELO">AMARELO</option>
-                <option value="AZUL">AZUL</option>
-                <option value="VERMELHO">VERMELHO</option>
+                <option value="VERDE">VERDE</option><option value="AMARELO">AMARELO</option>
+                <option value="AZUL">AZUL</option><option value="VERMELHO">VERMELHO</option>
             </select>
 
             <label>VALIDADE DO SELO</label>
@@ -109,7 +96,6 @@
             <div id="campoFim" class="hidden">
                 <label>KM FINAL</label>
                 <input type="text" id="kmf" placeholder="Digite o KM Final">
-                
                 <div class="alerta-foto">
                     📸 <b>AVISO DE FOTO:</b><br>
                     Após enviar o texto, anexe a foto do checklist físico no WhatsApp.
@@ -242,9 +228,12 @@
             if(id === "numCondutor") el.value = salvo.num;
             else if(id === "nomeCondutor") el.value = salvo.nome;
             else if(id === "validadeSelo") el.value = salvo.valSeloRaw;
+            else if(id === "corSelo") el.value = salvo.selo; // RESTAURA A COR DO SELO
             else el.value = salvo[id];
 
             if(id === "tag") atualizarInterfacePorTag();
+            
+            // TRAVA TODOS OS CAMPOS DO INÍCIO
             el.classList.add("readonly-field");
             el.style.pointerEvents = "none";
         });
