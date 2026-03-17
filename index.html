@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V17.5</title>
+    <title>TELEJUR - SISTEMA DE CHECKLIST</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
-        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
+        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .header-text { text-align: center; margin-bottom: 20px; }
         .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
@@ -17,23 +17,19 @@
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-azul:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        #msgErroVinc { display:none; padding:15px; border-radius:8px; margin-top:10px; text-align:center; font-weight:bold; font-size: 13px; border: 2px solid; }
-        .alerta-foto-vmelho { background: #ffebee; color: #b71c1c; padding: 15px; border-radius: 10px; font-size: 14px; border: 3px solid #ef5350; margin-top: 10px; margin-bottom: 10px; font-weight: bold; text-align: center; line-height: 1.4; animation: blinker 1.5s linear infinite; }
-        @keyframes blinker { 50% { border-color: transparent; } }
-
-        #confirmacaoOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 35, 126, 0.9); z-index: 9999; color: white; text-align: center; flex-direction: column; justify-content: center; align-items: center; }
+        #msgErroVinc { display:none; padding:15px; border-radius:8px; margin-top:10px; text-align:center; font-weight:bold; font-size: 12px; border: 2px solid; }
         .hidden { display: none; }
         #telaEspera { text-align: center; padding: 20px; display: none; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
+        #confirmacaoOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 35, 126, 0.9); z-index: 9999; color: white; text-align: center; flex-direction: column; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
 <div id="confirmacaoOverlay">
     <div style="font-size: 80px;">✅</div>
-    <h2 style="color: white; border: none;">REGISTRADO!</h2>
-    <p id="msgConfirmacao">Abrindo WhatsApp...</p>
+    <h2 style="color: white; border: none;">CONCLUÍDO!</h2>
+    <p id="msgConfirmacao">Aguarde...</p>
 </div>
 
 <div class="card">
@@ -45,56 +41,48 @@
     <div id="containerForm">
         <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
         
-        <div id="avisoFoto" class="alerta-foto-vmelho">
-            📸 <b>ATENÇÃO - AVISO DE FOTO:</b><br>
-            Anexe IMEDIATAMENTE a foto do checklist físico no WhatsApp após finalizar.
-        </div>
-
         <form id="formChecklist">
-            <label>DATA DO CHECKLIST</label>
+            <label>DATA</label>
             <input type="text" id="dataAuto" class="readonly-field" readonly>
 
             <label>TAG DO VEÍCULO</label>
             <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();">
-                <option value="">SELECIONE A TAG</option>
+                <option value="">SELECIONE</option>
                 <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
-                <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
+                <option value="TJUR 06" data-v="SAVEIRO" data-p="QUJ3E02">TJUR 06</option>
                 <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
-                <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
-                <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
-                <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
-                <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
+                <option value="TJUR 08" data-v="HILUX" data-p="QVE5H48">TJUR 08</option>
             </select>
 
-            <label>VEÍCULO</label>
-            <input type="text" id="displayVeiculo" class="readonly-field" readonly>
-
-            <label>PLACA</label>
-            <input type="text" id="displayPlaca" class="readonly-field" readonly>
+            <label>VEÍCULO / PLACA</label>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="displayVeiculo" class="readonly-field" readonly>
+                <input type="text" id="displayPlaca" class="readonly-field" readonly>
+            </div>
 
             <div id="msgErroVinc"></div>
 
-            <label>IDENTIFICAÇÃO (ID)</label>
+            <label>ID CONDUTOR</label>
             <select id="numCondutor" onchange="validarVinculoFixo()">
                 <option value="">SELECIONE</option>
                 <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
                 <option value="CONDUTOR 3">CONDUTOR 3</option><option value="CONDUTOR 4">CONDUTOR 4</option>
-                <option value="CONDUTOR 5">CONDUTOR 5</option><option value="CONDUTOR 6">CONDUTOR 6</option>
-                <option value="CONDUTOR 7">CONDUTOR 7</option><option value="CONDUTOR 8">CONDUTOR 8</option>
-                <option value="CONDUTOR 9">CONDUTOR 9</option>
             </select>
 
             <label>NOME DO CONDUTOR</label>
             <select id="nomeCondutor" onchange="validarVinculoFixo()">
                 <option value="">SELECIONE</option>
                 <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-                <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARÃES</option>
-                <option>LAFAITE BATISTA</option><option>MIRIELLY</option>
-                <option>RAIMUNDO WALTER</option><option>REGINALDO</option>
+                <option>REGINALDO</option>
             </select>
 
             <label>KM INICIAL</label>
-            <input type="number" id="kmi" placeholder="Ex: 149615">
+            <input type="number" id="kmi" placeholder="000000">
+
+            <div id="campoFim" class="hidden">
+                <label style="color: #1b5e20;">KM FINAL</label>
+                <input type="number" id="kmf" placeholder="KM de Chegada" style="border: 2px solid #25D366;">
+            </div>
 
             <label>COR DO SELO</label>
             <select id="corSelo">
@@ -103,21 +91,9 @@
                 <option value="AZUL">AZUL</option><option value="VERMELHO">VERMELHO</option>
             </select>
 
-            <label>VALIDADE DO SELO</label>
-            <input type="date" id="validadeSelo" onchange="calcularDataLimite()">
-
-            <input type="hidden" id="dataLimiteSelo">
-
-            <div id="campoFim" class="hidden">
-                <label style="color: #1b5e20;">KM FINAL (CHEGADA)</label>
-                <input type="number" id="kmf" placeholder="Digite o KM Final" style="border: 2px solid #25D366;">
-            </div>
-
-            <div id="blocoOleo">
-                <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO (KM)</label>
-                <input type="text" id="proximaTrocaKM" placeholder="Ex: 155000">
-                <input type="date" id="proximaTrocaData" class="hidden">
-            </div>
+            <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO</label>
+            <input type="number" id="proximaTrocaKM" placeholder="KM">
+            <input type="date" id="proximaTrocaData" class="hidden">
 
             <label>OBSERVAÇÃO</label>
             <textarea id="obs" rows="2"></textarea>
@@ -127,7 +103,7 @@
     </div>
 
     <div id="telaEspera">
-        <h3 style="color: #1a237e;">TRAJETO EM ANDAMENTO</h3>
+        <h3>TRAJETO EM CURSO</h3>
         <div id="resumoTrajeto" class="info-trajeto"></div>
         <button type="button" onclick="enviarRelatorioInicial()" class="btn-verde">REENVIAR INÍCIO WHATSAPP</button>
         <button type="button" onclick="irParaFinalizar()" class="btn-azul">FINALIZAR TRAJETO</button>
@@ -135,7 +111,7 @@
 </div>
 
 <script>
-    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const URL_PLANILHA = "COLOQUE_SUA_URL_AQUI"; // <--- COLOQUE SUA URL DO GOOGLE SCRIPT AQUI
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
 
@@ -148,21 +124,18 @@
 
         if(!tag || !nomeS || !idCond) return;
 
+        btn.disabled = true;
         msg.style.display = "block";
-        msg.style.background = "#fff3cd";
-        msg.style.borderColor = "#ffeeba";
-        msg.style.color = "#856404";
-        msg.innerHTML = "🔍 Verificando ID na planilha...";
+        msg.style.background = "#fff3cd"; msg.style.color = "#856404"; msg.style.borderColor = "#ffeeba";
+        msg.innerHTML = "🔍 Consultando disponibilidade...";
 
         try {
             const res = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${tag}&id=${idCond}&data=${dataHojeStr}`);
             const dono = await res.text();
 
-            if(dono !== "livre" && dono.trim().toUpperCase() !== nomeS.trim().toUpperCase() && dono !== "") {
-                msg.style.background = "#f8d7da";
-                msg.style.borderColor = "#f5c6cb";
-                msg.style.color = "#721c24";
-                msg.innerHTML = `🚫 <b>BLOQUEADO:</b> O ID ${idCond} está ocupado por <b>${dono}</b>!`;
+            if(dono !== "livre" && dono.trim().toUpperCase() !== nomeS.trim().toUpperCase()) {
+                msg.style.background = "#f8d7da"; msg.style.color = "#721c24"; msg.style.borderColor = "#f5c6cb";
+                msg.innerHTML = `🚫 <b>BLOQUEADO:</b> TAG ou ID já em uso por <b>${dono}</b>!`;
                 btn.disabled = true;
             } else {
                 msg.style.display = "none";
@@ -173,13 +146,11 @@
 
     function atualizarInterfacePorTag() {
         const select = document.getElementById("tag");
-        const option = select.options[select.selectedIndex];
-        if(!option || !select.value) return;
-        document.getElementById("displayVeiculo").value = option.getAttribute("data-v");
-        document.getElementById("displayPlaca").value = option.getAttribute("data-p");
-        
-        const isMunck = option.getAttribute("data-v") === "SKY MUNCK";
-        document.getElementById("labelTrocaOleo").innerText = isMunck ? "PRÓXIMA TROCA DE ÓLEO (DATA)" : "PRÓXIMA TROCA DE ÓLEO (KM)";
+        const opt = select.options[select.selectedIndex];
+        if(!opt.value) return;
+        document.getElementById("displayVeiculo").value = opt.getAttribute("data-v");
+        document.getElementById("displayPlaca").value = opt.getAttribute("data-p");
+        const isMunck = opt.getAttribute("data-v") === "SKY MUNCK";
         document.getElementById("proximaTrocaKM").classList.toggle("hidden", isMunck);
         document.getElementById("proximaTrocaData").classList.toggle("hidden", !isMunck);
     }
@@ -187,7 +158,7 @@
     async function iniciarTrajeto() {
         const tag = document.getElementById("tag").value;
         const kmi = document.getElementById("kmi").value;
-        if(!tag || !kmi) { alert("Informe TAG e KM Inicial!"); return; }
+        if(!tag || !kmi) { alert("Preencha TAG e KM!"); return; }
 
         const oleo = document.getElementById("proximaTrocaKM").classList.contains("hidden") ? 
                      document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') : 
@@ -200,19 +171,16 @@
             veiculo: document.getElementById("displayVeiculo").value,
             placa: document.getElementById("displayPlaca").value,
             selo: document.getElementById("corSelo").value,
-            valSeloF: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
-            dataLimite: document.getElementById("dataLimiteSelo").value || "---",
             obs: document.getElementById("obs").value,
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             data: dataHojeStr
         };
 
-        const query = new URLSearchParams({ acao: "registrar", data: d.data, horaI: d.horaI, nome: d.nome, id: d.num, tag: d.tag, veiculo: d.veiculo, placa: d.placa, kmi: d.kmi, selo: d.selo, valSelo: d.valSeloF, oleo: d.oleo, obs: d.obs });
-
+        const q = new URLSearchParams({ acao: "registrar", ...d });
         try {
-            await fetch(`${URL_PLANILHA}?${query.toString()}`, { mode: 'no-cors' });
+            await fetch(`${URL_PLANILHA}?${q.toString()}`, { mode: 'no-cors' });
             localStorage.setItem("tjur_checklist_ativo", JSON.stringify(d));
-            mostrarSucesso("Iniciado com Sucesso!", () => location.reload());
+            mostrarSucesso("Iniciado!", () => location.reload());
         } catch (e) { alert("Erro ao salvar!"); }
     }
 
@@ -221,52 +189,34 @@
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
-        document.getElementById("obs").value = d.obs || "";
-
-        ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"].forEach(id => {
+        document.getElementById("btnAcao").innerText = "FINALIZAR WHATSAPP";
+        document.getElementById("btnAcao").className = "btn-verde";
+        
+        ["tag", "numCondutor", "nomeCondutor", "kmi"].forEach(id => {
             const el = document.getElementById(id);
-            if(id === "numCondutor") el.value = d.num;
-            else if(id === "nomeCondutor") el.value = d.nome;
-            else if(id === "corSelo") el.value = d.selo;
-            else el.value = d[id];
+            el.value = d[id] || (id === "numCondutor" ? d.num : "");
             el.classList.add("readonly-field");
             el.style.pointerEvents = "none";
         });
 
-        const btn = document.getElementById("btnAcao");
-        btn.innerText = "FINALIZAR WHATSAPP";
-        btn.className = "btn-verde";
-        btn.onclick = async function() {
+        document.getElementById("btnAcao").onclick = async function() {
             const kmf = document.getElementById("kmf").value;
             if(!kmf) { alert("Digite o KM Final!"); return; }
             const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const obsF = document.getElementById("obs").value;
+            const q = new URLSearchParams({ acao: "finalizar", data: d.data, tag: d.tag, id: d.num, horaF: hF, kmf: kmf, oleo: d.oleo, obs: document.getElementById("obs").value });
             
-            const params = new URLSearchParams({ acao: "finalizar", data: d.data, tag: d.tag, id: d.num, horaF: hF, kmf: kmf, oleo: d.oleo, obs: obsF });
-            const msg = `*CHECKLIST - FINALIZADO*\n*CONDUTOR:* ${d.nome}\n*VEÍCULO:* ${d.veiculo}\n*KM INICIAL:* ${d.kmi}\n*KM FINAL:* ${kmf}\n*OBS:* ${obsF || "Nenhuma"}`;
-
             try {
-                await fetch(`${URL_PLANILHA}?${params.toString()}`, { mode: 'no-cors' });
+                await fetch(`${URL_PLANILHA}?${q.toString()}`, { mode: 'no-cors' });
                 localStorage.removeItem("tjur_checklist_ativo");
-                mostrarSucesso("Finalizado!", () => { window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg); });
-            } catch(e) { alert("Erro ao finalizar!"); }
+                mostrarSucesso("Finalizado!", () => { window.location.href = "whatsapp://send?text=Checklist Finalizado: " + d.tag; });
+            } catch(e) { alert("Erro!"); }
         };
     }
 
     function mostrarSucesso(msg, cb) {
-        const overlay = document.getElementById("confirmacaoOverlay");
         document.getElementById("msgConfirmacao").innerText = msg;
-        overlay.style.display = "flex";
-        setTimeout(() => { overlay.style.display = "none"; cb(); }, 1500);
-    }
-
-    function calcularDataLimite() {
-        const val = document.getElementById("validadeSelo").value;
-        if (!val) return;
-        let d = new Date(val + "T12:00:00");
-        let add = 0;
-        while (add < 5) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) add++; }
-        document.getElementById("dataLimiteSelo").value = d.toLocaleDateString('pt-BR');
+        document.getElementById("confirmacaoOverlay").style.display = "flex";
+        setTimeout(() => { document.getElementById("confirmacaoOverlay").style.display = "none"; cb(); }, 1500);
     }
 
     window.onload = function() {
@@ -275,7 +225,7 @@
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>INÍCIO:</b> ${d.horaI}`;
+            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag} | <b>INÍCIO:</b> ${d.horaI}`;
         }
     };
 </script>
