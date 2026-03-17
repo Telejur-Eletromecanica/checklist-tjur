@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V14</title>
+    <title>TELEJUR - V17</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
-        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
         .header-text { text-align: center; margin-bottom: 20px; }
         .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
@@ -17,14 +17,26 @@
         .campo-destaque { background: #fff9c4; border: 1px solid #fbc02d; color: #827717; font-weight: bold; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .alerta-erro { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; border: 1px solid #ffeeba; display: none; text-align: center; }
-        .alerta-foto { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 10px; font-size: 14px; border: 2px solid #c8e6c9; margin-top: 20px; font-weight: bold; text-align: center; line-height: 1.4; }
+        
+        .alerta-foto-vmelho { background: #ffebee; color: #b71c1c; padding: 15px; border-radius: 10px; font-size: 14px; border: 3px solid #ef5350; margin-top: 10px; margin-bottom: 10px; font-weight: bold; text-align: center; line-height: 1.4; animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { border-color: transparent; } }
+
+        /* TELA DE CONFIRMAÇÃO */
+        #confirmacaoOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 35, 126, 0.9); z-index: 9999; color: white; text-align: center; flex-direction: column; justify-content: center; align-items: center; }
+        .check-icon { font-size: 80px; margin-bottom: 10px; }
+
         .hidden { display: none; }
         #telaEspera { text-align: center; padding: 20px; display: none; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
     </style>
 </head>
 <body>
+
+<div id="confirmacaoOverlay">
+    <div class="check-icon">✅</div>
+    <h2 style="color: white; border: none;">REGISTRADO!</h2>
+    <p id="msgConfirmacao">Abrindo WhatsApp...</p>
+</div>
 
 <div class="card">
     <div class="header-text">
@@ -34,6 +46,12 @@
 
     <div id="containerForm">
         <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
+        
+        <div id="avisoFoto" class="alerta-foto-vmelho">
+            📸 <b>ATENÇÃO - AVISO DE FOTO:</b><br>
+            Após enviar o texto no WhatsApp, anexe IMEDIATAMENTE a foto do checklist físico.
+        </div>
+
         <form id="formChecklist">
             <label>DATA DO CHECKLIST</label>
             <input type="text" id="dataAuto" class="readonly-field" readonly>
@@ -56,7 +74,7 @@
             <label>PLACA</label>
             <input type="text" id="displayPlaca" class="readonly-field" readonly>
 
-            <div id="msgErroVinc" class="alerta-erro"></div>
+            <div id="msgErroVinc" style="display:none; background:#fff3cd; color:#856404; padding:10px; border-radius:8px; margin-top:10px; text-align:center; font-weight:bold;"></div>
 
             <label>IDENTIFICAÇÃO (ID)</label>
             <select id="numCondutor" onchange="validarVinculoFixo()">
@@ -96,10 +114,6 @@
             <div id="campoFim" class="hidden">
                 <label>KM FINAL</label>
                 <input type="text" id="kmf" placeholder="Digite o KM Final">
-                <div class="alerta-foto">
-                    📸 <b>AVISO DE FOTO:</b><br>
-                    Após enviar o texto, anexe a foto do checklist físico no WhatsApp.
-                </div>
             </div>
 
             <div id="blocoOleo">
@@ -127,6 +141,30 @@
     const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
+
+    function tocarSomConfirmacao() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nota Lá (A5)
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.2);
+    }
+
+    function mostrarSucesso(mensagem, callback) {
+        tocarSomConfirmacao();
+        const overlay = document.getElementById("confirmacaoOverlay");
+        document.getElementById("msgConfirmacao").innerText = mensagem;
+        overlay.style.display = "flex";
+        setTimeout(() => {
+            overlay.style.display = "none";
+            callback();
+        }, 1500);
+    }
 
     function calcularDataLimite() {
         const inputData = document.getElementById("validadeSelo").value;
@@ -206,7 +244,7 @@
         try {
             await fetch(urlFinal, { mode: 'no-cors' });
             localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
-            location.reload();
+            mostrarSucesso("Início registrado!", () => location.reload());
         } catch (e) { alert("Erro ao salvar!"); }
     }
 
@@ -221,19 +259,18 @@
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
-        
+        document.getElementById("avisoFoto").innerHTML = "📸 <b>AVISO DE FOTO:</b><br>Finalize o trajeto e anexe a foto do checklist físico no WhatsApp.";
+
         const campos = ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"];
         campos.forEach(id => {
             const el = document.getElementById(id);
             if(id === "numCondutor") el.value = salvo.num;
             else if(id === "nomeCondutor") el.value = salvo.nome;
             else if(id === "validadeSelo") el.value = salvo.valSeloRaw;
-            else if(id === "corSelo") el.value = salvo.selo; // RESTAURA A COR DO SELO
+            else if(id === "corSelo") el.value = salvo.selo;
             else el.value = salvo[id];
 
             if(id === "tag") atualizarInterfacePorTag();
-            
-            // TRAVA TODOS OS CAMPOS DO INÍCIO
             el.classList.add("readonly-field");
             el.style.pointerEvents = "none";
         });
@@ -247,8 +284,11 @@
             if(!kmf) { alert("Informe o KM Final!"); return; }
             const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             const msgF = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${hF}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${salvo.oleo}\n--------------------------\n*OBS:* ${document.getElementById("obs").value || "Nenhuma"}`;
-            localStorage.removeItem("tjur_checklist_ativo");
-            window.location.href = "whatsapp://send?text=" + encodeURIComponent(msgF);
+            
+            mostrarSucesso("Trajeto Finalizado!", () => {
+                localStorage.removeItem("tjur_checklist_ativo");
+                window.location.href = "whatsapp://send?text=" + encodeURIComponent(msgF);
+            });
         };
     }
 
