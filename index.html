@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v9.2</title>
+    <title>TELEJUR v9.5</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -12,12 +12,13 @@
         .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
         .livre { background: #e8f5e9; color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
+        .bloqueado { background: #f5f5f5; color: #999; border-style: dashed; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-azul { background: var(--primary); color: white; }
         .btn-refresh { background: #555; color: white; padding: 6px 10px; font-size: 10px; border-radius: 5px; cursor: pointer; border:none; float: right; margin-left: 5px; }
-        .readonly { background: #f1f1f1 !important; pointer-events: none; color: #666; font-weight: bold; }
+        .readonly { background: #f1f1f1 !important; color: #444 !important; font-weight: bold; }
         #msgSucesso { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 999; text-align: center; justify-content: center; align-items: center; flex-direction: column; }
     </style>
 </head>
@@ -31,26 +32,16 @@
 
 <div class="card">
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Limpar memória?')){localStorage.removeItem('trip_v9_2');location.reload();}">🗑️ Reset</button>
+    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v9_5');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v9.2</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Conectando...</p>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v9.5</h2>
+    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
     
     <div id="painel" class="grid-status"></div>
 
     <div id="formContainer">
-        <label>Veículo (TAG)</label>
-        <select id="tag" onchange="buscarDados()">
-            <option value="">-- SELECIONE --</option>
-            <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
-            <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
-            <option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option>
-            <option value="TJUR 13">TJUR 13</option>
-        </select>
-        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Modelo | Placa">
-
         <label>Motorista</label>
-        <select id="nomeMot" onchange="buscarDados()">
+        <select id="nomeMot" onchange="sync(); buscarDados();">
             <option value="">-- SELECIONE --</option>
             <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
             <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
@@ -63,6 +54,16 @@
             <option value="EZEQUIEL">EZEQUIEL</option>
         </select>
 
+        <label>Veículo (TAG)</label>
+        <select id="tag" onchange="buscarDados()">
+            <option value="">-- SELECIONE --</option>
+            <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
+            <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
+            <option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option>
+            <option value="TJUR 13">TJUR 13</option>
+        </select>
+        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
+
         <label>ID Condutor</label>
         <input type="text" id="idMot" class="readonly" readonly>
 
@@ -72,8 +73,8 @@
         <label>KM Inicial</label>
         <input type="number" id="kmi">
 
-        <label>Próx. troca óleo (KM)</label>
-        <input type="number" id="proxOleo">
+        <label id="labelOleo">Próx. troca óleo</label>
+        <div id="containerOleo"><input type="number" id="proxOleo"></div>
 
         <div id="fimCampos" style="display:none">
             <hr><label style="color:var(--danger)">KM Chegada</label>
@@ -98,21 +99,44 @@
 
     async function sync() {
         const s = document.createElement('script');
-        window.cb_sync = (d) => {
+        const motSel = document.getElementById('nomeMot').value;
+        const autorizadosSky = ["REGINALDO", "LAFAITE BATISTA", "WALTER GONÇALVES"];
+        
+        window.cb_sync = (res) => {
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
             const selT = document.getElementById('tag');
-            document.getElementById('painel').innerHTML = tags.map(t => {
-                const info = d[t], ocupado = !!info;
-                Array.from(selT.options).forEach(o => { if(o.value===t){ o.disabled=ocupado; o.text=ocupado?t+" (EM USO)":t; } });
-                return `<div class="v-box ${ocupado?'ocupado':'livre'}">${t}<br>${ocupado?'🔴 '+info.nome.split(' ')[0]:'🟢 LIVRE'}</div>`;
-            }).join('');
+            const painel = document.getElementById('painel');
+            painel.innerHTML = '';
+            
+            tags.forEach(t => {
+                const infoOcupado = res.ocupados[t];
+                const infoFrota = res.frota[t];
+                const isSky = infoFrota.veiculo === "SKY MUNCK";
+                const bloqueado = (isSky && !autorizadosSky.includes(motSel));
+
+                const opt = Array.from(selT.options).find(o => o.value === t);
+                if(opt) {
+                    if(infoOcupado) {
+                        opt.disabled = true; opt.text = t + " (EM USO)";
+                    } else if(bloqueado) {
+                        opt.disabled = true; opt.text = t + " (RESTRITO)";
+                    } else {
+                        opt.disabled = false; opt.text = t;
+                    }
+                }
+
+                let classe = infoOcupado ? 'ocupado' : (bloqueado ? 'bloqueado' : 'livre');
+                let statusTxt = infoOcupado ? '🔴 '+infoOcupado.nome.split(' ')[0] : (bloqueado ? '🔒 RESTRITO' : '🟢 LIVRE');
+                painel.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
+            });
+
             document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
             if(s.parentNode) document.body.removeChild(s);
         };
         s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${new Date().getTime()}`;
         document.body.appendChild(s);
     }
-    setInterval(sync, 15000);
+    setInterval(sync, 20000);
 
     async function buscarDados() {
         const t = document.getElementById("tag").value, n = document.getElementById("nomeMot").value;
@@ -121,17 +145,29 @@
         window.cb_mot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             document.getElementById("idMot").value = d.id;
+            const container = document.getElementById("containerOleo");
+            if(d.tipoOleo === "data") {
+                container.innerHTML = `<input type="date" id="proxOleo">`;
+                document.getElementById("labelOleo").innerText = "Próx. troca óleo (DATA)";
+            } else {
+                container.innerHTML = `<input type="number" id="proxOleo">`;
+                document.getElementById("labelOleo").innerText = "Próx. troca óleo (KM)";
+            }
             document.getElementById("proxOleo").value = d.oleo;
         };
-        s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&data=${dataH}&callback=cb_mot`;
+        s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot`;
         document.body.appendChild(s);
     }
 
     function salvarSaida() {
+        let valOleo = document.getElementById("proxOleo").value;
+        if(document.getElementById("proxOleo").type === "date") {
+            valOleo = valOleo ? new Date(valOleo + "T12:00:00").toLocaleDateString('pt-BR') : "";
+        }
         const d = {
             data: dataH, tag: document.getElementById("tag").value, id: document.getElementById("idMot").value,
             nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value, 
-            oleo: document.getElementById("proxOleo").value,
+            oleo: valOleo,
             horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
             validadeSelo: document.getElementById("validadeSelo").value ? new Date(document.getElementById("validadeSelo").value + "T12:00:00").toLocaleDateString('pt-BR') : "",
             acao: "registrar", callback: "cb_reg"
@@ -139,16 +175,15 @@
         if(!d.tag || !d.kmi || !d.nome || !d.validadeSelo || !d.oleo) return alert("Preencha todos os campos!");
         const s = document.createElement('script');
         window.cb_reg = (res) => {
-            if(res.res === "erro") { alert(res.msg); sync(); return; }
             d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
-            localStorage.setItem("trip_v9_2", JSON.stringify(d)); location.reload();
+            localStorage.setItem("trip_v9_5", JSON.stringify(d)); location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
         document.body.appendChild(s);
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v9_2"));
+        const d = JSON.parse(localStorage.getItem("trip_v9_5"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -156,18 +191,19 @@
         document.getElementById("nomeMot").value = d.nome;
         document.getElementById("idMot").value = d.id;
         document.getElementById("kmi").value = d.kmi;
-        document.getElementById("proxOleo").value = d.oleo;
-        ["tag", "nomeMot", "idMot", "kmi", "proxOleo", "validadeSelo"].forEach(i => document.getElementById(i).classList.add("readonly"));
+        document.getElementById("validadeSelo").type = "text"; 
+        document.getElementById("validadeSelo").value = d.validadeSelo;
+        document.getElementById("containerOleo").innerHTML = `<input type="text" id="proxOleo" value="${d.oleo}" readonly class="readonly">`;
+        document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
+        
+        ["tag", "nomeMot", "idMot", "kmi", "validadeSelo", "proxOleo"].forEach(i => document.getElementById(i).classList.add("readonly"));
         document.getElementById("btnAcao").innerText = "Concluir Trajeto";
         document.getElementById("btnAcao").onclick = () => {
             const kf = document.getElementById("kmf").value;
             if(!kf || Number(kf) <= Number(d.kmi)) return alert("KM Final inválido!");
             const s = document.createElement('script'), hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             window.cb_fin = (res) => { 
-                if(res.res === "fim") { 
-                    document.getElementById("msgSucesso").style.display = "flex"; 
-                    setTimeout(() => { enviarWhats(true, kf, hF); }, 1500); 
-                } else { alert(res.msg); }
+                if(res.res === "fim") { document.getElementById("msgSucesso").style.display = "flex"; setTimeout(() => { enviarWhats(true, kf, hF); }, 1500); }
             };
             s.src = `${URL}?acao=finalizar&tag=${d.tag}&nome=${encodeURIComponent(d.nome)}&kmf=${kf}&horaF=${hF}&obs=${encodeURIComponent(document.getElementById("obs").value)}&callback=cb_fin`;
             document.body.appendChild(s);
@@ -175,23 +211,22 @@
     }
 
     function enviarWhats(isF, kf, hF) {
-        const d = JSON.parse(localStorage.getItem("trip_v9_2"));
-        const idT = `ID: CONDUTOR ${d.id.replace(/\D/g, "").replace(/^0+/, "")}`;
+        const d = JSON.parse(localStorage.getItem("trip_v9_5"));
+        const idT = `*${d.id}* Condutor ${d.id.replace(/\D/g, "").replace(/^0+/, "")}`;
         
         let m = isF ? `✅ *CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
         m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 ${idT}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
-        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Próx. Troca Óleo:* ${d.oleo} KM\n`;
+        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Troca Óleo:* ${d.oleo}${d.oleo.includes('/') ? '' : ' KM'}\n`;
         
         if(isF) {
             m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            localStorage.removeItem("trip_v9_2");
+            localStorage.removeItem("trip_v9_5");
         }
-        
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
         if(isF) setTimeout(() => { location.reload(); }, 2000);
     }
 
-    window.onload = () => { sync(); const s = localStorage.getItem("trip_v9_2"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("trip_v9_5"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
 </script>
 </body>
 </html>
