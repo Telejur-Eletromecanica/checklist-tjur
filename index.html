@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR GESTÃO - V27</title>
+    <title>TELEJUR GESTÃO - V28</title>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 20px; border-top: 12px solid #1a237e; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .brand { font-size: 28px; font-weight: 900; color: #1a237e; text-align: center; margin-bottom: 5px; }
         .painel-status { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 15px 0; }
-        .status-item { font-size: 11px; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd; transition: 0.3s; }
-        .livre { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
-        .em-uso { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+        .status-item { font-size: 11px; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
+        .livre { background: #e8f5e9; color: #2e7d32; }
+        .em-uso { background: #ffebee; color: #c62828; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 15px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 14px; margin-top: 5px; border-radius: 10px; border: 1.5px solid #ccc; font-size: 16px; box-sizing: border-box; background: #fff; }
-        .readonly-field { background: #f1f3f4 !important; color: #1a237e; font-weight: bold; border-style: dashed; }
+        input, select, textarea { width: 100%; padding: 14px; margin-top: 5px; border-radius: 10px; border: 1.5px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .readonly-field { background: #f1f3f4 !important; color: #1a237e; font-weight: bold; }
         .btn-azul { width: 100%; padding: 18px; background: #1a237e; border: none; border-radius: 12px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-verde { width: 100%; padding: 18px; background: #25D366; border: none; border-radius: 12px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .alerta { background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-top: 15px; display: none; text-align: center; border: 1px solid #ffeeba; }
@@ -25,7 +25,7 @@
 
 <div class="card">
     <p class="brand">TELEJUR</p>
-    <div id="painelFrota" class="painel-status">Sincronizando frota...</div>
+    <div id="painelFrota" class="painel-status">Iniciando conexão...</div>
 
     <div id="telaEspera" class="hidden">
         <div style="background:#e1f5fe; padding:20px; border-radius:12px; border-left:6px solid #0288d1; margin-bottom:20px;">
@@ -62,21 +62,7 @@
 
             <label>KM INICIAL</label>
             <input type="number" id="kmi" required>
-
-            <label>COR DO SELO</label>
-            <select id="selo" required>
-                <option value="">SELECIONE</option><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
-            </select>
-
-            <label>VALIDADE SELO</label>
-            <input type="date" id="valSelo" onchange="calcLim()">
-
-            <label>DATA LIMITE (+5D ÚTEIS)</label>
-            <input type="text" id="limite" class="readonly-field" readonly>
-
-            <label>PRÓXIMO ÓLEO</label>
-            <input type="text" id="oleo">
-
+            
             <div id="secaoFim" class="hidden">
                 <hr style="margin:20px 0;">
                 <label style="color:#d32f2f;">KM FINAL (OBRIGATÓRIO)</label>
@@ -91,41 +77,35 @@
 </div>
 
 <script>
-    // URL DO SEU GOOGLE SCRIPT (COLE A SUA AQUI)
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const dataF = new Date().toLocaleDateString('pt-BR');
     
-    const dataH = new Date();
-    const dataF = dataH.toLocaleDateString('pt-BR');
-    const horaF = dataH.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    document.getElementById('dataHoraI').value = `${dataF} às ${horaF}`;
+    document.getElementById('dataHoraI').value = `${dataF} às ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
 
-    // FUNÇÃO QUE RESOLVE O ERRO DE CONEXÃO (JSONP)
+    // FUNÇÃO QUE MATA O "ERRO DE CONEXÃO"
     function chamadaSegura(params) {
         return new Promise((resolve) => {
-            const callbackNome = "tjur_" + Math.floor(Math.random() * 100000);
-            const script = document.createElement('script');
-            window[callbackNome] = (dados) => {
-                resolve(dados);
-                document.body.removeChild(script);
-                delete window[callbackNome];
-            };
-            script.src = `${URL}?${params}&callback=${callbackNome}&t=${Date.now()}`;
-            document.body.appendChild(script);
-            setTimeout(() => { if(window[callbackNome]) resolve({error: true}); }, 10000);
+            const cb = "tjur_" + Date.now();
+            const s = document.createElement('script');
+            window[cb] = (d) => { resolve(d); document.body.removeChild(s); delete window[cb]; };
+            s.src = `${URL}?${params}&callback=${cb}&t=${Date.now()}`;
+            s.onerror = () => resolve({error:true});
+            document.body.appendChild(s);
+            setTimeout(() => { if(window[cb]) resolve({error:true}); }, 10000);
         });
     }
 
     async function sincronizar() {
-        const ocupados = await chamadaSegura(`acao=statusGeral&data=${dataF}`);
+        const res = await chamadaSegura(`acao=statusGeral&data=${dataF}`);
         const painel = document.getElementById('painelFrota');
-        if (ocupados.error) {
-            painel.innerHTML = "<div style='grid-column:span 2; color:red'>Erro de Conexão. Reconectando...</div>";
+        if (res.error) {
+            painel.innerHTML = "<div style='grid-column:span 2; color:red'>Reconectando frota...</div>";
             setTimeout(sincronizar, 5000);
             return;
         }
         const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
         painel.innerHTML = tags.map(t => 
-            `<div class="status-item ${ocupados[t] ? 'em-uso' : 'livre'}">${t}<br>${ocupados[t] ? '🔴 '+ocupados[t] : '🟢 LIVRE'}</div>`
+            `<div class="status-item ${res[t] ? 'em-uso' : 'livre'}">${t}<br>${res[t] ? '🔴 '+res[t] : '🟢 LIVRE'}</div>`
         ).join('');
     }
 
@@ -134,74 +114,50 @@
         const id = document.getElementById("idCond").value;
         const btn = document.getElementById("btnAcao");
         const msg = document.getElementById("msgErro");
-        if(!tag || !id || localStorage.getItem("tjur_v27")) return;
+        if(!tag || !id || localStorage.getItem("tjur_v28")) return;
 
-        btn.disabled = true; msg.style.display = "block"; msg.innerHTML = "🔍 Validando travas de segurança...";
+        btn.disabled = true; msg.style.display = "block"; msg.innerHTML = "Verificando...";
         const res = await chamadaSegura(`acao=verificar&tag=${tag}&id=${id}&data=${dataF}`);
-        
         if(res.status && res.status !== "livre") {
-            msg.innerHTML = `🚫 BLOQUEIO: ${res.status} já está em trajeto!`;
-            btn.disabled = true;
+            msg.innerHTML = `🚫 BLOQUEIO: ${res.status} está em trajeto!`;
         } else { msg.style.display = "none"; btn.disabled = false; }
-    }
-
-    function calcLim() {
-        let d = new Date(document.getElementById("valSelo").value + "T12:00:00");
-        for(let i=0; i<5; i++) { d.setDate(d.getDate()+1); if(d.getDay()===0 || d.getDay()===6) i--; }
-        document.getElementById("limite").value = d.toLocaleDateString('pt-BR');
     }
 
     async function registrar() {
         const btn = document.getElementById("btnAcao");
         const d = {
-            data: dataF, horaI: horaF, tag: document.getElementById("tag").value,
-            id: document.getElementById("idCond").value, nome: document.getElementById("nome").value,
-            kmi: document.getElementById("kmi").value, selo: document.getElementById("selo").value,
-            val: document.getElementById("valSelo").value, lim: document.getElementById("limite").value,
-            oleo: document.getElementById("oleo").value
+            data: dataF, horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 
+            tag: document.getElementById("tag").value, id: document.getElementById("idCond").value, 
+            nome: document.getElementById("nome").value, kmi: document.getElementById("kmi").value
         };
         if(!d.tag || !d.kmi) return alert("Preencha KM e Veículo!");
         btn.innerText = "GRAVANDO..."; btn.disabled = true;
-        // Registro usa modo no-cors para rapidez
         fetch(`${URL}?acao=registrar&${new URLSearchParams(d)}`, {mode:'no-cors'});
-        localStorage.setItem("tjur_v27", JSON.stringify(d));
+        localStorage.setItem("tjur_v28", JSON.stringify(d));
         setTimeout(() => location.reload(), 1500);
     }
 
     function ativarFinalizacao() {
-        const s = JSON.parse(localStorage.getItem("tjur_v27"));
+        const s = JSON.parse(localStorage.getItem("tjur_v28"));
         document.getElementById("telaEspera").classList.add("hidden");
         document.getElementById("containerForm").classList.remove("hidden");
         document.getElementById("secaoFim").classList.remove("hidden");
-        ["tag", "idCond", "nome", "kmi", "selo", "valSelo", "limite", "oleo"].forEach(c => {
+        ["tag", "idCond", "nome", "kmi"].forEach(c => {
             const el = document.getElementById(c); el.value = s[c === "idCond" ? "id" : c]; el.disabled = true; el.classList.add("readonly-field");
         });
         const btn = document.getElementById("btnAcao");
-        btn.innerText = "FINALIZAR E ENVIAR WHATSAPP"; btn.className = "btn-verde";
-        btn.disabled = false;
+        btn.innerText = "FINALIZAR E ENVIAR"; btn.className = "btn-verde"; btn.disabled = false;
         btn.onclick = async function() {
             const kmf = document.getElementById("kmf").value;
-            const hFim = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             if(!kmf) return alert("Informe KM Fim!");
-            btn.disabled = true; btn.innerText = "FINALIZANDO...";
-            await fetch(`${URL}?acao=finalizar&tag=${s.tag}&data=${s.data}&kmf=${kmf}&obs=${encodeURIComponent(document.getElementById("obs").value)}&horaF=${hFim}`, {mode:'no-cors'});
-            const txt = `*TELEJUR* ✅%0A🚗 *TAG:* ${s.tag}%0A👤 *MOT:* ${s.nome}%0A⏱ *INÍCIO:* ${s.horaI}%0A⏱ *FIM:* ${hFim}%0A🛣 *KM:* ${s.kmi} a ${kmf}%0A🏷 *VAL:* ${s.lim}`;
-            localStorage.removeItem("tjur_v27");
-            window.location.href = "whatsapp://send?text=" + txt;
-            setTimeout(() => location.reload(), 2000);
+            btn.disabled = true; btn.innerText = "ENVIANDO...";
+            await fetch(`${URL}?acao=finalizar&tag=${s.tag}&data=${s.data}&kmf=${kmf}`, {mode:'no-cors'});
+            localStorage.removeItem("tjur_v28");
+            location.reload();
         };
     }
 
-    window.onload = () => {
-        sincronizar();
-        const s = localStorage.getItem("tjur_v27");
-        if(s) {
-            const d = JSON.parse(s);
-            document.getElementById("containerForm").classList.add("hidden");
-            document.getElementById("telaEspera").classList.remove("hidden");
-            document.getElementById("resumoAtivo").innerHTML = `🚗 <b>TRAJETO ATIVO:</b> ${d.tag}<br>👤 <b>MOTORISTA:</b> ${d.nome}`;
-        }
-    };
+    window.onload = () => { sincronizar(); if(localStorage.getItem("tjur_v28")){ ativarFinalizacao(); } };
 </script>
 </body>
 </html>
