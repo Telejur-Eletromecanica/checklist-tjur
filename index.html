@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V20</title>
+    <title>TELEJUR - V21</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; text-align: center; margin: 0; }
         .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; text-align: center; margin: 0 0 15px 0; text-transform: uppercase; }
         .painel-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 10px; border: 1px solid #ddd; }
-        .status-item { font-size: 10px; font-weight: bold; padding: 8px; border-radius: 5px; text-align: center; border: 1px solid transparent; line-height: 1.4; }
+        .status-item { font-size: 10px; font-weight: bold; padding: 8px; border-radius: 5px; text-align: center; border: 1px solid transparent; }
         .livre { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
         .em-uso { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; }
-        .readonly-field { background: #f0f0f0 !important; color: #1a237e; font-weight: bold; cursor: not-allowed; }
+        .readonly-field { background: #f0f0f0 !important; color: #1a237e; font-weight: bold; }
         .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .alerta-erro { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; display: none; text-align: center; border: 1px solid #ffeeba; }
@@ -29,16 +29,16 @@
     <p class="subtitle">ELETROMECÂNICA</p>
 
     <div id="painelVeiculos" class="painel-status">
-        <div class="status-item" style="grid-column: span 2;">Carregando status...</div>
+        <div class="status-item" style="grid-column: span 2;">Sincronizando...</div>
     </div>
 
     <div id="containerForm">
         <form id="formChecklist">
-            <label>DATA</label>
+            <label>DATA DO CHECKLIST</label>
             <input type="text" id="dataAuto" class="readonly-field" readonly>
 
             <label>TAG DO VEÍCULO</label>
-            <select id="tag" onchange="validarVinculoFixo()" required>
+            <select id="tag" onchange="validarBloqueio()" required>
                 <option value="">SELECIONE</option>
                 <option value="TJUR 04">TJUR 04</option>
                 <option value="TJUR 06">TJUR 06</option>
@@ -51,34 +51,39 @@
 
             <div id="msgErroVinc" class="alerta-erro"></div>
 
-            <label>ID CONDUTOR</label>
-            <select id="numCondutor" onchange="validarVinculoFixo()" required>
+            <label>IDENTIFICAÇÃO (ID)</label>
+            <select id="idCondutor" onchange="validarBloqueio()" required>
                 <option value="">SELECIONE</option>
                 <option value="ID 1">ID 1</option><option value="ID 2">ID 2</option>
                 <option value="ID 3">ID 3</option><option value="ID 4">ID 4</option>
-                <option value="ID 5">ID 5</option><option value="ID 6">ID 6</option>
-                <option value="ID 7">ID 7</option><option value="ID 8">ID 8</option>
-                <option value="ID 9">ID 9</option>
+                <option value="ID 5">ID 5</option>
             </select>
 
             <label>NOME DO CONDUTOR</label>
-            <select id="nomeCondutor" onchange="validarVinculoFixo()" required>
+            <select id="nomeCondutor" required>
                 <option value="">SELECIONE</option>
                 <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-                <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARÃES</option>
-                <option>LAFAITE BATISTA</option><option>MIRIELLY</option>
-                <option>RAIMUNDO WALTER</option><option>REGINALDO</option>
+                <option>FRANCINILDO TEXEIRA</option>
             </select>
 
             <label>KM INICIAL</label>
-            <input type="number" id="kmi" required>
+            <input type="number" id="kmi" placeholder="Digite o KM de saída" required>
 
             <label>COR DO SELO</label>
-            <select id="corSelo" required>
+            <select id="selo" required>
                 <option value="">SELECIONE</option>
                 <option value="VERDE">VERDE</option><option value="AMARELO">AMARELO</option>
                 <option value="AZUL">AZUL</option><option value="VERMELHO">VERMELHO</option>
             </select>
+
+            <label>VALIDADE SELO</label>
+            <input type="date" id="valSelo" onchange="gerarDataLimite()">
+
+            <label>DATA LIMITE (+5D ÚTEIS)</label>
+            <input type="text" id="dataLimite" class="readonly-field" readonly>
+
+            <label>PRÓX. ÓLEO</label>
+            <input type="text" id="proxOleo" placeholder="KM ou Data">
 
             <div id="campoFim" class="hidden">
                 <label style="color:red; font-weight: bold;">KM FINAL</label>
@@ -88,108 +93,119 @@
             <label>OBSERVAÇÃO</label>
             <textarea id="obs" rows="2"></textarea>
 
-            <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn-azul">SALVAR INÍCIO</button>
+            <button type="button" id="btnAcao" onclick="salvarInicio()" class="btn-azul">SALVAR INÍCIO</button>
         </form>
     </div>
 
     <div id="telaEspera" class="hidden">
-        <h3 style="color: #1a237e;">TRAJETO ATIVO</h3>
-        <div id="resumoTrajeto" style="text-align:left; background:#f0f0f0; padding:15px; border-radius:8px; font-size:13px;"></div>
-        <button type="button" onclick="irParaFinalizar()" class="btn-azul">FINALIZAR AGORA</button>
+        <h3 style="color: #1a237e; text-align: center;">TRAJETO EM CURSO</h3>
+        <div id="resumo" style="background:#f8f9fa; padding:15px; border-radius:8px; font-size:13px; line-height:1.6;"></div>
+        <button type="button" onclick="prepararFinalizar()" class="btn-azul">FINALIZAR TRAJETO</button>
     </div>
 </div>
 
 <script>
-    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
-    const dataHoje = new Date().toLocaleDateString('pt-BR');
-    document.getElementById('dataAuto').value = dataHoje;
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    document.getElementById('dataAuto').value = hoje;
 
-    async function atualizarStatusVeiculos() {
-        const painel = document.getElementById('painelVeiculos');
-        try {
-            const r = await fetch(`${URL_PLANILHA}?acao=statusGeral&data=${dataHoje}&t=${Date.now()}`);
-            const ocupados = await r.json(); 
-            const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-            painel.innerHTML = "";
-            tags.forEach(t => {
-                const motorista = ocupados[t];
-                const div = document.createElement('div');
-                div.className = `status-item ${motorista ? 'em-uso' : 'livre'}`;
-                div.innerHTML = `${t}<br>${motorista ? '🔴 ' + motorista : '🟢 LIVRE'}`;
-                painel.appendChild(div);
-            });
-        } catch(e) { painel.innerHTML = "Erro ao carregar frota"; }
+    function gerarDataLimite() {
+        const d = document.getElementById("valSelo").value;
+        if(!d) return;
+        let data = new Date(d + "T12:00:00");
+        let uteis = 0;
+        while(uteis < 5) {
+            data.setDate(data.getDate() + 1);
+            if(data.getDay() !== 0 && data.getDay() !== 6) uteis++;
+        }
+        document.getElementById("dataLimite").value = data.toLocaleDateString('pt-BR');
     }
 
-    async function validarVinculoFixo() {
+    async function validarBloqueio() {
         const tag = document.getElementById("tag").value;
-        const id = document.getElementById("numCondutor").value;
-        const nome = document.getElementById("nomeCondutor").value;
+        const id = document.getElementById("idCondutor").value;
         const btn = document.getElementById("btnAcao");
         const msg = document.getElementById("msgErroVinc");
-        if(!tag || !id || !nome) return;
-        msg.style.display = "block"; msg.innerHTML = "Verificando disponibilidade...";
+        if(!tag || !id) return;
+        msg.style.display = "block"; msg.innerHTML = "Sincronizando...";
         try {
-            const r = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${tag}&id=${id}&data=${dataHoje}`);
+            const r = await fetch(`${URL_SCRIPT}?acao=verificar&tag=${tag}&id=${id}&data=${hoje}`);
             const status = await r.text();
-            if(status !== "livre" && status !== nome) {
-                msg.innerHTML = `⚠ BLOQUEIO: ${status} está em trajeto!`;
+            if(status !== "livre") {
+                msg.innerHTML = `⚠ BLOQUEIO: ${status} já está usando este recurso!`;
                 btn.disabled = true; btn.style.opacity = "0.5";
             } else { msg.style.display = "none"; btn.disabled = false; btn.style.opacity = "1"; }
-        } catch(e) { msg.style.display = "none"; btn.disabled = false; }
+        } catch(e) { msg.style.display = "none"; }
     }
 
-    async function iniciarTrajeto() {
+    async function salvarInicio() {
         const btn = document.getElementById("btnAcao");
-        const d = {
-            tag: document.getElementById("tag").value, num: document.getElementById("numCondutor").value,
+        const dados = {
+            data: hoje, tag: document.getElementById("tag").value, id: document.getElementById("idCondutor").value,
             nome: document.getElementById("nomeCondutor").value, kmi: document.getElementById("kmi").value,
-            selo: document.getElementById("corSelo").value, 
             horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            data: dataHoje
+            selo: document.getElementById("selo").value, val: document.getElementById("valSelo").value,
+            lim: document.getElementById("dataLimite").value, oleo: document.getElementById("proxOleo").value,
+            obs: document.getElementById("obs").value
         };
-        if(!d.tag || !d.num || !d.kmi) return alert("Preencha todos os campos!");
-        btn.innerText = "GRAVANDO..."; btn.disabled = true;
-        // Envio inicial para a planilha
-        await fetch(`${URL_PLANILHA}?acao=registrar&data=${d.data}&tag=${d.tag}&id=${d.num}&nome=${d.nome}&kmi=${d.kmi}&horaI=${d.horaI}&selo=${d.selo}`, {mode:'no-cors'});
-        localStorage.setItem("tjur_checklist_ativo", JSON.stringify(d));
+        if(!dados.tag || !dados.kmi) return alert("Preencha os campos!");
+        btn.innerText = "ENVIANDO..."; btn.disabled = true;
+        
+        const query = Object.keys(dados).map(k => `${k}=${encodeURIComponent(dados[k])}`).join('&');
+        await fetch(`${URL_SCRIPT}?acao=registrar&${query}`, {mode:'no-cors'});
+        
+        localStorage.setItem("tjur_ativo", JSON.stringify(dados));
         location.reload();
     }
 
-    function irParaFinalizar() {
-        const s = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
+    function prepararFinalizar() {
+        const s = JSON.parse(localStorage.getItem("tjur_ativo"));
         document.getElementById("telaEspera").classList.add("hidden");
         document.getElementById("containerForm").classList.remove("hidden");
         document.getElementById("campoFim").classList.remove("hidden");
-        // Bloqueia campos que vieram do início para não serem alterados
-        document.getElementById("tag").value = s.tag; document.getElementById("tag").disabled = true;
-        document.getElementById("numCondutor").value = s.num; document.getElementById("numCondutor").disabled = true;
-        document.getElementById("nomeCondutor").value = s.nome; document.getElementById("nomeCondutor").disabled = true;
         
+        // Preenche e trava campos do início
+        const campos = ["tag", "idCondutor", "nomeCondutor", "kmi", "selo", "proxOleo"];
+        campos.forEach(c => {
+            let el = document.getElementById(c === "idCondutor" ? "idCondutor" : c);
+            el.value = s[c === "idCondutor" ? "id" : c];
+            el.disabled = true; el.classList.add("readonly-field");
+        });
+
         const btn = document.getElementById("btnAcao");
-        btn.innerText = "FINALIZAR TRAJETO"; btn.className = "btn-verde";
+        btn.innerText = "FINALIZAR E ENVIAR"; btn.className = "btn-verde";
         btn.onclick = async function() {
             const kmf = document.getElementById("kmf").value;
-            const obsF = document.getElementById("obs").value;
-            if(!kmf) return alert("Informe KM Final!");
+            if(!kmf) return alert("Digite o KM Final!");
             btn.innerText = "SALVANDO..."; btn.disabled = true;
-            // Envia o KM Final e a Obs vinculados à TAG e Data do Início
-            await fetch(`${URL_PLANILHA}?acao=finalizar&tag=${s.tag}&data=${s.data}&kmf=${kmf}&obs=${encodeURIComponent(obsF)}`, {mode:'no-cors'});
-            localStorage.removeItem("tjur_checklist_ativo");
-            window.location.href = "whatsapp://send?text=" + encodeURIComponent(`*CHECKLIST FINALIZADO*\nVEÍCULO: ${s.tag}\nMOTORISTA: ${s.nome}\nKM FIM: ${kmf}\nOBS: ${obsF || "Nenhuma"}`);
+            await fetch(`${URL_SCRIPT}?acao=finalizar&tag=${s.tag}&data=${s.data}&kmf=${kmf}&obs=${encodeURIComponent(document.getElementById("obs").value)}`, {mode:'no-cors'});
+            localStorage.removeItem("tjur_ativo");
+            window.location.href = `whatsapp://send?text=*CHECKLIST FINALIZADO*%0AVEÍCULO: ${s.tag}%0AMOTORISTA: ${s.nome}%0AKM FINAL: ${kmf}`;
             setTimeout(() => location.reload(), 1000);
         }
     }
 
-    window.onload = function() {
-        atualizarStatusVeiculos();
-        const s = localStorage.getItem("tjur_checklist_ativo");
+    window.onload = async function() {
+        const s = localStorage.getItem("tjur_ativo");
         if(s) {
             const d = JSON.parse(s);
             document.getElementById("containerForm").classList.add("hidden");
             document.getElementById("telaEspera").classList.remove("hidden");
-            document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>MOTORISTA:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
+            document.getElementById("resumo").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>MOTORISTA:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
         }
+        
+        // Atualiza painel de status
+        const p = document.getElementById('painelVeiculos');
+        try {
+            const r = await fetch(`${URL_SCRIPT}?acao=statusGeral&data=${hoje}&t=${Date.now()}`);
+            const ocupados = await r.json();
+            const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
+            p.innerHTML = "";
+            tags.forEach(t => {
+                const motorista = ocupados[t];
+                p.innerHTML += `<div class="status-item ${motorista ? 'em-uso' : 'livre'}">${t}<br>${motorista ? '🔴 '+motorista : '🟢 LIVRE'}</div>`;
+            });
+        } catch(e) { p.innerHTML = "Erro ao carregar"; }
     };
 </script>
 </body>
