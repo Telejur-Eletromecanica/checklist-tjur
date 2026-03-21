@@ -27,19 +27,16 @@
     </style>
 </head>
 <body>
-
 <div class="card">
     <div class="header-text">
         <p class="brand">TELEJUR</p>
         <p class="subtitle">ELETROMECÂNICA</p>
     </div>
-
     <div id="containerForm">
         <h2 id="tituloAcao">CHECKLIST DE VEÍCULO</h2>
         <form id="formChecklist">
             <label>DATA DO CHECKLIST</label>
             <input type="text" id="dataAuto" class="readonly-field" readonly>
-
             <label>TAG DO VEÍCULO</label>
             <select id="tag" onchange="atualizarInterfacePorTag(); validarVinculoFixo();">
                 <option value="">SELECIONE A TAG</option>
@@ -52,15 +49,11 @@
                 <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
             </select>
             <div id="listaTagsEmUso" class="lista-uso"></div>
-
             <label>VEÍCULO</label>
             <input type="text" id="displayVeiculo" class="readonly-field" readonly>
-
             <label>PLACA</label>
             <input type="text" id="displayPlaca" class="readonly-field" readonly>
-
             <div id="msgErroVinc" class="alerta-erro"></div>
-
             <label>IDENTIFICAÇÃO (ID)</label>
             <select id="numCondutor" onchange="validarVinculoFixo()">
                 <option value="">SELECIONE</option>
@@ -74,7 +67,6 @@
                 <option value="CONDUTOR 8">CONDUTOR 8</option>
                 <option value="CONDUTOR 9">CONDUTOR 9</option>
             </select>
-
             <label>NOME DO CONDUTOR</label>
             <select id="nomeCondutor" onchange="validarVinculoFixo()">
                 <option value="">SELECIONE</option>
@@ -83,23 +75,18 @@
                 <option>LAFAITE BATISTA</option><option>MIRIELLY</option>
                 <option>RAIMUNDO WALTER</option><option>REGINALDO</option>
             </select>
-
             <label>KM INICIAL</label>
             <input type="text" id="kmi" placeholder="Ex: 149615">
-
             <label>COR DO SELO</label>
             <select id="corSelo">
                 <option value="">SELECIONE</option>
                 <option value="VERDE">VERDE</option><option value="AMARELO">AMARELO</option>
                 <option value="AZUL">AZUL</option><option value="VERMELHO">VERMELHO</option>
             </select>
-
             <label>VALIDADE DO SELO</label>
             <input type="date" id="validadeSelo" onchange="calcularDataLimite()">
-
             <label>DATA LIMITE (+5 DIAS ÚTEIS)</label>
             <input type="text" id="dataLimiteSelo" class="readonly-field campo-destaque" readonly>
-
             <div id="campoFim" class="hidden">
                 <label>KM FINAL</label>
                 <input type="text" id="kmf" placeholder="Digite o KM Final">
@@ -108,20 +95,16 @@
                     Após enviar o texto, anexe a foto do checklist físico no WhatsApp.
                 </div>
             </div>
-
             <div id="blocoOleo">
                 <label id="labelTrocaOleo">PRÓXIMA TROCA DE ÓLEO (KM)</label>
                 <input type="text" id="proximaTrocaKM" placeholder="Ex: 155000">
                 <input type="date" id="proximaTrocaData" class="hidden">
             </div>
-
             <label>OBSERVAÇÃO</label>
             <textarea id="obs" rows="2"></textarea>
-
             <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn-azul">SALVAR INÍCIO DE TRAJETO</button>
         </form>
     </div>
-
     <div id="telaEspera">
         <h3 style="color: #1a237e;">TRAJETO EM ANDAMENTO</h3>
         <div id="resumoTrajeto" class="info-trajeto"></div>
@@ -129,9 +112,7 @@
         <button type="button" onclick="irParaFinalizar()" class="btn-azul">FINALIZAR TRAJETO</button>
     </div>
 </div>
-
 <script>
-    // URL OFICIAL DA SUA PLANILHA JÁ INSERIDA
     const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
@@ -155,7 +136,7 @@
                 infoDiv.style.display = "block";
                 infoDiv.innerHTML = "🚫 Tags em trajeto: " + bloqueados.join(", ");
             }
-        } catch (e) { console.log(e); }
+        } catch (e) { console.log("Erro ao carregar tags ocupadas."); }
     }
 
     function calcularDataLimite() {
@@ -196,16 +177,21 @@
         const msg = document.getElementById("msgErroVinc");
         if(!tag || !nome || !idCond) return;
         msg.style.display = "block"; msg.innerHTML = "Validando...";
+        btn.disabled = true;
         try {
-            const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${dataHojeStr}`);
+            const fetchUrl = `${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${dataHojeStr}`;
+            const response = await fetch(fetchUrl);
             const dono = await response.text();
-            // Evita erro 404 de página de erro sendo lida como texto
-            if (dono.includes("<!DOCTYPE") || dono.includes("404")) { msg.style.display = "none"; return; }
-            if(dono !== "livre" && dono !== nome && dono !== "") {
+            if (dono.includes("<!DOCTYPE") || dono.includes("404") || dono === "") {
+                msg.style.display = "none";
+                btn.disabled = false;
+                return;
+            }
+            if(dono !== "livre" && dono !== nome) {
                 msg.innerHTML = `⚠ BLOQUEADO: ${idCond} já ocupado por ${dono}!`;
                 btn.disabled = true;
             } else { msg.style.display = "none"; btn.disabled = false; }
-        } catch (e) { btn.disabled = false; }
+        } catch (e) { msg.style.display = "none"; btn.disabled = false; }
     }
 
     async function iniciarTrajeto() {
@@ -213,25 +199,15 @@
         const kmi = document.getElementById("kmi").value;
         const selo = document.getElementById("corSelo").value;
         if(!tag || !kmi || !selo) { alert("Preencha Tag, KM Inicial e Selo!"); return; }
-
         const dados = {
-            tag: tag,
-            veiculo: document.getElementById("displayVeiculo").value,
-            placa: document.getElementById("displayPlaca").value,
-            num: document.getElementById("numCondutor").value,
-            nome: document.getElementById("nomeCondutor").value,
-            kmi: kmi,
-            selo: selo,
-            valSeloRaw: document.getElementById("validadeSelo").value,
-            valSeloF: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
+            tag: tag, veiculo: document.getElementById("displayVeiculo").value, placa: document.getElementById("displayPlaca").value,
+            num: document.getElementById("numCondutor").value, nome: document.getElementById("nomeCondutor").value, kmi: kmi, selo: selo,
+            valSeloRaw: document.getElementById("validadeSelo").value, valSeloF: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
             dataLimite: document.getElementById("dataLimiteSelo").value || "---",
             oleo: document.getElementById("proximaTrocaKM").value ? document.getElementById("proximaTrocaKM").value + " KM" : (document.getElementById("proximaTrocaData").value ? document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') : "Não informado"),
-            horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            data: dataHojeStr
+            horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), data: dataHojeStr
         };
-
         const url = `${URL_PLANILHA}?acao=registrar&tag=${encodeURIComponent(dados.tag)}&id=${encodeURIComponent(dados.num)}&nome=${encodeURIComponent(dados.nome)}&data=${encodeURIComponent(dados.data)}&kmi=${encodeURIComponent(dados.kmi)}&horaI=${encodeURIComponent(dados.horaI)}`;
-        
         try {
             await fetch(url, { mode: 'no-cors' });
             localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
@@ -250,7 +226,6 @@
         document.getElementById("telaEspera").style.display = "none";
         document.getElementById("containerForm").style.display = "block";
         document.getElementById("campoFim").classList.remove("hidden");
-        
         const campos = ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"];
         campos.forEach(id => {
             const el = document.getElementById(id);
@@ -260,12 +235,10 @@
             else if(id === "validadeSelo") el.value = salvo.valSeloRaw;
             else if(id === "corSelo") el.value = salvo.selo;
             else el.value = salvo[id];
-
             el.classList.add("readonly-field");
             el.style.pointerEvents = "none";
         });
         document.getElementById("dataLimiteSelo").value = salvo.dataLimite;
-
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
         btn.className = "btn-verde";
@@ -273,11 +246,8 @@
             const kmf = document.getElementById("kmf").value;
             const observacao = document.getElementById("obs").value;
             if(!kmf) { alert("Informe o KM Final!"); return; }
-            
             const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            // Envia todos os dados finais para a planilha, incluindo a Observação (coluna L)
             const urlFinalizar = `${URL_PLANILHA}?acao=finalizar&tag=${encodeURIComponent(salvo.tag)}&data=${encodeURIComponent(salvo.data)}&selo=${encodeURIComponent(salvo.selo)}&valSelo=${encodeURIComponent(salvo.valSeloF)}&limite=${encodeURIComponent(salvo.dataLimite)}&oleo=${encodeURIComponent(salvo.oleo)}&kmf=${encodeURIComponent(kmf)}&obs=${encodeURIComponent(observacao)}`;
-            
             try {
                 btn.innerText = "⏳ SALVANDO..."; btn.disabled = true;
                 await fetch(urlFinalizar, { mode: 'no-cors' });
