@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - FROTA INTELIGENTE</title>
+    <title>TELEJUR - CONTROLE DE FROTA</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 10px; }
@@ -26,7 +26,7 @@
 
 <div class="card">
     <p class="brand">TELEJUR</p>
-    <div id="painel" class="grid-status">Sincronizando...</div>
+    <div id="painel" class="grid-status">Sincronizando Frota...</div>
 
     <div id="formContainer">
         <label>Data</label>
@@ -43,7 +43,7 @@
             <option value="TJUR 13" data-p="QVD4I38 | HILUX">TJUR 13</option>
         </select>
 
-        <input type="text" id="placa" class="readonly" readonly placeholder="Placa / Modelo Automático">
+        <input type="text" id="placa" class="readonly" readonly placeholder="Placa Automática">
 
         <label>Identificação e Motorista</label>
         <div style="display:flex; gap:5px">
@@ -119,7 +119,10 @@
 
         const s = document.createElement('script');
         window.cb_reg = (res) => {
-            if(res.res === "erro") return alert(res.msg);
+            if(res.res === "erro") {
+                alert("⚠️ BLOQUEIO: " + res.msg);
+                return;
+            }
             localStorage.setItem("trip_telejur", JSON.stringify(d));
             location.reload();
         };
@@ -138,7 +141,7 @@
             document.getElementById(id).classList.add("readonly");
         });
 
-        document.getElementById("btnAcao").innerText = "Confirmar e Enviar Relatório";
+        document.getElementById("btnAcao").innerText = "Encerrar e Enviar Relatório";
         document.getElementById("btnAcao").onclick = () => {
             const kmf = document.getElementById("kmf").value;
             const horaF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
@@ -156,7 +159,7 @@
     function shareWhats(isFim, kmf, horaF, obs) {
         const d = JSON.parse(localStorage.getItem("trip_telejur"));
         
-        // Converte ID 01 -> CONDUTOR 1, ID 02 -> CONDUTOR 2
+        // Formatação solicitada: ID 01 -> CONDUTOR 1
         const numId = d.id.replace(/\D/g, "");
         const condutorFormatado = `CONDUTOR ${parseInt(numId)}`;
 
