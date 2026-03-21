@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - FROTA</title>
+    <title>TELEJUR - GESTÃO DE FROTA</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 10px; }
@@ -14,10 +14,9 @@
         .ocupado { background: #ffebee; color: var(--danger); }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .readonly { background: #eee !important; color: #333; pointer-events: none; }
+        .readonly { background: #e8f5e9 !important; color: #333; pointer-events: none; }
         .btn { width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
         .btn-azul { background: var(--primary); color: white; }
-        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -27,12 +26,9 @@
     <div id="painel" class="grid-status">Sincronizando...</div>
 
     <div id="formContainer">
-        <label>Data</label>
-        <input type="text" id="dataAtu" class="readonly" readonly>
-
         <label>TAG do Veículo</label>
-        <select id="tag">
-            <option value="">SELECIONE</option>
+        <select id="tag" onchange="verificarDonoID()">
+            <option value="">-- SELECIONE --</option>
             <option value="TJUR 04">TJUR 04</option>
             <option value="TJUR 06">TJUR 06</option>
             <option value="TJUR 07">TJUR 07</option>
@@ -43,14 +39,11 @@
 
         <label>ID do Condutor</label>
         <select id="idMot">
-            <option value="ID 01">ID 01</option><option value="ID 02">ID 02</option>
-            <option value="ID 03">ID 03</option><option value="ID 04">ID 04</option>
-            <option value="ID 05">ID 05</option><option value="ID 06">ID 06</option>
-            <option value="ID 07">ID 07</option><option value="ID 08">ID 08</option>
-            <option value="ID 09">ID 09</option><option value="ID 10">ID 10</option>
-            <option value="ID 11">ID 11</option><option value="ID 12">ID 12</option>
-            <option value="ID 13">ID 13</option><option value="ID 14">ID 14</option>
-            <option value="ID 15">ID 15</option>
+            <option value="ID 01">ID 01</option><option value="ID 02">ID 02</option><option value="ID 03">ID 03</option>
+            <option value="ID 04">ID 04</option><option value="ID 05">ID 05</option><option value="ID 06">ID 06</option>
+            <option value="ID 07">ID 07</option><option value="ID 08">ID 08</option><option value="ID 09">ID 09</option>
+            <option value="ID 10">ID 10</option><option value="ID 11">ID 11</option><option value="ID 12">ID 12</option>
+            <option value="ID 13">ID 13</option><option value="ID 14">ID 14</option><option value="ID 15">ID 15</option>
         </select>
 
         <label>Motorista</label>
@@ -58,6 +51,13 @@
             <option value="">-- SELECIONE --</option>
             <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
             <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
+            <option value="FRANCINILDO TEXEIRA">FRANCINILDO TEXEIRA</option>
+            <option value="JOELCINEI GUIMARAES">JOELCINEI GUIMARAES</option>
+            <option value="MIRIELLY">MIRIELLY</option>
+            <option value="REGINALDO">REGINALDO</option>
+            <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
+            <option value="LAFAITE BATISTA">LAFAITE BATISTA</option>
+            <option value="EZEQUIEL">EZEQUIEL</option>
         </select>
 
         <label>KM Inicial</label>
@@ -66,27 +66,47 @@
         <label>Próxima Troca de Óleo</label>
         <input type="number" id="oleo">
 
-        <div id="fimCampos" class="hidden">
+        <div id="fimCampos" style="display:none">
             <hr style="margin:20px 0; border:0; border-top:1px dashed #ccc">
             <label style="color:var(--danger)">KM Final (Chegada)</label>
             <input type="number" id="kmf">
             <textarea id="obs" placeholder="Observações" style="margin-top:10px"></textarea>
         </div>
 
-        <button type="button" id="btnAcao" onclick="salvarInicio()" class="btn btn-azul">Salvar Saída</button>
+        <button id="btnAcao" onclick="salvarInicio()" class="btn btn-azul">Salvar Saída</button>
     </div>
 
-    <div id="telaAtiva" class="hidden">
+    <div id="telaAtiva" style="display:none">
         <div id="statusTrip" style="background:#f8f9fa; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px"></div>
-        <button onclick="shareWhats(false)" class="btn" style="background:#25D366; color:white">Compartilhar WhatsApp</button>
+        <button onclick="shareWhats(false)" class="btn" style="background:#25D366; color:white">WhatsApp Saída</button>
         <button onclick="liberarFim()" class="btn btn-azul" style="background:#444">Finalizar Trajeto</button>
     </div>
 </div>
 
 <script>
-    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
+    const URL = "SEU_LINK_AQUI"; 
     const dataH = new Date().toLocaleDateString('pt-BR');
-    document.getElementById("dataAtu").value = dataH;
+
+    async function verificarDonoID() {
+        const tag = document.getElementById("tag").value;
+        const selNome = document.getElementById("nomeMot");
+        const selId = document.getElementById("idMot");
+        if(!tag) return;
+
+        const cb = "cb_dono";
+        const s = document.createElement('script');
+        window[cb] = (d) => {
+            if(d.nome && d.id) {
+                selNome.value = d.nome; selId.value = d.id;
+                selNome.classList.add("readonly"); selId.classList.add("readonly");
+            } else {
+                selNome.classList.remove("readonly"); selId.classList.remove("readonly");
+                selNome.value = ""; selId.value = "ID 01";
+            }
+        };
+        s.src = `${URL}?acao=verificarDonoID&tag=${tag}&data=${dataH}&callback=${cb}`;
+        document.body.appendChild(s);
+    }
 
     async function sync() {
         const cb = "cb_sync";
@@ -111,7 +131,6 @@
             oleo: document.getElementById("oleo").value, acao: "registrar", callback: "cb_reg"
         };
         if(!d.tag || !d.kmi || !d.nome) return alert("Preencha todos os campos!");
-
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             if(res.res === "erro") return alert(res.msg);
@@ -125,14 +144,14 @@
 
     function liberarFim() {
         const d = JSON.parse(localStorage.getItem("trip_telejur"));
-        document.getElementById("telaAtiva").classList.add("hidden");
-        document.getElementById("formContainer").classList.remove("hidden");
-        document.getElementById("fimCampos").classList.remove("hidden");
+        document.getElementById("telaAtiva").style.display = "none";
+        document.getElementById("formContainer").style.display = "block";
+        document.getElementById("fimCampos").style.display = "block";
         ["tag", "idMot", "nomeMot", "kmi", "oleo"].forEach(f => {
             document.getElementById(f).value = d[f === "idMot" ? "id" : (f === "nomeMot" ? "nome" : f)];
             document.getElementById(f).classList.add("readonly");
         });
-        document.getElementById("btnAcao").innerText = "Encerrar Trajeto";
+        document.getElementById("btnAcao").innerText = "Encerrar e Enviar";
         document.getElementById("btnAcao").onclick = () => {
             const kmf = document.getElementById("kmf").value;
             const hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
@@ -146,14 +165,19 @@
 
     function shareWhats(isFim, kmf, hF, obs) {
         const d = JSON.parse(localStorage.getItem("trip_telejur"));
-        let msg = (isFim ? `✅ *CHECKLIST FINALIZADO*\n` : `🚀 *SAÍDA REGISTRADA*\n`) + 
-                  `📍 *${d.numTrajeto}*\n📅 *Data:* ${d.data}\n🚗 *TAG:* ${d.tag}\n👤 *Motorista:* ${d.nome} (${d.id})\n`;
-        if(isFim) {
-            msg += `⏱️ *Hora:* ${d.horaI} às ${hF}\n🛣️ *KM:* ${d.kmi} ➔ ${kmf}\n📝 *Obs:* ${obs}`;
+        let msg = isFim ? `✅ *RELATÓRIO DE CHEGADA*\n` : `🚀 *RELATÓRIO DE SAÍDA*\n`;
+        msg += `--------------------------------\n📍 *${d.numTrajeto}*\n🚗 *TAG:* ${d.tag}\n👤 *CONDUTOR:* ${d.nome} (${d.id})\n📅 *DATA:* ${d.data}\n--------------------------------\n`;
+
+        if (isFim) {
+            msg += `🛫 *SAÍDA:* ${d.horaI} (KM ${d.kmi})\n`;
+            msg += `🛬 *CHEGADA:* ${hF} (KM ${kmf})\n`;
+            msg += `🛣️ *PERCURSO:* ${parseInt(kmf) - parseInt(d.kmi)} km\n`;
+            msg += `📝 *OBS:* ${obs || "Nenhuma"}\n`;
             localStorage.removeItem("trip_telejur");
         } else {
-            msg += `🛣️ *KM Inicial:* ${d.kmi}\n⏱️ *Início:* ${d.horaI}`;
+            msg += `🛫 *SAÍDA:* ${d.horaI}\n🛣️ *KM INICIAL:* ${d.kmi}\n🛢️ *ÓLEO:* ${d.oleo}\n`;
         }
+        msg += `--------------------------------`;
         window.location.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
     }
 
@@ -162,9 +186,9 @@
         const salvo = localStorage.getItem("trip_telejur");
         if(salvo) {
             const d = JSON.parse(salvo);
-            document.getElementById("formContainer").classList.add("hidden");
-            document.getElementById("telaAtiva").classList.remove("hidden");
-            document.getElementById("statusTrip").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome} (${d.id})<br>📍 ${d.numTrajeto}`;
+            document.getElementById("formContainer").style.display = "none";
+            document.getElementById("telaAtiva").style.display = "block";
+            document.getElementById("statusTrip").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag} | 📍 ${d.numTrajeto}<br>👤 ${d.nome}`;
         }
     };
 </script>
