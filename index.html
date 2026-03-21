@@ -3,42 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - GESTÃO DE FROTA V14</title>
+    <title>TELEJUR - SISTEMA DE FROTA V15</title>
     <style>
-        :root { --primary: #1a237e; --secondary: #25D366; --bg: #f0f4f8; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 10px; }
+        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 10px; }
         .card { max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 20px; border-top: 10px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .brand { font-size: 28px; font-weight: 900; color: var(--primary); text-align: center; margin: 0; letter-spacing: 2px; }
-        .subtitle { font-size: 12px; color: var(--primary); text-align: center; font-weight: bold; display: block; margin-bottom: 20px; text-transform: uppercase; }
+        .brand { font-size: 26px; font-weight: 900; color: var(--primary); text-align: center; margin-bottom: 5px; }
         
+        /* PAINEL DE STATUS */
         .grid-frota { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        .v-status { padding: 12px; border-radius: 12px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; }
-        .livre { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
-        .ocupado { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+        .v-status { padding: 12px; border-radius: 12px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; transition: 0.3s; }
+        .livre { background: #e8f5e9; color: var(--success); }
+        .ocupado { background: #ffebee; color: var(--danger); border-color: #ffcdd2; }
 
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 15px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; background: #fdfdfd; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .readonly { background: #eee !important; color: var(--primary); font-weight: bold; pointer-events: none; }
         
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; transition: 0.3s; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
         .btn-azul { background: var(--primary); color: white; }
-        .btn-verde { background: var(--secondary); color: white; }
+        .btn-verde { background: #25D366; color: white; }
         .hidden { display: none; }
-        #resumo { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid var(--primary); font-size: 14px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <p class="brand">TELEJUR</p>
-    <span class="subtitle">Eletromecânica - Frota</span>
-
-    <div id="painelFrota" class="grid-frota">Sincronizando...</div>
+    <div id="painelFrota" class="grid-frota">Sincronizando frota...</div>
 
     <div id="containerForm">
         <label>TAG DO VEÍCULO</label>
-        <select id="tag" onchange="atualizarInfo()">
-            <option value="">SELECIONE</option>
+        <select id="tag" onchange="atualizarVeiculo()">
+            <option value="">SELECIONE UM VEÍCULO</option>
             <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
             <option value="TJUR 06" data-v="SAVEIRO" data-p="QUJ3E02">TJUR 06</option>
             <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
@@ -47,110 +44,135 @@
             <option value="TJUR 13" data-v="HILUX" data-p="QVD4I38">TJUR 13</option>
         </select>
 
-        <input type="text" id="displayInfo" class="readonly" readonly placeholder="Placa / Modelo">
+        <input type="text" id="displayInfo" class="readonly" readonly placeholder="Modelo / Placa Automática">
 
-        <label>ID e Nome do Motorista</label>
+        <label>Condutor e ID</label>
         <div style="display:flex; gap:8px">
-            <select id="idCond" style="width:35%"><option>ID 01</option><option>ID 02</option><option>ID 03</option></select>
+            <select id="idCond" style="width:35%">
+                <option value="ID 01">ID 01</option>
+                <option value="ID 02">ID 02</option>
+            </select>
             <select id="nomeCond" style="width:65%">
-                <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option><option>JOELCINEI GUIMARÃES</option>
+                <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
+                <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
             </select>
         </div>
 
         <label>KM Inicial</label>
-        <input type="number" id="kmi" placeholder="KM de Saída">
-
-        <label>KM Próxima Manutenção</label>
-        <input type="number" id="proxM" placeholder="Ex: 155000">
+        <input type="number" id="kmi" placeholder="Digite o KM de saída">
 
         <div id="sessaoFinal" class="hidden">
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-            <label style="color:red">KM Final</label>
-            <input type="number" id="kmf" placeholder="KM de Chegada">
-            <label>Observação</label>
+            <hr style="margin:20px 0; border:0; border-top:1px solid #eee">
+            <label style="color:var(--danger)">KM Final (Chegada)</label>
+            <input type="number" id="kmf">
+            <label>Observações de Campo</label>
             <textarea id="obs" rows="2"></textarea>
         </div>
 
-        <button type="button" id="btnAcao" onclick="salvarInicio()" class="btn btn-azul">Salvar e Iniciar</button>
+        <button type="button" id="btnAcao" onclick="iniciarTrajeto()" class="btn btn-azul">Gravar Início</button>
     </div>
 
-    <div id="telaEspera" class="hidden">
-        <div id="resumo"></div>
-        <button onclick="enviarWhatsInício()" class="btn btn-verde">Enviar Início WhatsApp</button>
-        <button onclick="irParaFinalizar()" class="btn btn-azul">Finalizar Trajeto</button>
+    <div id="telaAtiva" class="hidden">
+        <div id="infoViagem" style="background:#f8f9fa; padding:15px; border-radius:12px; margin-bottom:15px; border-left:5px solid var(--primary)"></div>
+        <button onclick="gerarRelatorioWhats()" class="btn btn-verde">Compartilhar Início</button>
+        <button onclick="prepararFinalizacao()" class="btn btn-azul">Encerrar Percurso</button>
     </div>
 </div>
 
 <script>
-    const API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const dataH = new Date().toLocaleDateString('pt-BR');
+    const API_URL = "SUA_URL_DO_GOOGLE_SCRIPT_AQUI";
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    let veiculosOcupados = {};
 
-    async function sync() {
-        const cb = "cb_"+Date.now();
-        const s = document.createElement('script');
-        window[cb] = (d) => {
+    // Sincroniza e Bloqueia Tags Ocupadas
+    async function checkFrota() {
+        const cb = "callback_"+Date.now();
+        const script = document.createElement('script');
+        window[cb] = (dados) => {
+            veiculosOcupados = dados;
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 10", "TJUR 13"];
+            
             document.getElementById('painelFrota').innerHTML = tags.map(t => {
-                const mot = d[t];
-                return `<div class="v-status ${mot ? 'ocupado' : 'livre'}">${t}<br>${mot ? '🔴 '+mot.split(' ')[0] : '🟢 LIVRE'}</div>`;
+                const motorista = dados[t];
+                // Bloqueia no Select se estiver ocupado
+                const option = document.querySelector(`#tag option[value="${t}"]`);
+                if(motorista && option) option.disabled = true;
+
+                return `<div class="v-status ${motorista ? 'ocupado' : 'livre'}">
+                            ${t}<br>${motorista ? '🔴 ' + motorista.split(' ')[0] : '🟢 LIVRE'}
+                        </div>`;
             }).join('');
         };
-        s.src = `${API}?acao=statusGeral&data=${dataH}&callback=${cb}`;
-        document.body.appendChild(s);
+        script.src = `${API_URL}?acao=statusGeral&data=${hoje}&callback=${cb}`;
+        document.body.appendChild(script);
     }
 
-    function atualizarInfo() {
-        const opt = document.getElementById("tag").options[document.getElementById("tag").selectedIndex];
+    function atualizarVeiculo() {
+        const sel = document.getElementById("tag");
+        const opt = sel.options[sel.selectedIndex];
         document.getElementById("displayInfo").value = opt.value ? `${opt.getAttribute("data-v")} | ${opt.getAttribute("data-p")}` : "";
     }
 
-    function salvarInicio() {
+    function iniciarTrajeto() {
         const d = {
-            data: dataH, tag: document.getElementById("tag").value, id: document.getElementById("idCond").value,
-            nome: document.getElementById("nomeCond").value, kmi: document.getElementById("kmi").value,
-            horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            proxM: document.getElementById("proxM").value, acao: "registrar"
+            data: hoje,
+            tag: document.getElementById("tag").value,
+            id: document.getElementById("idCond").value,
+            nome: document.getElementById("nomeCond").value,
+            kmi: document.getElementById("kmi").value,
+            horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+            acao: "registrar"
         };
-        if(!d.tag || !d.kmi) return alert("Preencha TAG e KM!");
-        fetch(`${API}?${new URLSearchParams(d)}`, {mode:'no-cors'});
-        localStorage.setItem("tjur_v14_ativo", JSON.stringify(d));
+
+        if(!d.tag || !d.kmi) return alert("Por favor, preencha o Veículo e o KM!");
+
+        fetch(`${API_URL}?${new URLSearchParams(d)}`, {mode:'no-cors'});
+        localStorage.setItem("tjur_sessao", JSON.stringify(d));
         location.reload();
     }
 
-    function enviarWhatsInício() {
-        const d = JSON.parse(localStorage.getItem("tjur_v14_ativo"));
-        const msg = `*TELEJUR - INÍCIO DE TRAJETO*\n*VEÍCULO:* ${d.tag}\n*MOTORISTA:* ${d.nome}\n*KM:* ${d.kmi}\n*HORA:* ${d.horaI}`;
-        window.location.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-    }
-
-    function irParaFinalizar() {
-        const d = JSON.parse(localStorage.getItem("tjur_v14_ativo"));
-        document.getElementById("telaEspera").classList.add("hidden");
+    function prepararFinalizacao() {
+        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
+        document.getElementById("telaAtiva").classList.add("hidden");
         document.getElementById("containerForm").classList.remove("hidden");
         document.getElementById("sessaoFinal").classList.remove("hidden");
-        ["tag", "idCond", "nomeCond", "kmi", "proxM"].forEach(id => document.getElementById(id).classList.add("readonly"));
         
+        // Bloqueia campos iniciais para visualização apenas
+        ["tag", "idCond", "nomeCond", "kmi"].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = d[id === "idCond" ? "id" : (id === "nomeCond" ? "nome" : id)];
+            el.classList.add("readonly");
+        });
+
         const btn = document.getElementById("btnAcao");
-        btn.innerText = "Finalizar no WhatsApp";
+        btn.innerText = "Confirmar e Enviar WhatsApp";
         btn.onclick = async () => {
             const kmf = document.getElementById("kmf").value;
-            const horaF = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            if(!kmf) return alert("Informe o KM Final!");
-            await fetch(`${API}?acao=finalizar&tag=${d.tag}&data=${d.data}&kmf=${kmf}&horaF=${horaF}&obs=${document.getElementById("obs").value}`, {mode:'no-cors'});
-            const msgF = `*TELEJUR - FINALIZADO*\n*VEÍCULO:* ${d.tag}\n*KM:* ${d.kmi} ➔ ${kmf}\n*HORA:* ${d.horaI} ➔ ${horaF}`;
-            localStorage.removeItem("tjur_v14_ativo");
-            window.location.href = `https://wa.me/?text=${encodeURIComponent(msgF)}`;
+            const horaF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("KM Final inválido!");
+
+            await fetch(`${API_URL}?acao=finalizar&tag=${d.tag}&data=${d.data}&kmf=${kmf}&horaF=${horaF}&obs=${document.getElementById("obs").value}`, {mode:'no-cors'});
+            
+            const texto = `✅ *FROTA TELEJUR FINALIZADA*\n*Veículo:* ${d.tag}\n*Motorista:* ${d.nome}\n*Percurso:* ${d.kmi}km ➔ ${kmf}km\n*Hora:* ${d.horaI} ➔ ${horaF}`;
+            localStorage.removeItem("tjur_sessao");
+            window.location.href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
         };
     }
 
+    function gerarRelatorioWhats() {
+        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
+        const texto = `🚀 *FROTA TELEJUR - SAÍDA*\n*Veículo:* ${d.tag}\n*Motorista:* ${d.nome} (${d.id})\n*KM Inicial:* ${d.kmi}\n*Hora:* ${d.horaI}`;
+        window.location.href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    }
+
     window.onload = () => {
-        sync();
-        const salvo = localStorage.getItem("tjur_v14_ativo");
+        checkFrota();
+        const salvo = localStorage.getItem("tjur_sessao");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById("containerForm").classList.add("hidden");
-            document.getElementById("telaEspera").classList.remove("hidden");
-            document.getElementById("resumo").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}<br>⏱️ Saída: ${d.horaI}`;
+            document.getElementById("telaAtiva").classList.remove("hidden");
+            document.getElementById("infoViagem").innerHTML = `<b>TRAJETO EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}<br>⏱️ Saída: ${d.horaI}`;
         }
     };
 </script>
