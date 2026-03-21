@@ -47,7 +47,7 @@
 
         <label>Identificação e Motorista</label>
         <div style="display:flex; gap:5px">
-            <select id="idMot" style="width:35%"><option>ID 01</option><option>ID 02</option></select>
+            <select id="idMot" style="width:35%"><option value="ID 01">ID 01</option><option value="ID 02">ID 02</option></select>
             <select id="nomeMot" style="width:65%">
                 <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
                 <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
@@ -95,7 +95,10 @@
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 10", "TJUR 13"];
             document.getElementById('painel').innerHTML = tags.map(t => {
                 const motorista = d[t];
-                if (motorista) document.querySelector(`#tag option[value="${t}"]`).disabled = true;
+                if (motorista) {
+                    const opt = document.querySelector(`#tag option[value="${t}"]`);
+                    if(opt) opt.disabled = true;
+                }
                 return `<div class="v-box ${motorista ? 'ocupado' : 'livre'}">${t}<br>${motorista ? '🔴 '+motorista.split(' ')[0] : '🟢 LIVRE'}</div>`;
             }).join('');
         };
@@ -152,13 +155,19 @@
 
     function shareWhats(isFim, kmf, horaF, obs) {
         const d = JSON.parse(localStorage.getItem("trip_telejur"));
+        
+        // Converte ID 01 -> CONDUTOR 1, ID 02 -> CONDUTOR 2
+        const numId = d.id.replace(/\D/g, "");
+        const condutorFormatado = `CONDUTOR ${parseInt(numId)}`;
+
         let texto = "";
         
         if(isFim) {
             texto = `✅ *RELATÓRIO DE FROTA TELEJUR*\n\n` +
                     `📅 *Data:* ${d.data}\n` +
                     `🚗 *Veículo:* ${d.tag} (${d.placa})\n` +
-                    `👤 *Motorista:* ${d.nome} (${d.id})\n` +
+                    `👤 *Motorista:* ${d.nome}\n` +
+                    `🆔 *ID:* ${condutorFormatado}\n` +
                     `⏱️ *Período:* ${d.horaI} às ${horaF}\n` +
                     `🛣️ *KM:* ${d.kmi} ➔ ${kmf}\n` +
                     `🔧 *Próx. Óleo:* ${d.oleo} KM\n` +
@@ -169,6 +178,7 @@
                     `📅 *Data:* ${d.data}\n` +
                     `🚗 *Veículo:* ${d.tag} (${d.placa})\n` +
                     `👤 *Motorista:* ${d.nome}\n` +
+                    `🆔 *ID:* ${condutorFormatado}\n` +
                     `🛣️ *KM Inicial:* ${d.kmi}\n` +
                     `⏱️ *Hora Saída:* ${d.horaI}`;
         }
