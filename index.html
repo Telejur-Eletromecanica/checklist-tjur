@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - V14</title>
+    <title>TELEJUR - CHECKLIST V15</title>
     <style>
         body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
         .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -22,8 +22,6 @@
         .hidden { display: none; }
         #telaEspera { text-align: center; padding: 20px; display: none; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
-        
-        /* Novo estilo para tags em uso */
         .tag-bloqueada { color: #d32f2f !important; font-weight: bold; background: #ffebee; }
         .lista-uso { font-size: 11px; color: #d32f2f; margin-top: 5px; font-style: italic; display: none; }
     </style>
@@ -66,10 +64,14 @@
             <label>IDENTIFICAÇÃO (ID)</label>
             <select id="numCondutor" onchange="validarVinculoFixo()">
                 <option value="">SELECIONE</option>
-                <option value="CONDUTOR 1">CONDUTOR 1</option><option value="CONDUTOR 2">CONDUTOR 2</option>
-                <option value="CONDUTOR 3">CONDUTOR 3</option><option value="CONDUTOR 4">CONDUTOR 4</option>
-                <option value="CONDUTOR 5">CONDUTOR 5</option><option value="CONDUTOR 6">CONDUTOR 6</option>
-                <option value="CONDUTOR 7">CONDUTOR 7</option><option value="CONDUTOR 8">CONDUTOR 8</option>
+                <option value="CONDUTOR 1">CONDUTOR 1</option>
+                <option value="CONDUTOR 2">CONDUTOR 2</option>
+                <option value="CONDUTOR 3">CONDUTOR 3</option>
+                <option value="CONDUTOR 4">CONDUTOR 4</option>
+                <option value="CONDUTOR 5">CONDUTOR 5</option>
+                <option value="CONDUTOR 6">CONDUTOR 6</option>
+                <option value="CONDUTOR 7">CONDUTOR 7</option>
+                <option value="CONDUTOR 8">CONDUTOR 8</option>
                 <option value="CONDUTOR 9">CONDUTOR 9</option>
             </select>
 
@@ -129,23 +131,19 @@
 </div>
 
 <script>
-    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    // SUBSTITUA PELA SUA URL DO GOOGLE APPS SCRIPT
+    const URL_PLANILHA = "SUA_URL_AQUI"; 
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
 
-    // --- NOVOS RECURSOS ---
     async function bloquearTagsEmTrajeto() {
         const selectTag = document.getElementById("tag");
         const infoDiv = document.getElementById("listaTagsEmUso");
-        
         try {
-            // Consulta para buscar TODAS as tags ocupadas na planilha
             const response = await fetch(`${URL_PLANILHA}?acao=verificar_todos&data=${dataHojeStr}`);
-            const tagsOcupadas = await response.json(); // Espera um Array: ["TJUR 04", "TJUR 08"]
-
+            const tagsOcupadas = await response.json();
             if (tagsOcupadas && tagsOcupadas.length > 0) {
                 let bloqueados = [];
-                
                 Array.from(selectTag.options).forEach(option => {
                     if (tagsOcupadas.includes(option.value)) {
                         option.disabled = true;
@@ -154,13 +152,10 @@
                         bloqueados.push(option.value);
                     }
                 });
-
                 infoDiv.style.display = "block";
                 infoDiv.innerHTML = "🚫 Tags em trajeto: " + bloqueados.join(", ");
             }
-        } catch (e) {
-            console.log("Erro ao verificar tags ocupadas:", e);
-        }
+        } catch (e) { console.log(e); }
     }
 
     function calcularDataLimite() {
@@ -181,7 +176,6 @@
         if(!option || !select.value) return;
         document.getElementById("displayVeiculo").value = option.getAttribute("data-v");
         document.getElementById("displayPlaca").value = option.getAttribute("data-p");
-        
         const labelOleo = document.getElementById("labelTrocaOleo");
         if (option.getAttribute("data-v") === "SKY MUNCK") {
             labelOleo.innerText = "PRÓXIMA TROCA DE ÓLEO (DATA)";
@@ -201,8 +195,7 @@
         const btn = document.getElementById("btnAcao");
         const msg = document.getElementById("msgErroVinc");
         if(!tag || !nome || !idCond) return;
-        msg.style.display = "block"; msg.innerHTML = "Validando condutor...";
-        btn.disabled = true;
+        msg.style.display = "block"; msg.innerHTML = "Validando...";
         try {
             const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${dataHojeStr}`);
             const dono = await response.text();
@@ -210,7 +203,7 @@
                 msg.innerHTML = `⚠ BLOQUEADO: ${idCond} já ocupado por ${dono}!`;
                 btn.disabled = true;
             } else { msg.style.display = "none"; btn.disabled = false; }
-        } catch (e) { msg.style.display = "none"; btn.disabled = false; }
+        } catch (e) { btn.disabled = false; }
     }
 
     async function iniciarTrajeto() {
@@ -231,15 +224,14 @@
             valSeloF: document.getElementById("validadeSelo").value ? document.getElementById("validadeSelo").value.split('-').reverse().join('/') : "---",
             dataLimite: document.getElementById("dataLimiteSelo").value || "---",
             oleo: document.getElementById("proximaTrocaKM").value ? document.getElementById("proximaTrocaKM").value + " KM" : (document.getElementById("proximaTrocaData").value ? document.getElementById("proximaTrocaData").value.split('-').reverse().join('/') : "Não informado"),
-            obs: document.getElementById("obs").value,
             horaI: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             data: dataHojeStr
         };
 
-        const urlFinal = `${URL_PLANILHA}?acao=registrar&tag=${encodeURIComponent(dados.tag)}&id=${encodeURIComponent(dados.num)}&nome=${encodeURIComponent(dados.nome)}&data=${encodeURIComponent(dados.data)}&kmi=${encodeURIComponent(dados.kmi)}&horaI=${encodeURIComponent(dados.horaI)}`;
+        const url = `${URL_PLANILHA}?acao=registrar&tag=${encodeURIComponent(dados.tag)}&id=${encodeURIComponent(dados.num)}&nome=${encodeURIComponent(dados.nome)}&data=${encodeURIComponent(dados.data)}&kmi=${encodeURIComponent(dados.kmi)}&horaI=${encodeURIComponent(dados.horaI)}`;
         
         try {
-            await fetch(urlFinal, { mode: 'no-cors' });
+            await fetch(url, { mode: 'no-cors' });
             localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
             location.reload();
         } catch (e) { alert("Erro ao salvar!"); }
@@ -247,7 +239,7 @@
 
     function enviarRelatorioInicial() {
         const d = JSON.parse(localStorage.getItem("tjur_checklist_ativo"));
-        const msg = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* 🟢 EM ANDAMENTO\n\n*DATA:* ${d.data}\n*HORA INÍCIO:* ${d.horaI}\n--------------------------\n*CONDUTOR:* ${d.nome}\n*ID:* ${d.num}\n--------------------------\n*VEÍCULO:* ${d.veiculo}\n*TAG:* ${d.tag}\n*PLACA:* ${d.placa}\n*KM INICIAL:* ${d.kmi}\n--------------------------\n*COR DO SELO:* ${d.selo}\n*VALIDADE:* ${d.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${d.dataLimite}\n*PRÓX. ÓLEO:* ${d.oleo}\n--------------------------\n*OBS:* ${d.obs || "Nenhuma"}`;
+        const msg = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* 🟢 EM ANDAMENTO\n\n*DATA:* ${d.data}\n*HORA INÍCIO:* ${d.horaI}\n--------------------------\n*CONDUTOR:* ${d.nome}\n*ID:* ${d.num}\n--------------------------\n*VEÍCULO:* ${d.veiculo}\n*TAG:* ${d.tag}\n*PLACA:* ${d.placa}\n*KM INICIAL:* ${d.kmi}\n--------------------------\n*COR DO SELO:* ${d.selo}\n*VALIDADE:* ${d.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${d.dataLimite}\n*PRÓX. ÓLEO:* ${d.oleo}\n--------------------------\n*OBS:* ${document.getElementById("obs").value || "Nenhuma"}`;
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
 
@@ -260,14 +252,13 @@
         const campos = ["tag", "numCondutor", "nomeCondutor", "corSelo", "kmi", "validadeSelo"];
         campos.forEach(id => {
             const el = document.getElementById(id);
-            if(id === "numCondutor") el.value = salvo.num;
+            if(id === "tag") { el.value = salvo.tag; atualizarInterfacePorTag(); }
+            else if(id === "numCondutor") el.value = salvo.num;
             else if(id === "nomeCondutor") el.value = salvo.nome;
             else if(id === "validadeSelo") el.value = salvo.valSeloRaw;
             else if(id === "corSelo") el.value = salvo.selo;
             else el.value = salvo[id];
 
-            if(id === "tag") atualizarInterfacePorTag();
-            
             el.classList.add("readonly-field");
             el.style.pointerEvents = "none";
         });
@@ -276,13 +267,21 @@
         const btn = document.getElementById("btnAcao");
         btn.innerText = "FINALIZAR E ENVIAR WHATSAPP";
         btn.className = "btn-verde";
-        btn.onclick = function() {
+        btn.onclick = async function() {
             const kmf = document.getElementById("kmf").value;
+            const observacao = document.getElementById("obs").value;
             if(!kmf) { alert("Informe o KM Final!"); return; }
+            
             const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const msgF = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${hF}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${salvo.oleo}\n--------------------------\n*OBS:* ${document.getElementById("obs").value || "Nenhuma"}`;
-            localStorage.removeItem("tjur_checklist_ativo");
-            window.location.href = "whatsapp://send?text=" + encodeURIComponent(msgF);
+            const urlFinalizar = `${URL_PLANILHA}?acao=finalizar&tag=${encodeURIComponent(salvo.tag)}&data=${encodeURIComponent(salvo.data)}&selo=${encodeURIComponent(salvo.selo)}&valSelo=${encodeURIComponent(salvo.valSeloF)}&limite=${encodeURIComponent(salvo.dataLimite)}&oleo=${encodeURIComponent(salvo.oleo)}&kmf=${encodeURIComponent(kmf)}&obs=${encodeURIComponent(observacao)}`;
+            
+            try {
+                btn.innerText = "⏳ SALVANDO..."; btn.disabled = true;
+                await fetch(urlFinalizar, { mode: 'no-cors' });
+                const msgF = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${hF}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${salvo.oleo}\n--------------------------\n*OBS:* ${observacao || "Nenhuma"}`;
+                localStorage.removeItem("tjur_checklist_ativo");
+                window.location.href = "whatsapp://send?text=" + encodeURIComponent(msgF);
+            } catch (e) { alert("Erro ao salvar!"); btn.disabled = false; }
         };
     }
 
@@ -293,10 +292,7 @@
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
             document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
-        } else {
-            // Se não houver trajeto ativo, carrega o bloqueio de tags
-            bloquearTagsEmTrajeto();
-        }
+        } else { bloquearTagsEmTrajeto(); }
     };
 </script>
 </body>
