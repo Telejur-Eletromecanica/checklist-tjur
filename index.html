@@ -60,17 +60,24 @@
             <option value="EZEQUIEL">EZEQUIEL</option>
         </select>
 
+        <label>Localização (Planta)</label>
+        <select id="planta">
+            <option value="PORTO">PORTO</option>
+            <option value="BENEFICIAMENTO">BENEFICIAMENTO</option>
+            <option value="FORA DA PLANTA">FORA DA PLANTA</option>
+        </select>
+
         <label>KM Inicial</label>
         <input type="number" id="kmi">
         
-        <label>Próxima Troca de Óleo</label>
+        <label>Próxima Troca de Óleo (KM)</label>
         <input type="number" id="oleo">
 
         <div id="fimCampos" style="display:none">
             <hr style="margin:20px 0; border:0; border-top:1px dashed #ccc">
             <label style="color:var(--danger)">KM Final (Chegada)</label>
             <input type="number" id="kmf">
-            <textarea id="obs" placeholder="Observações" style="margin-top:10px"></textarea>
+            <textarea id="obs" placeholder="Observações (Geolocalização ou detalhes)" style="margin-top:10px"></textarea>
         </div>
 
         <button id="btnAcao" onclick="salvarInicio()" class="btn btn-azul">Salvar Saída</button>
@@ -84,7 +91,7 @@
 </div>
 
 <script>
-    const URL = "SEU_LINK_AQUI"; 
+    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
     const dataH = new Date().toLocaleDateString('pt-BR');
 
     async function verificarDonoID() {
@@ -96,12 +103,12 @@
         const cb = "cb_dono";
         const s = document.createElement('script');
         window[cb] = (d) => {
-            if(d.nome && d.id) {
+            if(d.nome) {
                 selNome.value = d.nome; selId.value = d.id;
                 selNome.classList.add("readonly"); selId.classList.add("readonly");
             } else {
                 selNome.classList.remove("readonly"); selId.classList.remove("readonly");
-                selNome.value = ""; selId.value = "ID 01";
+                selNome.value = "";
             }
         };
         s.src = `${URL}?acao=verificarDonoID&tag=${tag}&data=${dataH}&callback=${cb}`;
@@ -115,7 +122,7 @@
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 10", "TJUR 13"];
             document.getElementById('painel').innerHTML = tags.map(t => {
                 const info = d[t];
-                return `<div class="v-box ${info ? 'ocupado' : 'livre'}">${t}<br>${info ? '🔴 ' + info.nome.split(' ')[0] + ' (' + info.id + ')' : '🟢 LIVRE'}</div>`;
+                return `<div class="v-box ${info ? 'ocupado' : 'livre'}">${t}<br>${info ? '🔴 ' + info.nome.split(' ')[0] : '🟢 LIVRE'}</div>`;
             }).join('');
         };
         s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=${cb}`;
@@ -126,7 +133,7 @@
         const d = {
             data: dataH, tag: document.getElementById("tag").value, 
             id: document.getElementById("idMot").value, nome: document.getElementById("nomeMot").value, 
-            kmi: document.getElementById("kmi").value,
+            kmi: document.getElementById("kmi").value, planta: document.getElementById("planta").value,
             horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
             oleo: document.getElementById("oleo").value, acao: "registrar", callback: "cb_reg"
         };
@@ -147,11 +154,11 @@
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
-        ["tag", "idMot", "nomeMot", "kmi", "oleo"].forEach(f => {
+        ["tag", "idMot", "nomeMot", "kmi", "oleo", "planta"].forEach(f => {
             document.getElementById(f).value = d[f === "idMot" ? "id" : (f === "nomeMot" ? "nome" : f)];
             document.getElementById(f).classList.add("readonly");
         });
-        document.getElementById("btnAcao").innerText = "Encerrar e Enviar";
+        document.getElementById("btnAcao").innerText = "Concluir Trajeto";
         document.getElementById("btnAcao").onclick = () => {
             const kmf = document.getElementById("kmf").value;
             const hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
@@ -165,19 +172,14 @@
 
     function shareWhats(isFim, kmf, hF, obs) {
         const d = JSON.parse(localStorage.getItem("trip_telejur"));
-        let msg = isFim ? `✅ *RELATÓRIO DE CHEGADA*\n` : `🚀 *RELATÓRIO DE SAÍDA*\n`;
-        msg += `--------------------------------\n📍 *${d.numTrajeto}*\n🚗 *TAG:* ${d.tag}\n👤 *CONDUTOR:* ${d.nome} (${d.id})\n📅 *DATA:* ${d.data}\n--------------------------------\n`;
-
+        let msg = isFim ? `✅ *CHEGADA:* ${d.tag}\n` : `🚀 *SAÍDA:* ${d.tag}\n`;
+        msg += `📍 *${d.numTrajeto}*\n👤 *${d.nome}* (${d.id})\n--------------------------------\n`;
         if (isFim) {
-            msg += `🛫 *SAÍDA:* ${d.horaI} (KM ${d.kmi})\n`;
-            msg += `🛬 *CHEGADA:* ${hF} (KM ${kmf})\n`;
-            msg += `🛣️ *PERCURSO:* ${parseInt(kmf) - parseInt(d.kmi)} km\n`;
-            msg += `📝 *OBS:* ${obs || "Nenhuma"}\n`;
+            msg += `🛫 *SAÍDA:* ${d.horaI} (KM ${d.kmi})\n🛬 *CHEGADA:* ${hF} (KM ${kmf})\n🛣️ *RODADO:* ${parseInt(kmf) - parseInt(d.kmi)} km\n📍 *LOCAL:* ${d.planta}\n📝 *OBS:* ${obs || "Nenhuma"}`;
             localStorage.removeItem("trip_telejur");
         } else {
-            msg += `🛫 *SAÍDA:* ${d.horaI}\n🛣️ *KM INICIAL:* ${d.kmi}\n🛢️ *ÓLEO:* ${d.oleo}\n`;
+            msg += `🛫 *HORA:* ${d.horaI}\n🛣️ *KM INICIAL:* ${d.kmi}\n📍 *LOCAL:* ${d.planta}\n🛢️ *ÓLEO:* ${d.oleo}`;
         }
-        msg += `--------------------------------`;
         window.location.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
     }
 
@@ -188,7 +190,7 @@
             const d = JSON.parse(salvo);
             document.getElementById("formContainer").style.display = "none";
             document.getElementById("telaAtiva").style.display = "block";
-            document.getElementById("statusTrip").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag} | 📍 ${d.numTrajeto}<br>👤 ${d.nome}`;
+            document.getElementById("statusTrip").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag} | ${d.numTrajeto}<br>👤 ${d.nome}`;
         }
     };
 </script>
