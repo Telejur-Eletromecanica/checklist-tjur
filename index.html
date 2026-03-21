@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - CONTROLE DE FROTA</title>
+    <title>TELEJUR - FROTA</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 10px; }
@@ -42,10 +42,9 @@
             <option value="TJUR 10" data-p="PHU1I37 | CAMINHONETE">TJUR 10</option>
             <option value="TJUR 13" data-p="QVD4I38 | HILUX">TJUR 13</option>
         </select>
-
         <input type="text" id="placa" class="readonly" readonly placeholder="Placa Automática">
 
-        <label>Identificação e Motorista</label>
+        <label>Motorista e ID</label>
         <div style="display:flex; gap:5px">
             <select id="idMot" style="width:35%"><option value="ID 01">ID 01</option><option value="ID 02">ID 02</option></select>
             <select id="nomeMot" style="width:65%">
@@ -56,7 +55,6 @@
 
         <label>KM Inicial</label>
         <input type="number" id="kmi">
-
         <label>Próxima Troca de Óleo (KM)</label>
         <input type="number" id="oleo">
 
@@ -79,7 +77,7 @@
 </div>
 
 <script>
-    const URL = "SUA_URL_DO_DEPLOY_AQUI"; 
+    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
     const dataH = new Date().toLocaleDateString('pt-BR');
     document.getElementById("dataAtu").value = dataH;
 
@@ -116,10 +114,7 @@
 
         const s = document.createElement('script');
         window.cb_reg = (res) => {
-            if(res.res === "erro") {
-                alert("⚠️ " + res.msg);
-                return;
-            }
+            if(res.res === "erro") return alert("⚠️ " + res.msg);
             localStorage.setItem("trip_telejur", JSON.stringify(d));
             location.reload();
         };
@@ -132,46 +127,32 @@
         document.getElementById("telaAtiva").classList.add("hidden");
         document.getElementById("formContainer").classList.remove("hidden");
         document.getElementById("fimCampos").classList.remove("hidden");
-        
         ["tag", "idMot", "nomeMot", "kmi", "oleo"].forEach(id => {
             document.getElementById(id).value = d[id === "idMot" ? "id" : (id === "nomeMot" ? "nome" : (id === "oleo" ? "oleo" : id))];
             document.getElementById(id).classList.add("readonly");
         });
-
         document.getElementById("btnAcao").innerText = "Encerrar e Enviar Relatório";
         document.getElementById("btnAcao").onclick = () => {
             const kmf = document.getElementById("kmf").value;
-            const horaF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            const obs = document.getElementById("obs").value || "Nenhuma";
-            
+            const hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             if(!kmf) return alert("Informe o KM Final!");
-
             const s = document.createElement('script');
-            window.cb_fin = () => { shareWhats(true, kmf, horaF, obs); };
-            s.src = `${URL}?acao=finalizar&tag=${d.tag}&data=${d.data}&kmf=${kmf}&horaF=${horaF}&obs=${obs}&callback=cb_fin`;
+            window.cb_fin = () => { shareWhats(true, kmf, hF, document.getElementById("obs").value); };
+            s.src = `${URL}?acao=finalizar&tag=${d.tag}&data=${d.data}&kmf=${kmf}&horaF=${hF}&obs=${document.getElementById("obs").value || 'Nenhuma'}&callback=cb_fin`;
             document.body.appendChild(s);
         };
     }
 
-    function shareWhats(isFim, kmf, horaF, obs) {
+    function shareWhats(isFim, kmf, hF, obs) {
         const d = JSON.parse(localStorage.getItem("trip_telejur"));
-        const numId = d.id.replace(/\D/g, "");
-        const condutorFormatado = `CONDUTOR ${parseInt(numId)}`;
-
-        let texto = isFim ? `✅ *RELATÓRIO DE FROTA TELEJUR*\n\n` : `🚀 *TELEJUR - SAÍDA DE VEÍCULO*\n\n`;
-        texto += `📅 *Data:* ${d.data}\n` +
-                 `🚗 *Veículo:* ${d.tag} (${d.placa})\n` +
-                 `👤 *Motorista:* ${d.nome}\n` +
-                 `🆔 *ID:* ${condutorFormatado}\n`;
-        
+        const condutor = `CONDUTOR ${parseInt(d.id.replace(/\D/g, ""))}`;
+        let texto = isFim ? `✅ *RELATÓRIO DE FROTA TELEJUR*\n\n` : `🚀 *TELEJUR - SAÍDA*\n\n`;
+        texto += `📅 *Data:* ${d.data}\n🚗 *Veículo:* ${d.tag} (${d.placa})\n👤 *Motorista:* ${d.nome}\n🆔 *ID:* ${condutor}\n`;
         if(isFim) {
-            texto += `⏱️ *Período:* ${d.horaI} às ${horaF}\n` +
-                     `🛣️ *KM:* ${d.kmi} ➔ ${kmf}\n` +
-                     `🔧 *Próx. Óleo:* ${d.oleo} KM\n` +
-                     `📝 *Obs:* ${obs}`;
+            texto += `⏱️ *Período:* ${d.horaI} às ${hF}\n🛣️ *KM:* ${d.kmi} ➔ ${kmf}\n🔧 *Próx. Óleo:* ${d.oleo} KM\n📝 *Obs:* ${obs}`;
             localStorage.removeItem("trip_telejur");
         } else {
-            texto += `🛣️ *KM Inicial:* ${d.kmi}\n⏱️ *Hora Saída:* ${d.horaI}`;
+            texto += `🛣️ *KM Inicial:* ${d.kmi}\n⏱️ *Saída:* ${d.horaI}`;
         }
         window.location.href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
     }
