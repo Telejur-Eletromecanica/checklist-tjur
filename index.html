@@ -14,7 +14,7 @@
         .ocupado { background: #ffebee; color: var(--danger); }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .readonly { background: #e8f5e9 !important; color: #333; pointer-events: none; }
+        .readonly { background: #e8f5e9 !important; color: #333; }
         .btn { width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
         .btn-azul { background: var(--primary); color: white; }
     </style>
@@ -29,25 +29,13 @@
         <label>TAG do Veículo</label>
         <select id="tag" onchange="verificarDonoID()">
             <option value="">-- SELECIONE --</option>
-            <option value="TJUR 04">TJUR 04</option>
-            <option value="TJUR 06">TJUR 06</option>
-            <option value="TJUR 07">TJUR 07</option>
-            <option value="TJUR 08">TJUR 08</option>
-            <option value="TJUR 10">TJUR 10</option>
-            <option value="TJUR 13">TJUR 13</option>
-        </select>
-
-        <label>ID do Condutor</label>
-        <select id="idMot">
-            <option value="ID 01">ID 01</option><option value="ID 02">ID 02</option><option value="ID 03">ID 03</option>
-            <option value="ID 04">ID 04</option><option value="ID 05">ID 05</option><option value="ID 06">ID 06</option>
-            <option value="ID 07">ID 07</option><option value="ID 08">ID 08</option><option value="ID 09">ID 09</option>
-            <option value="ID 10">ID 10</option><option value="ID 11">ID 11</option><option value="ID 12">ID 12</option>
-            <option value="ID 13">ID 13</option><option value="ID 14">ID 14</option><option value="ID 15">ID 15</option>
+            <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
+            <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
+            <option value="TJUR 10">TJUR 10</option><option value="TJUR 13">TJUR 13</option>
         </select>
 
         <label>Motorista</label>
-        <select id="nomeMot">
+        <select id="nomeMot" onchange="testarDono()">
             <option value="">-- SELECIONE --</option>
             <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
             <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
@@ -58,6 +46,15 @@
             <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
             <option value="LAFAITE BATISTA">LAFAITE BATISTA</option>
             <option value="EZEQUIEL">EZEQUIEL</option>
+        </select>
+
+        <label>ID do Condutor</label>
+        <select id="idMot">
+            <option value="ID 01">ID 01</option><option value="ID 02">ID 02</option><option value="ID 03">ID 03</option>
+            <option value="ID 04">ID 04</option><option value="ID 05">ID 05</option><option value="ID 06">ID 06</option>
+            <option value="ID 07">ID 07</option><option value="ID 08">ID 08</option><option value="ID 09">ID 09</option>
+            <option value="ID 10">ID 10</option><option value="ID 11">ID 11</option><option value="ID 12">ID 12</option>
+            <option value="ID 13">ID 13</option><option value="ID 14">ID 14</option><option value="ID 15">ID 15</option>
         </select>
 
         <label>Localização (Planta)</label>
@@ -77,7 +74,7 @@
             <hr style="margin:20px 0; border:0; border-top:1px dashed #ccc">
             <label style="color:var(--danger)">KM Final (Chegada)</label>
             <input type="number" id="kmf">
-            <textarea id="obs" placeholder="Observações (Geolocalização ou detalhes)" style="margin-top:10px"></textarea>
+            <textarea id="obs" placeholder="Observações/Geolocalização" style="margin-top:10px"></textarea>
         </div>
 
         <button id="btnAcao" onclick="salvarInicio()" class="btn btn-azul">Salvar Saída</button>
@@ -93,26 +90,44 @@
 <script>
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
     const dataH = new Date().toLocaleDateString('pt-BR');
+    let donoAtual = {nome: "", id: ""};
 
     async function verificarDonoID() {
         const tag = document.getElementById("tag").value;
-        const selNome = document.getElementById("nomeMot");
-        const selId = document.getElementById("idMot");
         if(!tag) return;
-
         const cb = "cb_dono";
         const s = document.createElement('script');
         window[cb] = (d) => {
+            donoAtual = d;
             if(d.nome) {
-                selNome.value = d.nome; selId.value = d.id;
-                selNome.classList.add("readonly"); selId.classList.add("readonly");
+                document.getElementById("nomeMot").value = d.nome;
+                document.getElementById("idMot").value = d.id;
+                document.getElementById("idMot").classList.add("readonly");
+                document.getElementById("idMot").style.pointerEvents = "none";
             } else {
-                selNome.classList.remove("readonly"); selId.classList.remove("readonly");
-                selNome.value = "";
+                destravarID();
             }
         };
         s.src = `${URL}?acao=verificarDonoID&tag=${tag}&data=${dataH}&callback=${cb}`;
         document.body.appendChild(s);
+    }
+
+    function testarDono() {
+        const nomeSel = document.getElementById("nomeMot").value;
+        // Se o nome selecionado for diferente do dono registrado na TAG hoje, DESTRAVA o ID
+        if(nomeSel !== donoAtual.nome) {
+            destravarID();
+        } else {
+            document.getElementById("idMot").value = donoAtual.id;
+            document.getElementById("idMot").classList.add("readonly");
+            document.getElementById("idMot").style.pointerEvents = "none";
+        }
+    }
+
+    function destravarID() {
+        const idCampo = document.getElementById("idMot");
+        idCampo.classList.remove("readonly");
+        idCampo.style.pointerEvents = "auto";
     }
 
     async function sync() {
@@ -137,7 +152,7 @@
             horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
             oleo: document.getElementById("oleo").value, acao: "registrar", callback: "cb_reg"
         };
-        if(!d.tag || !d.kmi || !d.nome) return alert("Preencha todos os campos!");
+        if(!d.tag || !d.kmi || !d.nome) return alert("Preencha tudo!");
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             if(res.res === "erro") return alert(res.msg);
@@ -157,6 +172,7 @@
         ["tag", "idMot", "nomeMot", "kmi", "oleo", "planta"].forEach(f => {
             document.getElementById(f).value = d[f === "idMot" ? "id" : (f === "nomeMot" ? "nome" : f)];
             document.getElementById(f).classList.add("readonly");
+            document.getElementById(f).style.pointerEvents = "none";
         });
         document.getElementById("btnAcao").innerText = "Concluir Trajeto";
         document.getElementById("btnAcao").onclick = () => {
