@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR - FROTA v6.1</title>
+    <title>TELEJUR - FROTA v6.2</title>
     <style>
-        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
+        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #f57c00; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .grid-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
@@ -16,19 +16,21 @@
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-azul { background: var(--primary); color: white; }
-        .readonly { background: #eee !important; pointer-events: none; }
+        .readonly { background: #eee !important; pointer-events: none; opacity: 0.7; }
+        #msgAviso { font-size: 10px; color: var(--warning); font-weight: bold; margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0;">TELEJUR v6.1</h2>
-    <div id="painel" class="grid-status">Sincronizando...</div>
+    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0;">TELEJUR v6.2</h2>
+    
+    <div id="painel" class="grid-status">Sincronizando painel...</div>
 
     <div id="formContainer">
         <label>TAG do Veículo</label>
-        <select id="tag">
-            <option value="">-- SELECIONE --</option>
+        <select id="tag" onchange="buscarDados()">
+            <option value="">-- SELECIONE O CARRO --</option>
             <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
             <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
             <option value="TJUR 10">TJUR 10</option><option value="TJUR 13">TJUR 13</option>
@@ -36,7 +38,7 @@
 
         <label>Nome do Motorista</label>
         <select id="nomeMot" onchange="buscarDados()">
-            <option value="">-- SELECIONE --</option>
+            <option value="">-- SELECIONE O NOME --</option>
             <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
             <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
             <option value="FRANCINILDO TEXEIRA">FRANCINILDO TEXEIRA</option>
@@ -50,13 +52,14 @@
 
         <label>ID do Condutor</label>
         <select id="idMot">
-            <option value="">-- SELECIONE --</option>
+            <option value="">-- AGUARDANDO TAG/NOME --</option>
             <option value="ID 01">ID 01</option><option value="ID 02">ID 02</option><option value="ID 03">ID 03</option>
             <option value="ID 04">ID 04</option><option value="ID 05">ID 05</option><option value="ID 06">ID 06</option>
             <option value="ID 07">ID 07</option><option value="ID 08">ID 08</option><option value="ID 09">ID 09</option>
             <option value="ID 10">ID 10</option><option value="ID 11">ID 11</option><option value="ID 12">ID 12</option>
             <option value="ID 13">ID 13</option><option value="ID 14">ID 14</option><option value="ID 15">ID 15</option>
         </select>
+        <div id="msgAviso">⚠️ ID sugerido pelo sistema com base no veículo.</div>
 
         <label>Localização (Planta)</label>
         <select id="planta">
@@ -66,16 +69,16 @@
         </select>
 
         <label>KM Inicial</label>
-        <input type="number" id="kmi">
+        <input type="number" id="kmi" placeholder="Digite o KM atual">
         
         <label>Próxima Troca de Óleo (KM)</label>
-        <input type="number" id="oleo">
+        <input type="number" id="oleo" placeholder="KM da próxima troca">
 
         <div id="fimCampos" style="display:none">
             <hr>
             <label style="color:var(--danger)">KM Final (Chegada)</label>
             <input type="number" id="kmf">
-            <textarea id="obs" placeholder="Observações/Geolocalização"></textarea>
+            <textarea id="obs" placeholder="Observações ou Localização Amigável"></textarea>
         </div>
 
         <button id="btnAcao" onclick="salvarSaida()" class="btn btn-azul">Salvar Saída</button>
@@ -94,14 +97,20 @@
 
     async function buscarDados() {
         const nome = document.getElementById("nomeMot").value;
-        if(!nome) return;
+        const tag = document.getElementById("tag").value;
+        
+        if(!nome || !tag) return;
+
         const s = document.createElement('script');
         window.cb_mot = (d) => {
-            // Preenche o ID automaticamente se houver histórico
-            if(d.id) document.getElementById("idMot").value = d.id;
+            if(d.id) {
+                document.getElementById("idMot").value = d.id;
+                document.getElementById("msgAviso").style.display = "block";
+            }
             if(d.oleo) document.getElementById("oleo").value = d.oleo;
         };
-        s.src = `${URL}?acao=buscarDadosMotorista&nome=${encodeURIComponent(nome)}&data=${dataH}&callback=cb_mot`;
+        // Envia TAG e NOME para o script decidir o ID livre
+        s.src = `${URL}?acao=buscarDadosMotorista&nome=${encodeURIComponent(nome)}&tag=${encodeURIComponent(tag)}&data=${dataH}&callback=cb_mot`;
         document.body.appendChild(s);
     }
 
@@ -138,7 +147,7 @@
         window.cb_reg = (res) => {
             if(res.res === "erro") return alert(res.msg);
             d.numTrajeto = res.n;
-            localStorage.setItem("trip_v6_1", JSON.stringify(d));
+            localStorage.setItem("trip_v6_2", JSON.stringify(d));
             location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
@@ -146,10 +155,11 @@
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v6_1"));
+        const d = JSON.parse(localStorage.getItem("trip_v6_2"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
+        document.getElementById("msgAviso").style.display = "none";
         
         ["tag", "idMot", "nomeMot", "kmi", "oleo", "planta"].forEach(f => {
             const elem = document.getElementById(f);
@@ -157,7 +167,7 @@
             elem.classList.add("readonly");
         });
 
-        document.getElementById("btnAcao").innerText = "Encerrar e Enviar";
+        document.getElementById("btnAcao").innerText = "Confirmar Chegada";
         document.getElementById("btnAcao").onclick = () => {
             const kmf = document.getElementById("kmf").value;
             const hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
@@ -174,14 +184,14 @@
     }
 
     function enviarWhats(isFim, kmf, hF, obs) {
-        const d = JSON.parse(localStorage.getItem("trip_v6_1"));
+        const d = JSON.parse(localStorage.getItem("trip_v6_2"));
         let m = isFim ? `✅ *CHEGADA:* ${d.tag}\n` : `🚀 *SAÍDA:* ${d.tag}\n`;
         m += `📍 *${d.numTrajeto}*\n👤 *${d.nome}* (${d.id})\n--------------------------\n`;
         
         if(isFim) {
             m += `🛫 *SAÍDA:* ${d.horaI} (KM ${d.kmi})\n🛬 *CHEGADA:* ${hF} (KM ${kmf})\n🛣️ *RODADO:* ${parseInt(kmf)-parseInt(d.kmi)}km\n📍 *LOCAL:* ${d.planta}\n📝 *OBS:* ${obs || "Nenhuma"}`;
-            localStorage.removeItem("trip_v6_1");
-            setTimeout(() => { location.reload(); }, 1000);
+            localStorage.removeItem("trip_v6_2");
+            setTimeout(() => { location.reload(); }, 1200);
         } else {
             m += `🛫 *HORA:* ${d.horaI}\n🛣️ *KM INICIAL:* ${d.kmi}\n📍 *LOCAL:* ${d.planta}\n🛢️ *ÓLEO:* ${d.oleo}`;
         }
@@ -190,12 +200,12 @@
 
     window.onload = () => {
         sync();
-        const salvo = localStorage.getItem("trip_v6_1");
+        const salvo = localStorage.getItem("trip_v6_2");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById("formContainer").style.display = "none";
             document.getElementById("telaAtiva").style.display = "block";
-            document.getElementById("infoViagem").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag} | ${d.numTrajeto}<br>👤 ${d.nome}`;
+            document.getElementById("infoViagem").innerHTML = `<b>TRAJETO EM CURSO</b><br>🚗 ${d.tag} | ${d.numTrajeto}<br>👤 ${d.nome}`;
         }
     };
 </script>
