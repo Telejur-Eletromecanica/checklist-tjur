@@ -3,26 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TELEJUR CHECKLIST V15</title>
+    <title>CHECKLIST TELEJUR V15</title>
     <style>
         body { font-family: sans-serif; background: #f0f4f8; padding: 15px; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 8px solid #1a237e; }
-        label { font-weight: bold; font-size: 11px; display: block; margin-top: 10px; color: #333; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px; }
-        .readonly { background: #eee; font-weight: bold; color: #1a237e; border: 1px dashed #1a237e; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; color: white; text-transform: uppercase; }
+        .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 12px; border-top: 8px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        label { font-weight: bold; font-size: 11px; display: block; margin-top: 12px; color: #333; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+        .readonly { background: #eee; font-weight: bold; color: #1a237e; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; color: white; }
         .btn-azul { background: #1a237e; }
         .btn-verde { background: #2e7d32; }
-        .erro { background: #ffebee; color: #c62828; padding: 12px; border-radius: 6px; margin-top: 10px; display: none; text-align: center; font-weight: bold; border: 1px solid #ef9a9a; }
+        .erro { background: #ffebee; color: #c62828; padding: 10px; border-radius: 6px; margin-top: 10px; display: none; text-align: center; font-weight: bold; border: 1px solid #ef9a9a; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 <div class="card">
-    <h2 style="text-align:center; color:#1a237e; margin-bottom: 20px;">CHECKLIST TELEJUR</h2>
-    
+    <h2 style="text-align:center; color:#1a237e;">CHECKLIST TELEJUR</h2>
     <div id="formContainer">
-        <label>DATA DO CHECKLIST</label>
+        <label>DATA</label>
         <input type="text" id="data" class="readonly" readonly>
 
         <label>TAG DO VEÍCULO</label>
@@ -67,33 +66,25 @@
         </select>
 
         <label>KM INICIAL</label>
-        <input type="number" id="kmi" placeholder="Digite o KM de saída">
+        <input type="number" id="kmi">
 
         <div id="camposFinais" class="hidden">
-            <hr style="margin: 20px 0;">
             <label>COR DO SELO</label>
-            <select id="selo">
-                <option value="VERDE">VERDE</option>
-                <option value="AMARELO">AMARELO</option>
-                <option value="AZUL">AZUL</option>
-                <option value="VERMELHO">VERMELHO</option>
-            </select>
-            <label>VALIDADE DO SELO</label>
+            <select id="selo"><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select>
+            <label>VALIDADE SELO</label>
             <input type="date" id="valSelo">
-            <label>KM FINAL (RETORNO)</label>
-            <input type="number" id="kmf" placeholder="Digite o KM ao chegar">
-            <label>PRÓXIMA TROCA DE ÓLEO</label>
-            <input type="text" id="oleo" placeholder="KM ou Data">
+            <label>KM FINAL</label>
+            <input type="number" id="kmf">
+            <label>PRÓX. ÓLEO</label>
+            <input type="text" id="oleo">
             <label>OBSERVAÇÃO</label>
-            <textarea id="obs" rows="2"></textarea>
+            <textarea id="obs"></textarea>
         </div>
 
         <button id="btnAcao" onclick="salvarInicio()" class="btn btn-azul">SALVAR INÍCIO</button>
     </div>
-
-    <div id="espera" class="hidden" style="text-align:center; padding: 20px 0;">
-        <p style="color: #1a237e; font-weight: bold; font-size: 18px;">✅ INÍCIO SALVO!</p>
-        <p>Trajeto em andamento...</p>
+    <div id="espera" class="hidden" style="text-align:center;">
+        <p><b>TRAJETO EM ANDAMENTO</b></p>
         <button onclick="irParaFim()" class="btn btn-azul">FINALIZAR AGORA</button>
     </div>
 </div>
@@ -108,46 +99,21 @@
         const nome = document.getElementById('nome').value;
         const msg = document.getElementById('msgBloqueio');
         const btn = document.getElementById('btnAcao');
-
         if(!id || !nome) return;
-
-        msg.style.display = "block";
-        msg.innerHTML = "Validando...";
-        btn.disabled = true;
-
+        msg.style.display = "block"; msg.innerHTML = "Validando...";
         try {
             const r = await fetch(`${URL}?acao=verificar&id=${encodeURIComponent(id)}&data=${hoje}`);
             const dono = await r.text();
-            
             if(dono !== "livre" && dono.trim() !== nome.trim()) {
                 msg.innerHTML = `⚠ BLOQUEADO: ${id} ocupado por ${dono}`;
-                btn.disabled = true;
-                btn.style.opacity = "0.5";
-            } else {
-                msg.style.display = "none";
-                btn.disabled = false;
-                btn.style.opacity = "1";
-            }
-        } catch(e) { 
-            msg.style.display = "none"; 
-            btn.disabled = false; 
-        }
+                btn.disabled = true; btn.style.opacity = "0.5";
+            } else { msg.style.display = "none"; btn.disabled = false; btn.style.opacity = "1"; }
+        } catch(e) { msg.style.display = "none"; btn.disabled = false; }
     }
 
     async function salvarInicio() {
-        const btn = document.getElementById('btnAcao');
-        const d = {
-            tag: document.getElementById('tag').value,
-            id: document.getElementById('idCond').value,
-            nome: document.getElementById('nome').value,
-            kmi: document.getElementById('kmi').value,
-            horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-        };
-        if(!d.tag || !d.kmi || !d.nome) return alert("Preencha todos os campos!");
-        
-        btn.innerText = "SALVANDO...";
-        btn.disabled = true;
-
+        const d = { tag: document.getElementById('tag').value, id: document.getElementById('idCond').value, nome: document.getElementById('nome').value, kmi: document.getElementById('kmi').value, horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) };
+        if(!d.tag || !d.kmi) return alert("Preencha todos os campos!");
         await fetch(`${URL}?acao=registrar&data=${hoje}&tag=${d.tag}&id=${d.id}&nome=${d.nome}&kmi=${d.kmi}&horaI=${d.horaI}`, {mode:'no-cors'});
         localStorage.setItem('tjur_ativo', JSON.stringify(d));
         location.reload();
@@ -162,36 +128,21 @@
         document.getElementById('idCond').value = d.id;
         document.getElementById('nome').value = d.nome;
         document.getElementById('kmi').value = d.kmi;
-        
         const btn = document.getElementById('btnAcao');
-        btn.innerText = "CONCLUIR CHECKLIST";
-        btn.classList.replace('btn-azul', 'btn-verde');
-        btn.onclick = finalizarTudo;
+        btn.innerText = "FINALIZAR TUDO"; btn.onclick = finalizarTudo;
     }
 
     async function finalizarTudo() {
         const d = JSON.parse(localStorage.getItem('tjur_ativo'));
         const kmf = document.getElementById('kmf').value;
         if(!kmf) return alert("Informe o KM Final!");
-
-        const btn = document.getElementById('btnAcao');
-        btn.innerText = "ENVIANDO...";
-        btn.disabled = true;
-
         const urlFim = `${URL}?acao=finalizar&tag=${d.tag}&data=${hoje}&selo=${document.getElementById('selo').value}&valSelo=${document.getElementById('valSelo').value}&limite=---&oleo=${document.getElementById('oleo').value}&kmf=${kmf}&obs=${document.getElementById('obs').value}`;
-        
         await fetch(urlFim, {mode:'no-cors'});
         localStorage.removeItem('tjur_ativo');
-        alert("Checklist Finalizado com Sucesso!");
-        location.reload();
+        alert("Finalizado!"); location.reload();
     }
 
-    window.onload = () => {
-        if(localStorage.getItem('tjur_ativo')) {
-            document.getElementById('formContainer').classList.add('hidden');
-            document.getElementById('espera').classList.remove('hidden');
-        }
-    }
+    window.onload = () => { if(localStorage.getItem('tjur_ativo')) { document.getElementById('formContainer').classList.add('hidden'); document.getElementById('espera').classList.remove('hidden'); } }
 </script>
 </body>
 </html>
