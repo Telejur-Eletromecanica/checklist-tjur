@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR FROTA v7.3</title>
+    <title>TELEJUR FROTA v7.4</title>
     <style>
-        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
+        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #bdbdbd; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .grid-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
         .livre { background: #e8f5e9; color: var(--success); }
-        .ocupado { background: #ffebee; color: var(--danger); }
+        .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-azul { background: var(--primary); color: white; }
         .readonly { background: #f1f1f1 !important; pointer-events: none; color: #666; font-weight: bold; }
+        option:disabled { color: #ccc; background-color: #f9f9f9; }
         #txtSync { text-align: center; font-size: 10px; margin-bottom: 10px; color: #888; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0 0 5px 0;">TELEJUR v7.3</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0 0 5px 0;">TELEJUR v7.4</h2>
     <p id="txtSync">Sincronizando frotas...</p>
     <div id="painel" class="grid-status"></div>
 
@@ -97,10 +97,25 @@
         const s = document.createElement('script');
         window.cb_sync = (d) => {
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
+            const selectTag = document.getElementById('tag');
+            
+            // Renderiza o painel e BLOQUEIA as opções no Select
             document.getElementById('painel').innerHTML = tags.map(t => {
                 const info = d[t];
-                return `<div class="v-box ${info ? 'ocupado' : 'livre'}">${t}<br>${info ? '🔴 ' + info.nome.split(' ')[0] : '🟢 LIVRE'}</div>`;
+                const estaOcupado = !!info;
+                
+                // Busca a opção correspondente no select e desabilita se estiver ocupado
+                Array.from(selectTag.options).forEach(opt => {
+                    if(opt.value === t) {
+                        opt.disabled = estaOcupado;
+                        if(estaOcupado) opt.text = t + " (EM TRÂNSITO)";
+                        else opt.text = t;
+                    }
+                });
+
+                return `<div class="v-box ${estaOcupado ? 'ocupado' : 'livre'}">${t}<br>${estaOcupado ? '🔴 ' + info.nome.split(' ')[0] : '🟢 LIVRE'}</div>`;
             }).join('');
+            
             document.getElementById('txtSync').innerText = "Frota Sincronizada ✅";
         };
         s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync`;
@@ -139,7 +154,7 @@
             d.placa = res.placa;
             d.veiculo = res.veiculo;
             d.oleo = window.infoExtra ? window.infoExtra.oleo : "";
-            localStorage.setItem("trip_v7_3", JSON.stringify(d));
+            localStorage.setItem("trip_v7_4", JSON.stringify(d));
             location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
@@ -147,7 +162,7 @@
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v7_3"));
+        const d = JSON.parse(localStorage.getItem("trip_v7_4"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -171,7 +186,7 @@
     }
 
     function enviarWhats(isFim, kmf, hFim) {
-        const d = JSON.parse(localStorage.getItem("trip_v7_3"));
+        const d = JSON.parse(localStorage.getItem("trip_v7_4"));
         let m = isFim ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
         m += `--------------------------------\n`;
         m += `📅 *Data:* ${d.data}\n`;
@@ -191,7 +206,7 @@
             m += `🛣️ *KM Final:* ${kmf}\n`;
             m += `📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
             m += `🛢️ *Próx. Troca Óleo:* ${d.oleo || "---"}\n`;
-            localStorage.removeItem("trip_v7_3");
+            localStorage.removeItem("trip_v7_4");
         }
 
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
@@ -200,7 +215,7 @@
 
     window.onload = () => {
         sync();
-        const salvo = localStorage.getItem("trip_v7_3");
+        const salvo = localStorage.getItem("trip_v7_4");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById("formContainer").style.display = "none";
