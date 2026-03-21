@@ -22,6 +22,10 @@
         .hidden { display: none; }
         #telaEspera { text-align: center; padding: 20px; display: none; }
         .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
+        
+        /* Novo estilo para tags em uso */
+        .tag-bloqueada { color: #d32f2f !important; font-weight: bold; background: #ffebee; }
+        .lista-uso { font-size: 11px; color: #d32f2f; margin-top: 5px; font-style: italic; display: none; }
     </style>
 </head>
 <body>
@@ -49,6 +53,7 @@
                 <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
                 <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
             </select>
+            <div id="listaTagsEmUso" class="lista-uso"></div>
 
             <label>VEÍCULO</label>
             <input type="text" id="displayVeiculo" class="readonly-field" readonly>
@@ -127,6 +132,36 @@
     const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
+
+    // --- NOVOS RECURSOS ---
+    async function bloquearTagsEmTrajeto() {
+        const selectTag = document.getElementById("tag");
+        const infoDiv = document.getElementById("listaTagsEmUso");
+        
+        try {
+            // Consulta para buscar TODAS as tags ocupadas na planilha
+            const response = await fetch(`${URL_PLANILHA}?acao=verificar_todos&data=${dataHojeStr}`);
+            const tagsOcupadas = await response.json(); // Espera um Array: ["TJUR 04", "TJUR 08"]
+
+            if (tagsOcupadas && tagsOcupadas.length > 0) {
+                let bloqueados = [];
+                
+                Array.from(selectTag.options).forEach(option => {
+                    if (tagsOcupadas.includes(option.value)) {
+                        option.disabled = true;
+                        option.classList.add("tag-bloqueada");
+                        option.text = option.value + " (EM TRAJETO)";
+                        bloqueados.push(option.value);
+                    }
+                });
+
+                infoDiv.style.display = "block";
+                infoDiv.innerHTML = "🚫 Tags em trajeto: " + bloqueados.join(", ");
+            }
+        } catch (e) {
+            console.log("Erro ao verificar tags ocupadas:", e);
+        }
+    }
 
     function calcularDataLimite() {
         const inputData = document.getElementById("validadeSelo").value;
@@ -228,12 +263,11 @@
             if(id === "numCondutor") el.value = salvo.num;
             else if(id === "nomeCondutor") el.value = salvo.nome;
             else if(id === "validadeSelo") el.value = salvo.valSeloRaw;
-            else if(id === "corSelo") el.value = salvo.selo; // RESTAURA A COR DO SELO
+            else if(id === "corSelo") el.value = salvo.selo;
             else el.value = salvo[id];
 
             if(id === "tag") atualizarInterfacePorTag();
             
-            // TRAVA TODOS OS CAMPOS DO INÍCIO
             el.classList.add("readonly-field");
             el.style.pointerEvents = "none";
         });
@@ -259,6 +293,9 @@
             document.getElementById("containerForm").style.display = "none";
             document.getElementById("telaEspera").style.display = "block";
             document.getElementById("resumoTrajeto").innerHTML = `<b>TAG:</b> ${d.tag}<br><b>ID:</b> ${d.num}<br><b>CONDUTOR:</b> ${d.nome}<br><b>INÍCIO:</b> ${d.horaI}`;
+        } else {
+            // Se não houver trajeto ativo, carrega o bloqueio de tags
+            bloquearTagsEmTrajeto();
         }
     };
 </script>
