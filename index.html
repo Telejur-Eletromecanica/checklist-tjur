@@ -131,8 +131,8 @@
 </div>
 
 <script>
-    // SUBSTITUA PELA SUA URL DO GOOGLE APPS SCRIPT
-    const URL_PLANILHA = "SUA_URL_AQUI"; 
+    // URL OFICIAL DA SUA PLANILHA JÁ INSERIDA
+    const URL_PLANILHA = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
     const dataHojeStr = new Date().toLocaleDateString('pt-BR');
     document.getElementById('dataAuto').value = dataHojeStr;
 
@@ -199,6 +199,8 @@
         try {
             const response = await fetch(`${URL_PLANILHA}?acao=verificar&tag=${encodeURIComponent(tag)}&id=${encodeURIComponent(idCond)}&data=${dataHojeStr}`);
             const dono = await response.text();
+            // Evita erro 404 de página de erro sendo lida como texto
+            if (dono.includes("<!DOCTYPE") || dono.includes("404")) { msg.style.display = "none"; return; }
             if(dono !== "livre" && dono !== nome && dono !== "") {
                 msg.innerHTML = `⚠ BLOQUEADO: ${idCond} já ocupado por ${dono}!`;
                 btn.disabled = true;
@@ -234,7 +236,7 @@
             await fetch(url, { mode: 'no-cors' });
             localStorage.setItem("tjur_checklist_ativo", JSON.stringify(dados));
             location.reload();
-        } catch (e) { alert("Erro ao salvar!"); }
+        } catch (e) { alert("Erro ao salvar início!"); }
     }
 
     function enviarRelatorioInicial() {
@@ -273,6 +275,7 @@
             if(!kmf) { alert("Informe o KM Final!"); return; }
             
             const hF = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            // Envia todos os dados finais para a planilha, incluindo a Observação (coluna L)
             const urlFinalizar = `${URL_PLANILHA}?acao=finalizar&tag=${encodeURIComponent(salvo.tag)}&data=${encodeURIComponent(salvo.data)}&selo=${encodeURIComponent(salvo.selo)}&valSelo=${encodeURIComponent(salvo.valSeloF)}&limite=${encodeURIComponent(salvo.dataLimite)}&oleo=${encodeURIComponent(salvo.oleo)}&kmf=${encodeURIComponent(kmf)}&obs=${encodeURIComponent(observacao)}`;
             
             try {
@@ -281,7 +284,7 @@
                 const msgF = `*CHECKLIST VEÍCULOS - TELEJUR*\n==========================\n\n*STATUS:* ✅ FINALIZADO\n\n*DATA:* ${salvo.data}\n*HORA INÍCIO:* ${salvo.horaI}\n*HORA FIM:* ${hF}\n--------------------------\n*CONDUTOR:* ${salvo.nome}\n*ID:* ${salvo.num}\n--------------------------\n*VEÍCULO:* ${salvo.veiculo}\n*TAG:* ${salvo.tag}\n*PLACA:* ${salvo.placa}\n*KM INICIAL:* ${salvo.kmi}\n*KM FINAL:* ${kmf}\n--------------------------\n*COR DO SELO:* ${salvo.selo}\n*VALIDADE:* ${salvo.valSeloF}\n*LIMITE (+5D ÚTEIS):* ${salvo.dataLimite}\n*PRÓX. ÓLEO:* ${salvo.oleo}\n--------------------------\n*OBS:* ${observacao || "Nenhuma"}`;
                 localStorage.removeItem("tjur_checklist_ativo");
                 window.location.href = "whatsapp://send?text=" + encodeURIComponent(msgF);
-            } catch (e) { alert("Erro ao salvar!"); btn.disabled = false; }
+            } catch (e) { alert("Erro ao salvar finalização!"); btn.disabled = false; }
         };
     }
 
