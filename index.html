@@ -26,7 +26,7 @@
 
 <div class="card">
     <p class="brand">TELEJUR</p>
-    <div id="painel" class="grid-status">Sincronizando...</div>
+    <div id="painel" class="grid-status">Sincronizando frota...</div>
 
     <div id="formContainer">
         <label>Data</label>
@@ -79,7 +79,7 @@
 </div>
 
 <script>
-    const URL = "SUA_URL_DO_SCRIPT_AQUI"; 
+    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
     const dataH = new Date().toLocaleDateString('pt-BR');
     document.getElementById("dataAtu").value = dataH;
 
@@ -90,7 +90,6 @@
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 10", "TJUR 13"];
             document.getElementById('painel').innerHTML = tags.map(t => {
                 const motorista = d[t];
-                // BLOQUEIO: Se houver motorista, desabilita a TAG no select
                 if (motorista) document.querySelector(`#tag option[value="${t}"]`).disabled = true;
                 return `<div class="v-box ${motorista ? 'ocupado' : 'livre'}">${t}<br>${motorista ? '🔴 '+motorista.split(' ')[0] : '🟢 LIVRE'}</div>`;
             }).join('');
@@ -109,12 +108,18 @@
             data: dataH, tag: document.getElementById("tag").value, id: document.getElementById("idMot").value,
             nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value,
             horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-            oleo: document.getElementById("oleo").value, acao: "registrar"
+            oleo: document.getElementById("oleo").value, acao: "registrar",
+            callback: "cb_reg"
         };
         if(!d.tag || !d.kmi) return alert("Preencha todos os campos!");
-        fetch(`${URL}?${new URLSearchParams(d)}`, {mode:'no-cors'});
-        localStorage.setItem("trip_telejur", JSON.stringify(d));
-        location.reload();
+
+        const s = document.createElement('script');
+        window.cb_reg = () => {
+            localStorage.setItem("trip_telejur", JSON.stringify(d));
+            location.reload();
+        };
+        s.src = `${URL}?${new URLSearchParams(d)}`;
+        document.body.appendChild(s);
     }
 
     function liberarFim() {
@@ -131,16 +136,22 @@
         btn.onclick = async () => {
             const kmf = document.getElementById("kmf").value;
             const horaF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            await fetch(`${URL}?acao=finalizar&tag=${d.tag}&data=${d.data}&kmf=${kmf}&horaF=${horaF}&obs=${document.getElementById("obs").value}`, {mode:'no-cors'});
-            const msg = `✅ *TELEJUR FINALIZADO*\n*Veículo:* ${d.tag}\n*Motorista:* ${d.nome}\n*KM Final:* ${kmf}\n*Hora Chegada:* ${horaF}`;
-            localStorage.removeItem("trip_telejur");
-            window.location.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            const obs = document.getElementById("obs").value;
+            
+            const s = document.createElement('script');
+            window.cb_fin = () => {
+                const msg = `✅ *TELEJUR FINALIZADO*\n*Veículo:* ${d.tag}\n*Motorista:* ${d.nome}\n*KM:* ${d.kmi} ➔ ${kmf}\n*Hora:* ${d.horaI} ➔ ${horaF}`;
+                localStorage.removeItem("trip_telejur");
+                window.location.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            };
+            s.src = `${URL}?acao=finalizar&tag=${d.tag}&data=${d.data}&kmf=${kmf}&horaF=${horaF}&obs=${obs}&callback=cb_fin`;
+            document.body.appendChild(s);
         };
     }
 
     function shareWhats() {
         const d = JSON.parse(localStorage.getItem("trip_telejur"));
-        const msg = `🚀 *TELEJUR SAÍDA*\n*Veículo:* ${d.tag}\n*Motorista:* ${d.nome}\n*KM Inicial:* ${d.kmi}\n*Hora:* ${d.horaI}`;
+        const msg = `🚀 *TELEJUR SAÍDA*\n*Veículo:* ${d.tag}\n*Motorista:* ${d.nome}\n*KM:* ${d.kmi}\n*Hora:* ${d.horaI}`;
         window.location.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
     }
 
