@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v9.0</title>
+    <title>TELEJUR v9.1</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -25,15 +25,15 @@
 
 <div id="msgSucesso">
     <h1 style="font-size:80px; margin:0">✔</h1>
-    <h2 style="color:var(--success)">SISTEMA ATUALIZADO</h2>
-    <p>Liberando veículo e abrindo WhatsApp...</p>
+    <h2 style="color:var(--success); text-transform: uppercase;">Trajeto Finalizado</h2>
+    <p>Abrindo WhatsApp...</p>
 </div>
 
 <div class="card">
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Limpar memória?')){localStorage.removeItem('trip_v9_0');location.reload();}">🗑️ Reset</button>
+    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Limpar memória?')){localStorage.removeItem('trip_v9_1');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v9.0</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v9.1</h2>
     <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Conectando...</p>
     
     <div id="painel" class="grid-status"></div>
@@ -90,7 +90,7 @@
 </div>
 
 <script>
-    const URL = "COLOQUE_AQUI_SEU_LINK_DO_GOOGLE"; // <--- COLOQUE SEU LINK AQUI
+    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
 
     async function sync() {
@@ -103,7 +103,7 @@
                 Array.from(selT.options).forEach(o => { if(o.value===t){ o.disabled=ocupado; o.text=ocupado?t+" (EM USO)":t; } });
                 return `<div class="v-box ${ocupado?'ocupado':'livre'}">${t}<br>${ocupado?'🔴 '+info.nome.split(' ')[0]:'🟢 LIVRE'}</div>`;
             }).join('');
-            document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
+            document.getElementById('txtSync').innerText = "Última sincronização: " + new Date().toLocaleTimeString();
             if(s.parentNode) document.body.removeChild(s);
         };
         s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${new Date().getTime()}`;
@@ -118,7 +118,6 @@
         window.cb_mot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             document.getElementById("idMot").value = d.id;
-            window.infoExtra = d; 
         };
         s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&data=${dataH}&callback=cb_mot`;
         document.body.appendChild(s);
@@ -137,14 +136,14 @@
         window.cb_reg = (res) => {
             if(res.res === "erro") { alert(res.msg); sync(); return; }
             d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
-            localStorage.setItem("trip_v9_0", JSON.stringify(d)); location.reload();
+            localStorage.setItem("trip_v9_1", JSON.stringify(d)); location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
         document.body.appendChild(s);
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v9_0"));
+        const d = JSON.parse(localStorage.getItem("trip_v9_1"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -159,8 +158,10 @@
             if(!kf || Number(kf) <= Number(d.kmi)) return alert("KM Final inválido!");
             const s = document.createElement('script'), hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             window.cb_fin = (res) => { 
-                if(res.res === "fim") { document.getElementById("msgSucesso").style.display = "flex"; setTimeout(() => { enviarWhats(true, kf, hF); }, 1500); } 
-                else { alert(res.msg); }
+                if(res.res === "fim") { 
+                    document.getElementById("msgSucesso").style.display = "flex"; 
+                    setTimeout(() => { enviarWhats(true, kf, hF); }, 1500); 
+                } else { alert(res.msg); }
             };
             s.src = `${URL}?acao=finalizar&tag=${d.tag}&nome=${encodeURIComponent(d.nome)}&kmf=${kf}&horaF=${hF}&obs=${encodeURIComponent(document.getElementById("obs").value)}&callback=cb_fin`;
             document.body.appendChild(s);
@@ -168,22 +169,23 @@
     }
 
     function enviarWhats(isF, kf, hF) {
-        const d = JSON.parse(localStorage.getItem("trip_v9_0"));
-        const idTexto = `ID: CONDUTOR ${d.id.replace(/\D/g, "").replace(/^0+/, "")}`;
+        const d = JSON.parse(localStorage.getItem("trip_v9_1"));
+        const idT = `ID: CONDUTOR ${d.id.replace(/\D/g, "").replace(/^0+/, "")}`;
         
         let m = isF ? `✅ *CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
-        m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${idTexto}*\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n📜 *Validade Selo:* ${d.validadeSelo}\n`;
+        m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${idT}*\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`
+        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n📜 *Validade Selo:* ${d.validadeSelo}\n`;
         
         if(isF) {
             m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            localStorage.removeItem("trip_v9_0");
+            localStorage.removeItem("trip_v9_1");
         }
         
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
         if(isF) setTimeout(() => { location.reload(); }, 2000);
     }
 
-    window.onload = () => { sync(); const s = localStorage.getItem("trip_v9_0"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("trip_v9_1"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
 </script>
 </body>
 </html>
