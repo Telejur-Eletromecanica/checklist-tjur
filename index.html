@@ -1,58 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <!-- ================= META ================= -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>TELEJUR - GESTÃO DE FROTA</title>
+
+    <!-- ================= ESTILO ================= -->
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 10px; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 20px; border-top: 12px solid #1a237e; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .brand { font-size: 30px; font-weight: 900; color: #1a237e; text-align: center; margin: 0; }
-        .subtitle { font-size: 12px; color: #1a237e; text-align: center; display: block; margin-bottom: 15px; font-weight: bold; }
-        
-        /* PAINEL DE STATUS */
-        .painel-frota { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; background: #f8f9fa; padding: 10px; border-radius: 12px; }
-        .status-box { padding: 10px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; }
-        .status-livre { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
-        .status-uso { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
 
-        label { font-weight: bold; font-size: 12px; color: #444; display: block; margin-top: 15px; }
-        input, select, textarea { width: 100%; padding: 14px; margin-top: 5px; border-radius: 10px; border: 1px solid #ced4da; font-size: 16px; box-sizing: border-box; }
-        .readonly { background: #e9ecef !important; color: #495057; font-weight: bold; border: 1px dashed #1a237e; }
-        
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .card {
+            max-width: 450px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            border-top: 12px solid #1a237e;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .brand { font-size: 30px; font-weight: 900; color: #1a237e; text-align: center; }
+        .subtitle { font-size: 12px; color: #1a237e; text-align: center; margin-bottom: 15px; font-weight: bold; }
+
+        /* PAINEL */
+        .painel-frota {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .status-box {
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid #ddd;
+        }
+
+        .status-livre { background: #e8f5e9; color: #2e7d32; }
+        .status-uso { background: #ffebee; color: #c62828; }
+
+        label { font-weight: bold; font-size: 12px; margin-top: 15px; display: block; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            margin-top: 5px;
+            border-radius: 10px;
+            border: 1px solid #ced4da;
+            font-size: 16px;
+        }
+
+        .readonly { background: #e9ecef; font-weight: bold; }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
         .btn-azul { background: #1a237e; color: white; }
         .btn-verde { background: #28a745; color: white; }
-        
-        .error-msg { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 13px; text-align: center; display: none; font-weight: bold; }
+
+        .error-msg {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            font-weight: bold;
+        }
+
         #telaEspera { text-align: center; display: none; padding: 20px; }
-        .info-card { background: #e3f2fd; border-left: 6px solid #1a237e; padding: 15px; border-radius: 8px; text-align: left; margin: 20px 0; }
+        .info-card { background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; }
         .hidden { display: none; }
     </style>
 </head>
+
 <body>
 
 <div class="card">
+
+    <!-- ================= HEADER ================= -->
     <div class="brand">TELEJUR</div>
     <span class="subtitle">ELETROMECÂNICA - FROTA</span>
 
+    <!-- ================= STATUS ================= -->
     <div id="statusFrota" class="painel-frota">Sincronizando frota...</div>
 
+    <!-- ================= FORM ================= -->
     <div id="formContainer">
         <form id="mainForm">
+
             <label>DATA</label>
             <input type="text" id="data" class="readonly" readonly>
 
             <label>TAG DO VEÍCULO</label>
-            <select id="tag" onchange="updateUI(); checkLock();" required>
+            <select id="tag" required>
                 <option value="">SELECIONE</option>
                 <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
                 <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
                 <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
-                <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
+                <option value="TJUR 08" data-v="HILUX" data-p="QVE5H48">TJUR 08</option>
                 <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
                 <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
-                <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
+                <option value="TJUR 13" data-v="HILUX" data-p="QVD4I38">TJUR 13</option>
             </select>
 
             <label>PLACA / MODELO</label>
@@ -60,132 +123,128 @@
 
             <div id="errorBox" class="error-msg"></div>
 
-            <label>IDENTIFICAÇÃO (ID)</label>
-            <select id="idMot" onchange="checkLock()" required>
+            <label>ID</label>
+            <select id="idMot" required>
                 <option value="">SELECIONE</option>
-                <option>CONDUTOR 1</option><option>CONDUTOR 2</option><option>CONDUTOR 3</option>
-                <option>CONDUTOR 4</option><option>CONDUTOR 5</option>
+                <option>CONDUTOR 1</option>
+                <option>CONDUTOR 2</option>
             </select>
 
-            <label>NOME DO MOTORISTA</label>
+            <label>MOTORISTA</label>
             <select id="nomeMot" required>
                 <option value="">SELECIONE</option>
-                <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option><option>FRANCINILDO TEXEIRA</option>
-                <option>JOELCINEI GUIMARÃES</option><option>LAFAITE BATISTA</option>
+                <option>ADRIANO</option>
             </select>
 
             <label>KM INICIAL</label>
             <input type="number" id="kmi" required>
 
             <div id="finalSection" class="hidden">
-                <hr style="margin:20px 0;">
-                <label style="color:red">KM FINAL</label>
+                <label>KM FINAL</label>
                 <input type="number" id="kmf">
-                <label>OBSERVAÇÃO</label>
-                <textarea id="obs" rows="2"></textarea>
+
+                <label>OBS</label>
+                <textarea id="obs"></textarea>
             </div>
 
-            <button type="button" id="btnMain" onclick="saveStart()" class="btn btn-azul">INICIAR TRAJETO</button>
+            <button type="button" id="btnMain" class="btn btn-azul">
+                INICIAR TRAJETO
+            </button>
+
         </form>
     </div>
 
+    <!-- ================= TELA ESPERA ================= -->
     <div id="telaEspera">
-        <h2 style="color: #1a237e;">TRAJETO EM CURSO</h2>
+        <h2>TRAJETO EM CURSO</h2>
         <div id="resumo" class="info-card"></div>
-        <button type="button" onclick="showFinish()" class="btn btn-azul">ENCERRAR TRAJETO</button>
+        <button onclick="showFinish()" class="btn btn-azul">ENCERRAR</button>
     </div>
+
 </div>
 
+<!-- ================= SCRIPT ================= -->
 <script>
-    const GOOGLE_URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const dataAtual = new Date().toLocaleDateString('pt-BR');
-    document.getElementById('data').value = dataAtual;
 
-    function callAPI(params) {
-        return new Promise((resolve) => {
-            const cb = "tjur_" + Date.now();
-            const script = document.createElement('script');
-            window[cb] = (res) => { resolve(res); document.body.removeChild(script); delete window[cb]; };
-            script.src = `${GOOGLE_URL}?${params}&callback=${cb}&t=${Date.now()}`;
-            document.body.appendChild(script);
-        });
-    }
+/* ========= CONFIG ========= */
+const API_URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+const dataAtual = new Date().toLocaleDateString('pt-BR');
+document.getElementById('data').value = dataAtual;
 
-    async function syncFleet() {
-        const data = await callAPI(`acao=statusGeral&data=${dataAtual}`);
-        const painel = document.getElementById('statusFrota');
-        const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-        painel.innerHTML = tags.map(tag => {
-            const mot = data[tag];
-            return `<div class="status-box ${mot ? 'status-uso' : 'status-livre'}">${tag}<br>${mot ? '🔴 '+mot : '🟢 LIVRE'}</div>`;
-        }).join('');
-    }
+/* ========= API ========= */
+function callAPI(params) {
+    return new Promise(resolve => {
+        const cb = "cb_" + Date.now();
+        const script = document.createElement('script');
 
-    function updateUI() {
-        const sel = document.getElementById("tag");
-        const opt = sel.options[sel.selectedIndex];
-        if(opt.value) document.getElementById("infoVeiculo").value = `${opt.getAttribute("data-v")} | ${opt.getAttribute("data-p")}`;
-    }
-
-    async function checkLock() {
-        const tag = document.getElementById("tag").value;
-        const id = document.getElementById("idMot").value;
-        if(!tag || !id || localStorage.getItem("tjur_session")) return;
-        const err = document.getElementById("errorBox");
-        err.style.display = "block"; err.innerHTML = "Sincronizando...";
-        const res = await callAPI(`acao=verificar&tag=${tag}&id=${id}&data=${dataAtual}`);
-        if(res.status && res.status !== "livre") {
-            err.innerHTML = `⚠️ BLOQUEADO: ${res.status} está usando este veículo!`;
-            document.getElementById("btnMain").disabled = true;
-        } else { err.style.display = "none"; document.getElementById("btnMain").disabled = false; }
-    }
-
-    async function saveStart() {
-        const d = {
-            tag: document.getElementById("tag").value, id: document.getElementById("idMot").value,
-            nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value,
-            data: dataAtual, horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+        window[cb] = res => {
+            resolve(res);
+            document.body.removeChild(script);
+            delete window[cb];
         };
-        if(!d.tag || !d.kmi) return alert("Preencha KM e TAG!");
-        document.getElementById("btnMain").innerText = "GRAVANDO...";
-        fetch(`${GOOGLE_URL}?acao=registrar&${new URLSearchParams(d)}`, {mode:'no-cors'});
-        localStorage.setItem("tjur_session", JSON.stringify(d));
-        setTimeout(() => location.reload(), 1500);
-    }
 
-    function showFinish() {
-        const s = JSON.parse(localStorage.getItem("tjur_session"));
-        document.getElementById("formContainer").style.display = "block";
-        document.getElementById("telaEspera").style.display = "none";
-        document.getElementById("finalSection").classList.remove("hidden");
-        document.getElementById("tag").value = s.tag;
-        document.getElementById("idMot").value = s.id;
-        document.getElementById("nomeMot").value = s.nome;
-        document.getElementById("kmi").value = s.kmi;
-        updateUI();
-        const btn = document.getElementById("btnMain");
-        btn.innerText = "FINALIZAR E ENVIAR"; btn.className = "btn btn-verde";
-        btn.onclick = async function() {
-            const kmf = document.getElementById("kmf").value;
-            if(!kmf || Number(kmf) <= Number(s.kmi)) return alert("KM Final inválido!");
-            btn.innerText = "SALVANDO...";
-            await fetch(`${GOOGLE_URL}?acao=finalizar&tag=${s.tag}&data=${s.data}&kmf=${kmf}&obs=${encodeURIComponent(document.getElementById("obs").value)}`, {mode:'no-cors'});
-            localStorage.removeItem("tjur_session");
-            window.location.href = `https://api.whatsapp.com/send?text=*TELEJUR FINALIZADO*%0A🚗 *TAG:* ${s.tag}%0A👤 *MOT:* ${s.nome}%0A🛣 *KM:* ${s.kmi} a ${kmf}`;
-            setTimeout(() => location.reload(), 3000);
-        };
-    }
+        script.src = `${API_URL}?${params}&callback=${cb}`;
+        document.body.appendChild(script);
+    });
+}
 
-    window.onload = () => {
-        syncFleet();
-        const s = localStorage.getItem("tjur_session");
-        if(s) {
-            const d = JSON.parse(s);
-            document.getElementById("formContainer").style.display = "none";
-            document.getElementById("telaEspera").style.display = "block";
-            document.getElementById("resumo").innerHTML = `🚗 <b>TAG:</b> ${d.tag}<br>👤 <b>MOT:</b> ${d.nome}<br>⏱ <b>INÍCIO:</b> ${d.horaI}`;
-        }
-    };
+/* ========= UI ========= */
+function updateVehicleInfo() {
+    const sel = document.getElementById("tag");
+    const opt = sel.options[sel.selectedIndex];
+
+    if (opt.value) {
+        document.getElementById("infoVeiculo").value =
+            `${opt.dataset.v} | ${opt.dataset.p}`;
+    }
+}
+
+/* ========= VALIDAÇÃO ========= */
+async function checkVehicleLock() {
+    const tag = document.getElementById("tag").value;
+    const id = document.getElementById("idMot").value;
+
+    if (!tag || !id) return;
+
+    const res = await callAPI(`acao=verificar&tag=${tag}&id=${id}&data=${dataAtual}`);
+
+    if (res.status && res.status !== "livre") {
+        showError(`BLOQUEADO: ${res.status}`);
+        document.getElementById("btnMain").disabled = true;
+    } else {
+        hideError();
+        document.getElementById("btnMain").disabled = false;
+    }
+}
+
+function showError(msg) {
+    const el = document.getElementById("errorBox");
+    el.innerText = msg;
+    el.style.display = "block";
+}
+
+function hideError() {
+    document.getElementById("errorBox").style.display = "none";
+}
+
+/* ========= AÇÕES ========= */
+function startTrip() {
+    console.log("Início");
+}
+
+/* ========= INIT ========= */
+window.onload = () => {
+    document.getElementById("tag").addEventListener("change", () => {
+        updateVehicleInfo();
+        checkVehicleLock();
+    });
+
+    document.getElementById("idMot").addEventListener("change", checkVehicleLock);
+
+    document.getElementById("btnMain").onclick = startTrip;
+};
+
 </script>
+
 </body>
 </html>
