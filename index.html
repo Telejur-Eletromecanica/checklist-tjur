@@ -103,9 +103,10 @@
 </div>
 
 <script>
-    const URL = "SUA_URL_DO_GOOGLE_SCRIPT_AQUI";
+    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
 
+    // Converte "ID 01" para "ID: CONDUTOR 1"
     function convID(id) {
         const n = id.replace(/\D/g, "").replace(/^0+/, "");
         return `ID: CONDUTOR ${n}`;
