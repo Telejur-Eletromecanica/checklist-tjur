@@ -22,7 +22,7 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0;">TELEJUR v5.0</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0;">TELEJUR v6.0</h2>
     <div id="painel" class="grid-status">Sincronizando...</div>
 
     <div id="formContainer">
@@ -72,9 +72,9 @@
 
         <div id="fimCampos" style="display:none">
             <hr>
-            <label style="color:var(--danger)">KM Final</label>
+            <label style="color:var(--danger)">KM Final (Chegada)</label>
             <input type="number" id="kmf">
-            <textarea id="obs" placeholder="Observações"></textarea>
+            <textarea id="obs" placeholder="Observações/Geolocalização"></textarea>
         </div>
 
         <button id="btnAcao" onclick="salvarSaida()" class="btn btn-azul">Salvar Saída</button>
@@ -82,12 +82,13 @@
 
     <div id="telaAtiva" style="display:none">
         <div id="infoViagem" style="background:#f8f9fa; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px"></div>
-        <button onclick="enviarWhats(false)" class="btn" style="background:#25D366; color:white">Relatório Saída (Whats)</button>
+        <button onclick="enviarWhats(false)" class="btn" style="background:#25D366; color:white">WhatsApp Saída</button>
         <button onclick="prepararFim()" class="btn" style="background:#444; color:white">Finalizar Trajeto</button>
     </div>
 </div>
 
 <script>
+    // URL ATUALIZADA DO SCRIPT GOOGLE
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
 
@@ -99,7 +100,8 @@
             if(d.id) document.getElementById("idMot").value = d.id;
             if(d.oleo) document.getElementById("oleo").value = d.oleo;
         };
-        s.src = `${URL}?acao=buscarDadosMotorista&nome=${nome}&callback=cb_mot`;
+        // AJUSTE: Passando a data para buscar dados de hoje
+        s.src = `${URL}?acao=buscarDadosMotorista&nome=${encodeURIComponent(nome)}&data=${dataH}&callback=cb_mot`;
         document.body.appendChild(s);
     }
 
@@ -118,19 +120,25 @@
 
     function salvarSaida() {
         const d = {
-            data: dataH, tag: document.getElementById("tag").value, 
-            id: document.getElementById("idMot").value, nome: document.getElementById("nomeMot").value, 
-            kmi: document.getElementById("kmi").value, planta: document.getElementById("planta").value,
+            data: dataH, 
+            tag: document.getElementById("tag").value, 
+            id: document.getElementById("idMot").value, 
+            nome: document.getElementById("nomeMot").value, 
+            kmi: document.getElementById("kmi").value, 
+            planta: document.getElementById("planta").value,
             horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-            oleo: document.getElementById("oleo").value, acao: "registrar", callback: "cb_reg"
+            oleo: document.getElementById("oleo").value, 
+            acao: "registrar", 
+            callback: "cb_reg"
         };
+        
         if(!d.tag || !d.kmi || !d.nome || !d.id) return alert("Preencha todos os campos!");
         
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             if(res.res === "erro") return alert(res.msg);
             d.numTrajeto = res.n;
-            localStorage.setItem("trip_v5", JSON.stringify(d));
+            localStorage.setItem("trip_v6", JSON.stringify(d));
             location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
@@ -138,33 +146,43 @@
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v5"));
+        const d = JSON.parse(localStorage.getItem("trip_v6"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
+        
         ["tag", "idMot", "nomeMot", "kmi", "oleo", "planta"].forEach(f => {
-            document.getElementById(f).value = d[f === "idMot" ? "id" : (f === "nomeMot" ? "nome" : f)];
-            document.getElementById(f).classList.add("readonly");
+            const elem = document.getElementById(f);
+            elem.value = d[f === "idMot" ? "id" : (f === "nomeMot" ? "nome" : f)];
+            elem.classList.add("readonly");
         });
-        document.getElementById("btnAcao").innerText = "Encerrar Trajeto";
+
+        document.getElementById("btnAcao").innerText = "Encerrar e Enviar";
         document.getElementById("btnAcao").onclick = () => {
             const kmf = document.getElementById("kmf").value;
             const hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             if(!kmf) return alert("Informe o KM Final!");
+            
             const s = document.createElement('script');
-            window.cb_fin = () => { enviarWhats(true, kmf, hF, document.getElementById("obs").value); };
-            s.src = `${URL}?acao=finalizar&tag=${d.tag}&data=${dataH}&kmf=${kmf}&horaF=${hF}&obs=${document.getElementById("obs").value || 'Nenhuma'}&callback=cb_fin`;
+            window.cb_fin = (res) => {
+                if(res.res === "erro") return alert("Erro ao finalizar!");
+                enviarWhats(true, kmf, hF, document.getElementById("obs").value);
+            };
+            s.src = `${URL}?acao=finalizar&tag=${d.tag}&data=${dataH}&kmf=${kmf}&horaF=${hF}&obs=${encodeURIComponent(document.getElementById("obs").value || 'Nenhuma')}&callback=cb_fin`;
             document.body.appendChild(s);
         };
     }
 
     function enviarWhats(isFim, kmf, hF, obs) {
-        const d = JSON.parse(localStorage.getItem("trip_v5"));
+        const d = JSON.parse(localStorage.getItem("trip_v6"));
         let m = isFim ? `✅ *CHEGADA:* ${d.tag}\n` : `🚀 *SAÍDA:* ${d.tag}\n`;
         m += `📍 *${d.numTrajeto}*\n👤 *${d.nome}* (${d.id})\n--------------------------\n`;
+        
         if(isFim) {
             m += `🛫 *SAÍDA:* ${d.horaI} (KM ${d.kmi})\n🛬 *CHEGADA:* ${hF} (KM ${kmf})\n🛣️ *RODADO:* ${parseInt(kmf)-parseInt(d.kmi)}km\n📍 *LOCAL:* ${d.planta}\n📝 *OBS:* ${obs || "Nenhuma"}`;
-            localStorage.removeItem("trip_v5");
+            localStorage.removeItem("trip_v6");
+            // Pequeno delay para o navegador processar o link antes de recarregar
+            setTimeout(() => { location.reload(); }, 1000);
         } else {
             m += `🛫 *HORA:* ${d.horaI}\n🛣️ *KM INICIAL:* ${d.kmi}\n📍 *LOCAL:* ${d.planta}\n🛢️ *ÓLEO:* ${d.oleo}`;
         }
@@ -173,7 +191,7 @@
 
     window.onload = () => {
         sync();
-        const salvo = localStorage.getItem("trip_v5");
+        const salvo = localStorage.getItem("trip_v6");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById("formContainer").style.display = "none";
