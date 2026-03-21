@@ -3,194 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR GESTÃO - V30</title>
+    <title>TELEJUR GESTÃO - V32</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 20px; border-top: 12px solid #1a237e; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .brand { font-size: 24px; font-weight: 900; color: #1a237e; text-align: center; margin-bottom: 15px; }
-        .painel-status { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
-        .status-item { font-size: 11px; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
-        .livre { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
-        .em-uso { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+        body { font-family: sans-serif; background: #e3f2fd; margin: 0; padding: 10px; }
+        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; border-top: 10px solid #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header-text { text-align: center; margin-bottom: 20px; }
+        .brand { font-size: 28px; font-weight: bold; color: #1a237e; letter-spacing: 2px; margin: 0; }
+        .subtitle { font-size: 14px; color: #1a237e; font-weight: bold; margin: 0; text-transform: uppercase; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1.5px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .readonly-field { background: #f1f3f4 !important; color: #1a237e; font-weight: bold; }
-        .btn-azul { width: 100%; padding: 18px; background: #1a237e; border: none; border-radius: 12px; font-size: 16px; color: white; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-verde { width: 100%; padding: 18px; background: #25D366; border: none; border-radius: 12px; font-size: 16px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .alerta { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; border: 1px solid #ffeeba; text-align: center; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; background: #f9f9f9; outline: none; }
+        .readonly-field { background: #f0f0f0 !important; color: #1a237e; font-weight: bold; border: 1px dashed #1a237e; }
+        .btn-azul { width: 100%; padding: 16px; background: #1a237e; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-verde { width: 100%; padding: 16px; background: #25D366; border: none; border-radius: 10px; font-size: 18px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .alerta-erro { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; border: 1px solid #ffeeba; display: none; text-align: center; }
         .hidden { display: none; }
+        #telaEspera { text-align: center; padding: 20px; display: none; }
+        .info-trajeto { background: #f8f9fa; border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 5px solid #1a237e; text-align: left; font-size: 13px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <p class="brand">TELEJUR GESTÃO</p>
-    
-    <div id="painelFrota" class="painel-status">Sincronizando frota...</div>
-
-    <div id="telaEspera" class="hidden">
-        <div style="background:#e3f2fd; padding:15px; border-radius:10px; border-left:5px solid #1a237e; margin-bottom:15px;">
-            <p id="resumoAtivo" style="font-size:14px; margin:0; color:#1a237e;"></p>
-        </div>
-        <button type="button" onclick="ativarFinalizacao()" class="btn-azul">FINALIZAR TRAJETO ATUAL</button>
+    <div class="header-text">
+        <p class="brand">TELEJUR</p>
+        <p class="subtitle">ELETROMECÂNICA</p>
     </div>
 
     <div id="containerForm">
         <form id="formCheck">
-            <label>HORÁRIO DO SISTEMA</label>
-            <input type="text" id="dataHoraI" class="readonly-field" readonly>
+            <label>DATA DO CHECKLIST</label>
+            <input type="text" id="dataAuto" class="readonly-field" readonly>
 
-            <label>VEÍCULO (TAG)</label>
-            <select id="tag" onchange="validarBloqueio()" required>
+            <label>TAG DO VEÍCULO</label>
+            <select id="tag" onchange="atualizarInterface(); validarBloqueio();" required>
                 <option value="">SELECIONE</option>
-                <option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option>
-                <option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
+                <option value="TJUR 04" data-v="SKY MUNCK" data-p="QFA1I50">TJUR 04</option>
+                <option value="TJUR 06" data-v="SAVEIRO FURGÃO" data-p="QUJ3E02">TJUR 06</option>
+                <option value="TJUR 07" data-v="SKY MUNCK" data-p="RWR3C75">TJUR 07</option>
+                <option value="TJUR 08" data-v="CAMINHONETE HILUX" data-p="QVE5H48">TJUR 08</option>
+                <option value="TJUR 09" data-v="SKY MUNCK" data-p="RXC6J04">TJUR 09</option>
+                <option value="TJUR 10" data-v="CAMINHONETE" data-p="PHU1I37">TJUR 10</option>
+                <option value="TJUR 13" data-v="CAMINHONETE HILUX" data-p="QVD4I38">TJUR 13</option>
             </select>
 
-            <div id="msgErro" class="alerta"></div>
+            <label>VEÍCULO / PLACA</label>
+            <input type="text" id="displayInfo" class="readonly-field" readonly>
+
+            <div id="msgErro" class="alerta-erro"></div>
 
             <label>IDENTIFICAÇÃO (ID)</label>
             <select id="idCond" onchange="validarBloqueio()" required>
                 <option value="">SELECIONE</option>
-                <option>ID 1</option><option>ID 2</option><option>ID 3</option><option>ID 4</option><option>ID 5</option>
+                <option>CONDUTOR 1</option><option>CONDUTOR 2</option><option>CONDUTOR 3</option>
+                <option>CONDUTOR 4</option><option>CONDUTOR 5</option>
             </select>
 
-            <label>MOTORISTA RESPONSÁVEL</label>
-            <select id="nome" required>
+            <label>NOME DO CONDUTOR</label>
+            <select id="nomeCond" required>
                 <option value="">SELECIONE</option>
                 <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option><option>FRANCINILDO TEXEIRA</option>
             </select>
 
             <label>KM INICIAL</label>
-            <input type="number" id="kmi" placeholder="Ex: 19660" required>
+            <input type="number" id="kmi" placeholder="Ex: 15400" required>
 
-            <div id="secaoFim" class="hidden">
+            <div id="campoFim" class="hidden">
                 <hr style="margin:20px 0; border:0; border-top:1px dashed #ccc;">
                 <label style="color:#c62828;">KM FINAL (OBRIGATÓRIO)</label>
-                <input type="number" id="kmf" style="border-color:#c62828;">
-                <label>OBSERVAÇÕES DO TRAJETO</label>
-                <textarea id="obs" rows="2" placeholder="Ex: Limpeza OK..."></textarea>
+                <input type="number" id="kmf">
+                <label>OBSERVAÇÃO</label>
+                <textarea id="obs" rows="2"></textarea>
             </div>
 
-            <button type="button" id="btnAcao" onclick="registrar()" class="btn-azul">INICIAR NOVO TRAJETO</button>
+            <button type="button" id="btnAcao" onclick="registrar()" class="btn-azul">SALVAR INÍCIO</button>
         </form>
+    </div>
+
+    <div id="telaEspera">
+        <h3 style="color: #1a237e;">TRAJETO ATIVO</h3>
+        <div id="resumoTrajeto" class="info-trajeto"></div>
+        <button type="button" onclick="irParaFinalizar()" class="btn-azul">FINALIZAR TRAJETO</button>
     </div>
 </div>
 
 <script>
-    // URL DO SEU GOOGLE SCRIPT (MANTENHA A SUA)
-    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const dataF = new Date().toLocaleDateString('pt-BR');
-    
-    document.getElementById('dataHoraI').value = `${dataF} às ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const dataH = new Date().toLocaleDateString('pt-BR');
+    document.getElementById('dataAuto').value = dataH;
 
-    // --- TRECHO ATUALIZADO CONFORME SOLICITADO ---
+    // FUNÇÃO JSONP (MATA O ERRO DE CONEXÃO)
     function chamadaSegura(params) {
         return new Promise((resolve) => {
             const cb = "tjur_" + Date.now();
             const s = document.createElement('script');
-            
-            // Esta função recebe a resposta do Google
-            window[cb] = (dados) => {
-                resolve(dados);
-                document.body.removeChild(s);
-                delete window[cb];
-            };
-
-            // Forçamos o Google a responder via JSONP adicionando &callback=
-            s.src = `${URL}?${params}&callback=${cb}&t=${Date.now()}`;
-            
+            window[cb] = (d) => { resolve(d); document.body.removeChild(s); delete window[cb]; };
+            s.src = `${URL_SCRIPT}?${params}&callback=${cb}&t=${Date.now()}`;
             s.onerror = () => resolve({error: true});
             document.body.appendChild(s);
-            
-            // Se em 12 segundos não responder, dá erro
             setTimeout(() => { if(window[cb]) resolve({error: true}); }, 12000);
         });
     }
-    // --- FIM DO TRECHO ATUALIZADO ---
 
-    async function sincronizar() {
-        const res = await chamadaSegura(`acao=statusGeral&data=${dataF}`);
-        const painel = document.getElementById('painelFrota');
-        if (res.error) {
-            painel.innerHTML = "<div style='grid-column:span 2; color:#c62828; font-size:10px;'>🔄 Reconectando ao servidor...</div>";
-            setTimeout(sincronizar, 5000);
-            return;
-        }
-        const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-        painel.innerHTML = tags.map(t => 
-            `<div class="status-item ${res[t] ? 'em-uso' : 'livre'}">${t}<br>${res[t] ? '🔴 '+res[t] : '🟢 LIVRE'}</div>`
-        ).join('');
+    function atualizarInterface() {
+        const sel = document.getElementById("tag");
+        const opt = sel.options[sel.selectedIndex];
+        if(opt.value) document.getElementById("displayInfo").value = `${opt.getAttribute("data-v")} | ${opt.getAttribute("data-p")}`;
     }
 
     async function validarBloqueio() {
         const tag = document.getElementById("tag").value;
         const id = document.getElementById("idCond").value;
-        const btn = document.getElementById("btnAcao");
         const msg = document.getElementById("msgErro");
-        if(!tag || !id || localStorage.getItem("tjur_v30")) return;
+        const btn = document.getElementById("btnAcao");
+        if(!tag || !id || localStorage.getItem("tjur_ativo")) return;
 
-        btn.disabled = true; msg.style.display = "block"; msg.innerHTML = "🔍 Verificando disponibilidade...";
-        const res = await chamadaSegura(`acao=verificar&tag=${tag}&id=${id}&data=${dataF}`);
+        btn.disabled = true; msg.style.display = "block"; msg.innerHTML = "🔍 Validando disponibilidade...";
+        const res = await chamadaSegura(`acao=verificar&tag=${tag}&id=${id}&data=${dataH}`);
+        
         if(res.status && res.status !== "livre") {
-            msg.innerHTML = `🚫 BLOQUEIO: ${res.status} já está em trajeto!`;
+            msg.innerHTML = `⚠️ BLOQUEADO: ${res.status} já está usando!`;
         } else { msg.style.display = "none"; btn.disabled = false; }
     }
 
     async function registrar() {
-        const btn = document.getElementById("btnAcao");
         const d = {
-            data: dataF, horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 
-            tag: document.getElementById("tag").value, id: document.getElementById("idCond").value, 
-            nome: document.getElementById("nome").value, kmi: document.getElementById("kmi").value
+            tag: document.getElementById("tag").value, id: document.getElementById("idCond").value,
+            nome: document.getElementById("nomeCond").value, kmi: document.getElementById("kmi").value,
+            data: dataH, horaI: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         };
-        if(!d.tag || !d.kmi) return alert("Preencha KM e Veículo!");
-        btn.innerText = "GRAVANDO..."; btn.disabled = true;
-        fetch(`${URL}?acao=registrar&${new URLSearchParams(d)}`, {mode:'no-cors'});
-        localStorage.setItem("tjur_v30", JSON.stringify(d));
+        if(!d.tag || !d.kmi) return alert("Preencha KM e TAG!");
+        
+        document.getElementById("btnAcao").innerText = "GRAVANDO...";
+        fetch(`${URL_SCRIPT}?acao=registrar&${new URLSearchParams(d)}`, {mode:'no-cors'});
+        
+        localStorage.setItem("tjur_ativo", JSON.stringify(d));
         setTimeout(() => location.reload(), 1500);
     }
 
-    function ativarFinalizacao() {
-        const s = JSON.parse(localStorage.getItem("tjur_v30"));
-        document.getElementById("telaEspera").classList.add("hidden");
-        document.getElementById("containerForm").classList.remove("hidden");
-        document.getElementById("secaoFim").classList.remove("hidden");
-
-        ["tag", "idCond", "nome", "kmi"].forEach(c => {
-            const el = document.getElementById(c); 
-            el.value = s[c === "idCond" ? "id" : c]; 
-            el.disabled = true; 
-            el.classList.add("readonly-field");
-        });
+    function irParaFinalizar() {
+        const s = JSON.parse(localStorage.getItem("tjur_ativo"));
+        document.getElementById("telaEspera").style.display = "none";
+        document.getElementById("containerForm").style.display = "block";
+        document.getElementById("campoFim").classList.remove("hidden");
+        
+        document.getElementById("tag").value = s.tag;
+        document.getElementById("idCond").value = s.id;
+        document.getElementById("nomeCond").value = s.nome;
+        document.getElementById("kmi").value = s.kmi;
+        atualizarInterface();
 
         const btn = document.getElementById("btnAcao");
-        btn.innerText = "FINALIZAR E ENVIAR RESUMO"; btn.className = "btn-verde"; btn.disabled = false;
-
+        btn.innerText = "FINALIZAR E ENVIAR WHATSAPP"; btn.className = "btn-verde";
         btn.onclick = async function() {
             const kmf = document.getElementById("kmf").value;
-            const obs = document.getElementById("obs").value || "Sem observações";
-            const hF = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             if(!kmf || Number(kmf) <= Number(s.kmi)) return alert("KM Final inválido!");
             
-            btn.disabled = true; btn.innerText = "SALVANDO...";
-            await fetch(`${URL}?acao=finalizar&tag=${s.tag}&data=${s.data}&kmf=${kmf}&obs=${encodeURIComponent(obs)}`, {mode:'no-cors'});
+            btn.innerText = "SALVANDO..."; btn.disabled = true;
+            const obs = document.getElementById("obs").value || "Sem obs";
+            await fetch(`${URL_SCRIPT}?acao=finalizar&tag=${s.tag}&data=${s.data}&kmf=${kmf}&obs=${encodeURIComponent(obs)}`, {mode:'no-cors'});
             
-            const msg = `*TELEJUR - RESUMO*%0A🚗 *TAG:* ${s.tag}%0A👤 *MOT:* ${s.nome}%0A⏱ *HORA:* ${s.horaI} às ${hF}%0A🛣 *KM:* ${s.kmi} a ${kmf}%0A📝 *OBS:* ${obs}`;
-            localStorage.removeItem("tjur_v30");
-            window.location.href = `https://api.whatsapp.com/send?text=${msg}`;
+            const msgW = `*TELEJUR FINALIZADO*\n🚗 *TAG:* ${s.tag}\n👤 *MOTORISTA:* ${s.nome}\n🛣 *KM:* ${s.kmi} a ${kmf}\n📝 *OBS:* ${obs}`;
+            localStorage.removeItem("tjur_ativo");
+            window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msgW)}`;
             setTimeout(() => location.reload(), 3000);
         };
     }
 
-    window.onload = () => { 
-        sincronizar(); 
-        const s = localStorage.getItem("tjur_v30");
+    window.onload = () => {
+        const s = localStorage.getItem("tjur_ativo");
         if(s) {
             const d = JSON.parse(s);
-            document.getElementById("containerForm").classList.add("hidden");
-            document.getElementById("telaEspera").classList.remove("hidden");
-            document.getElementById("resumoAtivo").innerHTML = `🚗 <b>EM TRAJETO:</b> ${d.tag}<br>👤 <b>MOTORISTA:</b> ${d.nome}`;
+            document.getElementById("containerForm").style.display = "none";
+            document.getElementById("telaEspera").style.display = "block";
+            document.getElementById("resumoTrajeto").innerHTML = `🚗 <b>TAG:</b> ${d.tag}<br>👤 <b>MOT:</b> ${d.nome}<br>⏱ <b>INÍCIO:</b> ${d.horaI}`;
         }
     };
 </script>
