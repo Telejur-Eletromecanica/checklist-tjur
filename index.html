@@ -3,41 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR FROTA v7.4</title>
+    <title>TELEJUR FROTA v7.5</title>
     <style>
-        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #bdbdbd; }
+        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; }
         .grid-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
         .livre { background: #e8f5e9; color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; }
         .btn-azul { background: var(--primary); color: white; }
+        .btn-refresh { background: #555; color: white; padding: 5px 10px; font-size: 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; border:none; width: auto; float: right; }
         .readonly { background: #f1f1f1 !important; pointer-events: none; color: #666; font-weight: bold; }
-        option:disabled { color: #ccc; background-color: #f9f9f9; }
-        #txtSync { text-align: center; font-size: 10px; margin-bottom: 10px; color: #888; }
+        #txtSync { text-align: center; font-size: 10px; margin-bottom: 10px; color: #888; clear: both; }
+        
+        /* Tela de Confirmação Sucesso */
+        #msgSucesso { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 999; text-align: center; justify-content: center; align-items: center; flex-direction: column; }
+        .check-icon { font-size: 80px; color: var(--success); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
+<audio id="bipSom" src="https://www.soundjay.com/buttons/beep-07a.mp3" preload="auto"></audio>
+
+<div id="msgSucesso">
+    <div class="check-icon">✔</div>
+    <h2 style="color:var(--success)">TRAJETO FINALIZADO!</h2>
+    <p>Enviando relatório...</p>
+</div>
+
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0 0 5px 0;">TELEJUR v7.4</h2>
+    <button class="btn-refresh" onclick="location.reload()">🔄 Atualizar Frota</button>
+    <h2 style="text-align:center; color:var(--primary); margin:0 0 5px 0;">TELEJUR v7.5</h2>
     <p id="txtSync">Sincronizando frotas...</p>
+    
     <div id="painel" class="grid-status"></div>
 
     <div id="formContainer">
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="buscarDados()">
             <option value="">-- SELECIONE --</option>
-            <option value="TJUR 04">TJUR 04</option>
-            <option value="TJUR 06">TJUR 06</option>
-            <option value="TJUR 07">TJUR 07</option>
-            <option value="TJUR 08">TJUR 08</option>
-            <option value="TJUR 09">TJUR 09</option>
-            <option value="TJUR 10">TJUR 10</option>
+            <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
+            <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
+            <option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option>
             <option value="TJUR 13">TJUR 13</option>
         </select>
 
@@ -98,25 +109,18 @@
         window.cb_sync = (d) => {
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
             const selectTag = document.getElementById('tag');
-            
-            // Renderiza o painel e BLOQUEIA as opções no Select
             document.getElementById('painel').innerHTML = tags.map(t => {
                 const info = d[t];
                 const estaOcupado = !!info;
-                
-                // Busca a opção correspondente no select e desabilita se estiver ocupado
                 Array.from(selectTag.options).forEach(opt => {
                     if(opt.value === t) {
                         opt.disabled = estaOcupado;
-                        if(estaOcupado) opt.text = t + " (EM TRÂNSITO)";
-                        else opt.text = t;
+                        opt.text = estaOcupado ? t + " (EM TRÂNSITO)" : t;
                     }
                 });
-
                 return `<div class="v-box ${estaOcupado ? 'ocupado' : 'livre'}">${t}<br>${estaOcupado ? '🔴 ' + info.nome.split(' ')[0] : '🟢 LIVRE'}</div>`;
             }).join('');
-            
-            document.getElementById('txtSync').innerText = "Frota Sincronizada ✅";
+            document.getElementById('txtSync').innerText = "Frota Atualizada ✅";
         };
         s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync`;
         document.body.appendChild(s);
@@ -126,7 +130,6 @@
         const tag = document.getElementById("tag").value;
         const nome = document.getElementById("nomeMot").value;
         if(!tag || !nome) return;
-        
         const s = document.createElement('script');
         window.cb_mot = (d) => {
             if(d.veiculo) document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
@@ -146,15 +149,12 @@
             acao: "registrar", callback: "cb_reg", planta: "PORTO"
         };
         if(!d.tag || !d.kmi || !d.nome || !d.id) return alert("Preencha todos os campos!");
-        
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             if(res.res === "erro") return alert(res.msg);
-            d.numTrajeto = res.n; 
-            d.placa = res.placa;
-            d.veiculo = res.veiculo;
+            d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
             d.oleo = window.infoExtra ? window.infoExtra.oleo : "";
-            localStorage.setItem("trip_v7_4", JSON.stringify(d));
+            localStorage.setItem("trip_v7_5", JSON.stringify(d));
             location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
@@ -162,7 +162,7 @@
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v7_4"));
+        const d = JSON.parse(localStorage.getItem("trip_v7_5"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -173,54 +173,46 @@
         document.getElementById("kmi").value = d.kmi;
         ["tag", "nomeMot", "idMot", "kmi"].forEach(id => document.getElementById(id).classList.add("readonly"));
 
-        document.getElementById("btnAcao").innerText = "Finalizar e Enviar WhatsApp";
+        document.getElementById("btnAcao").innerText = "Finalizar Trajeto";
         document.getElementById("btnAcao").onclick = () => {
             const kmf = document.getElementById("kmf").value;
             if(!kmf) return alert("Informe o KM Final!");
+            if(Number(kmf) <= Number(d.kmi)) return alert("KM Final deve ser MAIOR que o Inicial!");
+            
             const s = document.createElement('script');
             const hFim = new Date().toLocaleTimeString('pt-BR');
-            window.cb_fin = () => { enviarWhats(true, kmf, hFim); };
+            window.cb_fin = () => {
+                document.getElementById("bipSom").play();
+                document.getElementById("msgSucesso").style.display = "flex";
+                setTimeout(() => { enviarWhats(true, kmf, hFim); }, 1500);
+            };
             s.src = `${URL}?acao=finalizar&tag=${d.tag}&data=${dataH}&kmf=${kmf}&horaF=${hFim}&obs=${encodeURIComponent(document.getElementById("obs").value)}&callback=cb_fin`;
             document.body.appendChild(s);
         };
     }
 
     function enviarWhats(isFim, kmf, hFim) {
-        const d = JSON.parse(localStorage.getItem("trip_v7_4"));
+        const d = JSON.parse(localStorage.getItem("trip_v7_5"));
         let m = isFim ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
         m += `--------------------------------\n`;
-        m += `📅 *Data:* ${d.data}\n`;
-        m += `🏷️ *Tag:* ${d.tag}\n`;
-        m += `🆔 *ID:* ${d.id}\n`;
-        m += `👤 *Nome:* ${d.nome}\n`;
-        m += `🚛 *Veículo:* ${d.veiculo}\n`;
-        m += `🔢 *Placa:* ${d.placa}\n`;
-        m += `📍 *Trajeto:* ${d.numTrajeto}\n`;
-        m += `🏁 *Status:* ${isFim ? "CONCLUÍDO" : "EM TRÂNSITO"}\n`;
-        m += `--------------------------------\n`;
-        m += `🛣️ *KM Inicial:* ${d.kmi}\n`;
-        m += `🕒 *Hora Início:* ${d.horaI}\n`;
-
+        m += `📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n🏁 *Status:* ${isFim ? "CONCLUÍDO" : "EM TRÂNSITO"}\n`;
+        m += `--------------------------------\n🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n`;
         if(isFim) {
-            m += `🕒 *Hora Fim:* ${hFim}\n`;
-            m += `🛣️ *KM Final:* ${kmf}\n`;
-            m += `📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            m += `🛢️ *Próx. Troca Óleo:* ${d.oleo || "---"}\n`;
-            localStorage.removeItem("trip_v7_4");
+            m += `🕒 *Hora Fim:* ${hFim}\n🛣️ *KM Final:* ${kmf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n🛢️ *Próx. Troca Óleo:* ${d.oleo || "---"}\n`;
+            localStorage.removeItem("trip_v7_5");
         }
-
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
-        if(isFim) setTimeout(() => location.reload(), 1500);
+        if(isFim) setTimeout(() => { location.href = location.pathname; }, 2000);
     }
 
     window.onload = () => {
         sync();
-        const salvo = localStorage.getItem("trip_v7_4");
+        const salvo = localStorage.getItem("trip_v7_5");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById("formContainer").style.display = "none";
             document.getElementById("telaAtiva").style.display = "block";
-            document.getElementById("infoViagem").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag} (${d.placa})<br>👤 ${d.nome} (${d.id})<br>📍 ${d.numTrajeto}`;
+            document.getElementById("infoViagem").innerHTML = `<b>TRAJETO ATIVO</b><br>🚗 ${d.tag} (${d.placa})<br>👤 ${d.nome} (${d.id})`;
         }
     };
 </script>
