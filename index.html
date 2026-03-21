@@ -2,122 +2,117 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Controle de Frota</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TELEJUR - CONTROLE</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #f4f6fb;
-  padding: 20px;
-}
-.container {
-  max-width: 400px;
-  margin: auto;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-}
-input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-}
-button {
-  background: #1d4ed8;
-  color: white;
-  border: none;
-}
-.status {
-  margin: 10px 0;
-  color: green;
-}
+body { font-family: sans-serif; background: #e3f2fd; padding: 10px; }
+.card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; }
+h2 { font-size: 16px; margin-top: 20px; }
+input, select, button { width: 100%; padding: 10px; margin-top: 10px; }
+button { background: #1a237e; color: white; border: none; }
+.box { background: #f1f1f1; padding: 10px; border-radius: 10px; margin-top: 10px; }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h2>🚗 Controle de Frota</h2>
+<div class="card">
 
-  <div id="status">🔄 Carregando...</div>
+<h2>📊 DASHBOARD</h2>
+<div id="dashboard" class="box">Carregando...</div>
 
-  <input id="tag" placeholder="TAG Veículo">
-  <input id="id" placeholder="ID Motorista">
-  <input id="nome" placeholder="Nome">
-  <input id="kmi" placeholder="KM Inicial">
+<h2>🚫 VEÍCULOS EM USO</h2>
+<div id="ocupados" class="box">Carregando...</div>
 
-  <button onclick="registrar()">INICIAR USO</button>
+<h2>🚗 CHECKLIST</h2>
 
-  <input id="kmf" placeholder="KM Final">
-  <button onclick="finalizar()">FINALIZAR</button>
+<input id="tag" placeholder="TAG">
+<input id="id" placeholder="ID">
+<input id="nome" placeholder="Nome">
+<input id="kmi" placeholder="KM Inicial">
+
+<button onclick="registrar()">INICIAR</button>
+
+<input id="kmf" placeholder="KM Final">
+<button onclick="finalizar()">FINALIZAR</button>
+
 </div>
 
 <script>
 const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
 
-function call(params, cb) {
-  const s = document.createElement("script");
-  const q = new URLSearchParams(params);
-  q.append("callback", cb);
-  s.src = URL + "?" + q.toString();
-  document.body.appendChild(s);
+/* DASHBOARD */
+async function dashboard() {
+  const r = await fetch(URL + "?acao=dashboard");
+  const d = await r.json();
+
+  document.getElementById("dashboard").innerHTML =
+    `🚗 Total: ${d.total}<br>
+     🔴 Em uso: ${d.emUso}<br>
+     🟢 Livres: ${d.livres}<br>
+     ⚠ Manutenção: ${d.manutencao.length}`;
 }
 
-function carregarStatus() {
-  call({ acao: "status" }, "resStatus");
-}
+/* OCUPADOS */
+async function ocupados() {
+  const r = await fetch(URL + "?acao=ocupados");
+  const lista = await r.json();
 
-function resStatus(res) {
   let html = "";
 
-  for (let v in res) {
-    html += "🚫 " + v + " em uso por " + res[v] + "<br>";
+  if (!lista.length) {
+    html = "✅ Nenhum veículo em uso";
+  } else {
+    lista.forEach(v => {
+      html += `🚫 ${v.tag}<br>👤 ${v.nome}<br>⏱ ${v.hora}<hr>`;
+    });
   }
 
-  document.getElementById("status").innerHTML = html || "✅ Todos livres";
+  document.getElementById("ocupados").innerHTML = html;
 }
 
-function registrar() {
-  call({
-    acao: "registrar",
-    tag: tag.value,
-    id: id.value,
-    nome: nome.value,
-    kmi: kmi.value
-  }, "resRegistrar");
-}
+/* REGISTRAR */
+async function registrar() {
+  const url = `${URL}?acao=registrar&tag=${tag.value}&id=${id.value}&nome=${nome.value}&kmi=${kmi.value}&horaI=${new Date().toLocaleTimeString()}`;
 
-function resRegistrar(r) {
-  if (r.erro === "veiculo") {
-    alert("🚫 Veículo ocupado por " + r.por);
+  const r = await fetch(url);
+  const res = await r.json();
+
+  if (res.erro) {
+    if (res.tipo === "veiculo") alert("🚫 Veículo em uso por " + res.por);
+    else alert("🚫 Motorista já está em uso");
     return;
   }
-  if (r.erro === "motorista") {
-    alert("🚫 Motorista já em uso");
-    return;
-  }
-  alert("✅ OK");
-  carregarStatus();
+
+  alert("✅ Iniciado");
+  atualizar();
 }
 
-function finalizar() {
-  call({
-    acao: "finalizar",
-    tag: tag.value,
-    kmf: kmf.value
-  }, "resFinalizar");
-}
+/* FINALIZAR */
+async function finalizar() {
+  const url = `${URL}?acao=finalizar&tag=${tag.value}&kmf=${kmf.value}`;
 
-function resFinalizar(r) {
-  if (r.erro === "km") {
-    alert("KM inválido");
+  const r = await fetch(url);
+  const res = await r.json();
+
+  if (res.erro) {
+    alert("Erro ao finalizar");
     return;
   }
+
   alert("Finalizado");
-  carregarStatus();
+  atualizar();
 }
 
-carregarStatus();
+function atualizar() {
+  dashboard();
+  ocupados();
+}
+
+/* AUTO LOAD */
+atualizar();
+setInterval(atualizar, 10000);
 </script>
 
 </body>
