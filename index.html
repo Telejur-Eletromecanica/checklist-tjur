@@ -6,17 +6,19 @@
 <title>TELEJUR</title>
 
 <style>
-body { font-family: sans-serif; background:#f4f7f6; }
+body { font-family:sans-serif; background:#f4f7f6; }
 .card { max-width:500px; margin:auto; background:white; padding:20px; border-radius:15px; }
 
-.grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+.grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:15px; }
 
-.tag { padding:10px; text-align:center; border-radius:8px; font-size:11px; font-weight:bold; }
+.tag { padding:10px; border-radius:10px; font-size:11px; font-weight:bold; text-align:center; }
 .livre { background:#c8e6c9; }
 .ocupado { background:#ffcdd2; }
 .travado { background:#eee; color:#999; }
 
-button { width:100%; padding:15px; margin-top:10px; }
+input, select { width:100%; padding:12px; margin-top:5px; }
+
+button { width:100%; padding:15px; margin-top:10px; font-weight:bold; }
 </style>
 </head>
 
@@ -25,20 +27,27 @@ button { width:100%; padding:15px; margin-top:10px; }
 <div class="card">
 
 <h3>TELEJUR ELETROMECANICA</h3>
-<p>Checklist de Veículos - Unidade Juruti</p>
+<p>Checklist de Veículos | Unidade Juruti</p>
 
 <div id="grid" class="grid"></div>
 
-<select id="motorista"></select>
+<select id="motorista">
+<option value="">-- SELECIONE O MOTORISTA --</option>
+<option>ADRIANO NASCIMENTO</option>
+<option>FRANCIVALDO COSTA</option>
+<option>WALTER GONÇALVES</option>
+<option>LAFAITE BATISTA</option>
+<option>REGINALDO</option>
+</select>
+
 <select id="tag"></select>
 
-<input id="placa" placeholder="Placa" readonly>
 <input id="veiculo" placeholder="Veículo" readonly>
-
+<input id="placa" placeholder="Placa" readonly>
 <input id="id" placeholder="ID" readonly>
-<input id="km" placeholder="KM">
+<input id="km" placeholder="KM Inicial">
 
-<input id="oleo">
+<input id="oleo" placeholder="Troca de óleo">
 
 <button onclick="iniciar()">INICIAR</button>
 <button onclick="finalizar()">FINALIZAR</button>
@@ -47,7 +56,7 @@ button { width:100%; padding:15px; margin-top:10px; }
 
 <script>
 
-const URL = "SEU_SCRIPT_AQUI";
+const URL = "COLE_SUA_URL_AQUI";
 const hoje = new Date().toLocaleDateString('pt-BR');
 
 let banco = {};
@@ -68,8 +77,9 @@ montar();
 };
 
 function montar(){
+
 let grid="";
-let select="";
+let select='<option value="">-- SELECIONE A TAG --</option>';
 
 const autorizados=["LAFAITE BATISTA","WALTER GONÇALVES","REGINALDO"];
 const mot=document.getElementById("motorista").value;
@@ -80,17 +90,47 @@ let ocup=banco.ocupados[tag];
 let munck=["TJUR 04","TJUR 07","TJUR 09"].includes(tag);
 let travado=munck && !autorizados.includes(mot) && mot;
 
-let classe=ocup?"ocupado":(travado?"travado":"livre");
+let status="LIVRE";
+let classe="livre";
 
-grid+=`<div class="tag ${classe}">${tag}</div>`;
+if(ocup){ status="EM USO"; classe="ocupado"; }
+else if(travado){ status="🔒"; classe="travado"; }
 
-select+=`<option ${travado?"disabled":""}>${tag}</option>`;
+grid+=`<div class="tag ${classe}">${tag}<br>${status}</div>`;
+
+select+=`<option value="${tag}" ${travado?"disabled":""}>
+${travado?"🔒 ":""}${tag}
+</option>`;
 
 });
 
 document.getElementById("grid").innerHTML=grid;
 document.getElementById("tag").innerHTML=select;
+
 }
+
+/* AUTO PREENCHIMENTO */
+document.getElementById("tag").addEventListener("change", ()=>{
+
+let tag = document.getElementById("tag").value;
+if(!tag) return;
+
+let dados = banco.frota[tag];
+
+document.getElementById("veiculo").value = dados.v;
+document.getElementById("placa").value = dados.p;
+
+/* ID AUTOMÁTICO */
+document.getElementById("id").value = gerarID(tag);
+
+/* ÓLEO INTELIGENTE */
+if(dados.tipo==="DATA"){
+document.getElementById("oleo").type="date";
+}else{
+document.getElementById("oleo").type="number";
+}
+
+});
 
 function gerarID(tag){
 let usados=banco.idsUsados[tag]||[];
@@ -99,24 +139,35 @@ while(usados.includes("ID"+i)) i++;
 return "ID"+i;
 }
 
+/* INICIAR */
 function iniciar(){
 
 let tag=document.getElementById("tag").value;
-let id=gerarID(tag);
+
+if(banco.ocupados[tag]){
+alert("🚫 VEÍCULO EM USO!");
+return;
+}
 
 chamar({
 acao:"registrar",
 tag,
-id,
-nome:"TESTE",
+id:document.getElementById("id").value,
+nome:document.getElementById("motorista").value,
 kmi:document.getElementById("km").value,
 horaI:new Date().toLocaleTimeString(),
+oleo:document.getElementById("oleo").value,
+trajeto:"1",
 data:hoje,
 callback:"ok"
 });
 
+alert("✅ INICIADO");
+setTimeout(carregar,1000);
+
 }
 
+/* FINALIZAR */
 function finalizar(){
 
 let tag=document.getElementById("tag").value;
@@ -129,6 +180,9 @@ horaF:new Date().toLocaleTimeString(),
 data:hoje,
 callback:"ok"
 });
+
+alert("🏁 FINALIZADO");
+setTimeout(carregar,1000);
 
 }
 
