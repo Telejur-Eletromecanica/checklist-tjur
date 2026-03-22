@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TELEJUR v10.7</title>
     <style>
+        /* CONFIGURAÇÕES VISUAIS */
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #fbc02d; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
@@ -17,13 +18,13 @@
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         
-        /* CSS CORRIGIDO: Status de Óleo com Cores Fortes */
-        .status-oleo { font-size: 13px; padding: 10px; border-radius: 8px; margin-top: 8px; font-weight: bold; text-align: center; border: 2px solid transparent; }
-        .status-ok { background: #2e7d32; color: white; } /* Verde Sucesso */
-        .status-alerta { background: #fbc02d; color: #333; } /* Amarelo Atenção */
-        .status-vencido { background: #d32f2f; color: white; border-color: #b71c1c; text-transform: uppercase; animation: blink 1s infinite; } /* Vermelho Forte */
+        /* STATUS DE ÓLEO COM ALERTAS VISUAIS */
+        .status-oleo { font-size: 13px; padding: 12px; border-radius: 8px; margin-top: 8px; font-weight: bold; text-align: center; border: 2px solid transparent; transition: 0.3s; }
+        .status-ok { background: #2e7d32; color: white; }
+        .status-alerta { background: #fbc02d; color: #333; border-color: #f9a825; }
+        .status-vencido { background: #d32f2f; color: white; border-color: #b71c1c; animation: blink 1s infinite; }
 
-        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.7;} 100% {opacity: 1;} }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
 
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-azul { background: var(--primary); color: white; }
@@ -91,10 +92,12 @@
         <input type="date" id="validadeSelo">
 
         <label>KM Inicial</label>
-        <input type="number" id="kmi" oninput="calcularStatusOleo()">
+        <input type="text" id="kmi" placeholder="Digite o KM Atual" oninput="this.value=this.value.replace(/\D/g,''); calcularStatusOleo();">
 
         <label id="labelOleo">Próx. troca óleo</label>
-        <div id="containerOleo"><input type="number" id="proxOleo" oninput="calcularStatusOleo()"></div>
+        <div id="containerOleo">
+            <input type="text" id="proxOleo" oninput="calcularStatusOleo()">
+        </div>
         <div id="statusOleoVisual" class="status-oleo" style="display:none"></div>
 
         <label>Tipo de Óleo</label>
@@ -129,7 +132,6 @@
     const dataH = new Date().toLocaleDateString('pt-BR');
     let statusOleoGlobal = "";
 
-    // JAVASCRIPT CORRIGIDO: Novas Regras de Cálculo
     function calcularStatusOleo() {
         const kmiRaw = document.getElementById("kmi").value;
         const proxOleoRaw = document.getElementById("proxOleo").value;
@@ -161,7 +163,6 @@
                 classe = "status-ok";
             }
         } else {
-            // Limpa símbolos/pontos e calcula KM
             const kmAtual = Number(String(kmiRaw).replace(/\D/g, ""));
             const kmLimite = Number(String(proxOleoRaw).replace(/\D/g, ""));
             const resta = kmLimite - kmAtual;
@@ -171,7 +172,7 @@
                 classe = "status-vencido";
             } else if (resta <= 500) {
                 status = `⚠️ ATENÇÃO: TROCAR EM ${resta} KM (URGENTE)`;
-                classe = "status-vencido";
+                classe = "status-vencido"; 
             } else if (resta <= 2999) {
                 status = `🟡 ALERTA: FALTAM ${resta} KM PARA A TROCA`;
                 classe = "status-alerta";
@@ -229,7 +230,7 @@
                 container.innerHTML = `<input type="date" id="proxOleo" oninput="calcularStatusOleo()">`;
                 document.getElementById("labelOleo").innerText = "Próx. troca óleo (DATA)";
             } else {
-                container.innerHTML = `<input type="number" id="proxOleo" oninput="calcularStatusOleo()">`;
+                container.innerHTML = `<input type="text" id="proxOleo" oninput="this.value=this.value.replace(/\\D/g,''); calcularStatusOleo();">`;
                 document.getElementById("labelOleo").innerText = "Próx. troca óleo (KM)";
             }
             document.getElementById("proxOleo").value = d.oleo;
