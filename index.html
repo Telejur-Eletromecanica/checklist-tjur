@@ -76,9 +76,7 @@
         <input type="number" id="kmi" oninput="calcularStatusOleo()">
 
         <label id="labelOleo">Próx. troca óleo (KM)</label>
-        <div id="containerOleo">
-            <input type="text" id="proxOleo" oninput="calcularStatusOleo()" placeholder="KM ou Data">
-        </div>
+        <div id="containerOleo"><input type="text" id="proxOleo" oninput="calcularStatusOleo()" placeholder="KM ou Data"></div>
         <div id="statusOleoVisual" class="status-oleo" style="display:none"></div>
 
         <label>Tipo de Óleo</label>
@@ -99,7 +97,7 @@
 </div>
 
 <script>
-    const URL = "COLE_AQUI_A_URL_DO_GOOGLE_SCRIPT";
+    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
     let statusOleoGlobal = "";
 
@@ -108,11 +106,9 @@
         const proxOleoRaw = document.getElementById("proxOleo").value;
         const divStatus = document.getElementById("statusOleoVisual");
         const isDate = document.getElementById("proxOleo").type === "date";
-
         if (!proxOleoRaw || (!isDate && !kmiRaw)) { divStatus.style.display = "none"; return; }
         divStatus.style.display = "block";
         let status = "", classe = "";
-
         if (isDate) {
             const hoje = new Date();
             const dataLimite = new Date(proxOleoRaw + "T12:00:00");
@@ -129,8 +125,7 @@
             else if (resta <= 2999) { status = `🟡 FALTAM ${resta} KM`; classe = "status-alerta"; }
             else { status = `✅ FALTAM ${resta} KM`; classe = "status-ok"; }
         }
-        divStatus.innerText = status;
-        divStatus.className = "status-oleo " + classe;
+        divStatus.innerText = status; divStatus.className = "status-oleo " + classe;
         statusOleoGlobal = status;
     }
 
@@ -141,7 +136,6 @@
             const motSel = document.getElementById('nomeMot').value;
             const skyUsers = ["REGINALDO", "LAFAITE BATISTA", "WALTER GONÇALVES"];
             painel.innerHTML = '';
-            
             tags.forEach(t => {
                 const ocupado = res.ocupados && res.ocupados[t];
                 const frota = (res.frota && res.frota[t]) ? res.frota[t] : { veiculo: "" };
