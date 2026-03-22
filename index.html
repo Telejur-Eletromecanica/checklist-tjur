@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.9.1</title>
+    <title>TELEJUR v10.9.3</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -73,7 +73,7 @@
 
         <label>Tipo de Óleo</label>
         <select id="tipoOleo">
-            <option value="15W40">15W40</option><option value="5W30">5W30</option>
+            <option value="15W40">15W40</option><option value="5W30">5W30</option><option value="10W40">10W40</option>
         </select>
 
         <label>Observações</label>
@@ -97,10 +97,8 @@
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
             const selectTag = document.getElementById('tag');
             selectTag.innerHTML = '<option value="">-- SELECIONE --</option>';
-            
             document.getElementById('painel').innerHTML = tags.map(t => {
-                const o = res.ocupados[t];
-                const count = (res.contagem[t] || 0) + 1;
+                const o = res.ocupados[t], count = (res.contagem[t] || 0) + 1;
                 const opt = document.createElement('option');
                 opt.value = t; opt.disabled = !!o;
                 opt.setAttribute('data-count', count);
@@ -138,7 +136,7 @@
 
         if(tipo === 'inicio') {
             window.cb_reg = (res) => {
-                const msg = window.encodeURIComponent(`✅ *CHECKLIST CONCLUÍDO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${res.v}\n🔢 *Placa:* ${res.p}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo.split('-').reverse().join('/')}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Troca Óleo:* ${d.oleo}\n---------------------------\n📝 *Obs:* ${d.obs}`);
+                const msg = window.encodeURIComponent(`✅ *CHECKLIST CONCLUÍDO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${d.id}*\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${res.v}\n🔢 *Placa:* ${res.p}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo.split('-').reverse().join('/')}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Próxima Troca Óleo:* ${d.oleo}\n---------------------------\n📝 *Obs:* ${d.obs}`);
                 window.open(`https://api.whatsapp.com/send?text=${msg}`);
             };
             const s = document.createElement('script'); s.src = `${URL_SCRIPT}?${new URLSearchParams({...d, acao: "registrar", callback: "cb_reg"})}`;
@@ -147,7 +145,7 @@
             const kf = document.getElementById("kmf").value;
             const hf = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             window.cb_fin = () => {
-                const msg = window.encodeURIComponent(`✅ *CHECKLIST CONCLUÍDO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${document.getElementById("veiculoInfo").value.split('|')[0]}\n🔢 *Placa:* ${document.getElementById("veiculoInfo").value.split('|')[1]}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Troca Óleo:* ${d.oleo}\n---------------------------\n🕒 *Hora Fim:* ${hf}\n📏 *KM Final:* ${kf}\n📝 *Obs:* ${d.obs}`);
+                const msg = window.encodeURIComponent(`✅ *CHECKLIST CONCLUÍDO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${d.id}*\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${document.getElementById("veiculoInfo").value.split('|')[0]}\n🔢 *Placa:* ${document.getElementById("veiculoInfo").value.split('|')[1]}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Próxima Troca Óleo:* ${d.oleo}\n---------------------------\n🕒 *Hora Fim:* ${hf}\n📏 *KM Final:* ${kf}\n📝 *Obs:* ${d.obs}`);
                 window.open(`https://api.whatsapp.com/send?text=${msg}`);
                 location.reload();
             };
