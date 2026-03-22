@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.7.6</title>
+    <title>TELEJUR v10.7.7</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #fbc02d; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -30,7 +30,7 @@
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
     <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Limpar App?')){localStorage.removeItem('trip_v10_3');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.7.6</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.7.7</h2>
     <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
     
     <div id="painel" class="grid-status"></div>
@@ -130,7 +130,9 @@
     }
 
     async function sync() {
+        const txtStatus = document.getElementById('txtSync');
         window.cb_sync = (res) => {
+            if(res.erro) { alert(res.erro); txtStatus.innerText = "Erro na Aba!"; return; }
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
             const painel = document.getElementById('painel');
             const motSel = document.getElementById('nomeMot').value;
@@ -138,13 +140,13 @@
             painel.innerHTML = '';
             tags.forEach(t => {
                 const ocupado = res.ocupados && res.ocupados[t];
-                const frota = (res.frota && res.frota[t]) ? res.frota[t] : { veiculo: "" };
-                const bloqueado = (frota.veiculo.includes("SKY") && !skyUsers.includes(motSel));
+                const frota = (res.frota && res.frota[t]) ? res.frota[t] : { v: "" };
+                const bloqueado = (frota.v.includes("SKY") && !skyUsers.includes(motSel));
                 let cl = ocupado ? 'ocupado' : (bloqueado ? 'bloqueado' : 'livre');
                 let txt = ocupado ? '🔴 '+ocupado.nome.split(' ')[0] : (bloqueado ? '🔒 RESTRITO' : '🟢 LIVRE');
                 painel.innerHTML += `<div class="v-box ${cl}"><b>${t}</b>${txt}</div>`;
             });
-            document.getElementById('txtSync').innerText = "Atualizado: " + new Date().toLocaleTimeString();
+            txtStatus.innerText = "Conectado: " + new Date().toLocaleTimeString();
         };
         const s = document.createElement('script');
         s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${Date.now()}`;
