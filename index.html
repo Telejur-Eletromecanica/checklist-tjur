@@ -8,8 +8,8 @@
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .grid-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 15px; }
-        .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; display: flex; flex-direction: column; justify-content: center; min-height: 45px; }
+        .grid-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-bottom: 15px; }
+        .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; min-height: 45px; display: flex; flex-direction: column; justify-content: center; }
         .livre { background: #e8f5e9; color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
@@ -25,7 +25,7 @@
 
 <div class="card">
     <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888;">Sincronizando...</p>
+    <p id="txtSync" style="text-align:center; font-size:10px; color:#888;">Sincronizando frota...</p>
     
     <div id="painel" class="grid-status"></div>
 
@@ -49,11 +49,11 @@
             <option value="">-- AGUARDANDO --</option>
         </select>
         
-        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
+        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Veículo | Placa">
         <input type="text" id="idMot" class="readonly" readonly placeholder="ID: CONDUTOR X">
 
         <label>KM Inicial</label>
-        <input type="number" id="kmi" inputmode="numeric" placeholder="KM Atual">
+        <input type="number" id="kmi" inputmode="numeric" placeholder="KM de Saída">
 
         <label>Próxima Troca Óleo (KM)</label>
         <input type="text" id="proxOleo" placeholder="Ex: 156.223 KM">
@@ -62,7 +62,8 @@
             <div style="flex:1">
                 <label>Cor do Selo</label>
                 <select id="corSelo">
-                    <option value="VERDE">VERDE</option><option value="VERMELHO">VERMELHO</option>
+                    <option value="VERDE">VERDE</option>
+                    <option value="VERMELHO">VERMELHO</option>
                 </select>
             </div>
             <div style="flex:1">
@@ -73,16 +74,18 @@
 
         <label>Tipo de Óleo</label>
         <select id="tipoOleo">
-            <option value="15W40">15W40</option><option value="5W30">5W30</option><option value="10W40">10W40</option>
+            <option value="15W40">15W40</option>
+            <option value="5W30">5W30</option>
+            <option value="10W40">10W40</option>
         </select>
 
         <label>Observações</label>
-        <textarea id="obs" rows="2" placeholder="Nenhuma"></textarea>
+        <textarea id="obs" rows="2" placeholder="Descreva problemas se houver..."></textarea>
 
         <button onclick="registrarEEnviar('inicio')" class="btn btn-inicio">✅ ENVIAR INÍCIO DE TRAJETO</button>
         <hr>
         <label>KM Final</label>
-        <input type="number" id="kmf" inputmode="numeric" placeholder="KM de chegada">
+        <input type="number" id="kmf" inputmode="numeric" placeholder="KM de Chegada">
         <button onclick="registrarEEnviar('final')" class="btn btn-final">🏁 ENVIAR FINAL DE TRAJETO</button>
     </div>
 </div>
@@ -92,36 +95,42 @@
     const dataH = new Date().toLocaleDateString('pt-BR');
     let nTrajeto = "1º Trajeto";
 
-    async function sync() {
-        window.cb_sync = (res) => {
-            const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-            const selectTag = document.getElementById('tag');
-            selectTag.innerHTML = '<option value="">-- SELECIONE --</option>';
-            document.getElementById('painel').innerHTML = tags.map(t => {
-                const o = res.ocupados[t], count = (res.contagem[t] || 0) + 1;
-                const opt = document.createElement('option');
-                opt.value = t; opt.disabled = !!o;
-                opt.setAttribute('data-count', count);
-                opt.text = t + (o ? " (🔴 EM USO)" : "");
-                selectTag.appendChild(opt);
-                return `<div class="v-box ${o?'ocupado':'livre'}"><b>${t}</b>${o?'🔴 '+o.nome.split(' ')[0]:'🟢 LIVRE'}</div>`;
-            }).join('');
-            document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
-        };
-        const s = document.createElement('script'); s.src = `${URL_SCRIPT}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${Date.now()}`;
+    function chamarScript(params) {
+        const s = document.createElement('script');
+        const query = new URLSearchParams(params).toString();
+        s.src = `${URL_SCRIPT}?${query}&_=${Date.now()}`;
         document.body.appendChild(s);
     }
 
-    async function buscarDados() {
+    function sync() {
+        chamarScript({ acao: "statusGeral", data: dataH, callback: "processarSync" });
+    }
+
+    window.processarSync = (res) => {
+        const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
+        const selectTag = document.getElementById('tag');
+        selectTag.innerHTML = '<option value="">-- SELECIONE --</option>';
+        document.getElementById('painel').innerHTML = tags.map(t => {
+            const o = res.ocupados[t], count = (res.contagem[t] || 0) + 1;
+            const opt = document.createElement('option');
+            opt.value = t; opt.disabled = !!o;
+            opt.setAttribute('data-count', count);
+            opt.text = t + (o ? " (🔴 EM USO)" : "");
+            selectTag.appendChild(opt);
+            return `<div class="v-box ${o?'ocupado':'livre'}"><b>${t}</b>${o?'🔴 '+o.nome.split(' ')[0]:'🟢 LIVRE'}</div>`;
+        }).join('');
+        document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
+    };
+
+    function buscarDados() {
         const t = document.getElementById("tag"), n = document.getElementById("nomeMot").value;
         if(!t.value || !n) return;
         nTrajeto = t.options[t.selectedIndex].getAttribute('data-count') + "º Trajeto";
-        window.cb_mot = (d) => {
+        window.processarMot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             document.getElementById("idMot").value = "ID: " + d.id;
         };
-        const s = document.createElement('script'); s.src = `${URL_SCRIPT}?acao=buscarDadosMotorista&tag=${t.value}&nome=${n}&callback=cb_mot`;
-        document.body.appendChild(s);
+        chamarScript({ acao: "buscarDadosMotorista", tag: t.value, nome: n, callback: "processarMot" });
     }
 
     function registrarEEnviar(tipo) {
@@ -135,22 +144,21 @@
         };
 
         if(tipo === 'inicio') {
-            window.cb_reg = (res) => {
+            window.processarReg = (res) => {
                 const msg = window.encodeURIComponent(`✅ *CHECKLIST CONCLUÍDO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${d.id}*\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${res.v}\n🔢 *Placa:* ${res.p}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo.split('-').reverse().join('/')}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Próxima Troca Óleo:* ${d.oleo}\n---------------------------\n📝 *Obs:* ${d.obs}`);
                 window.open(`https://api.whatsapp.com/send?text=${msg}`);
+                sync();
             };
-            const s = document.createElement('script'); s.src = `${URL_SCRIPT}?${new URLSearchParams({...d, acao: "registrar", callback: "cb_reg"})}`;
-            document.body.appendChild(s);
+            chamarScript({...d, acao: "registrar", callback: "processarReg"});
         } else {
             const kf = document.getElementById("kmf").value;
             const hf = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            window.cb_fin = () => {
-                const msg = window.encodeURIComponent(`✅ *CHECKLIST CONCLUÍDO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${d.id}*\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${document.getElementById("veiculoInfo").value.split('|')[0]}\n🔢 *Placa:* ${document.getElementById("veiculoInfo").value.split('|')[1]}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Próxima Troca Óleo:* ${d.oleo}\n---------------------------\n🕒 *Hora Fim:* ${hf}\n📏 *KM Final:* ${kf}\n📝 *Obs:* ${d.obs}`);
+            window.processarFim = () => {
+                const msg = window.encodeURIComponent(`🏁 *TRAJETO FINALIZADO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${d.id}*\n👤 *Nome:* ${d.nome}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n📏 *KM Final:* ${kf}\n🕒 *Hora Chegada:* ${hf}\n📝 *Obs:* ${d.obs}\n---------------------------`);
                 window.open(`https://api.whatsapp.com/send?text=${msg}`);
                 location.reload();
             };
-            const s = document.createElement('script'); s.src = `${URL_SCRIPT}?acao=finalizar&tag=${d.tag}&kmf=${kf}&horaF=${hf}&obs=${d.obs}&callback=cb_fin`;
-            document.body.appendChild(s);
+            chamarScript({acao: "finalizar", tag: d.tag, kmf: kf, horaF: hf, obs: d.obs, callback: "processarFim"});
         }
     }
     window.onload = sync;
