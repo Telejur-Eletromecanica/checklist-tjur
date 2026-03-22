@@ -3,30 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.9.4</title>
+    <title>TELEJUR v10.9.6</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ff9800; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .header-box { text-align: center; margin-bottom: 20px; }
+        .header-box h1 { color: var(--primary); font-size: 18px; margin: 0; text-transform: uppercase; }
+        .header-box h2 { color: #555; font-size: 14px; margin: 5px 0 0 0; font-weight: normal; }
+        
         .grid-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-bottom: 15px; }
-        .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; min-height: 45px; display: flex; flex-direction: column; justify-content: center; }
+        .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; min-height: 45px; display: flex; flex-direction: column; justify-content: center; transition: 0.3s; }
         .livre { background: #e8f5e9; color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
+        .restrito { background: #eeeeee; color: #999; border-style: dashed; filter: grayscale(1); }
+        
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; display: block; }
+        
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; }
         .btn-inicio { background: var(--success); }
         .btn-final { background: var(--primary); }
         .readonly { background: #f9f9f9 !important; color: #444; font-weight: bold; }
-        #alertaBloqueio { background: #fff3e0; color: #e65100; padding: 10px; border-radius: 8px; border: 1px solid var(--warning); font-size: 13px; font-weight: bold; margin-top: 15px; text-align: center; display: none; }
+        
+        #alertaBloqueio { background: #ffebee; color: var(--danger); padding: 10px; border-radius: 8px; border: 1px solid var(--danger); font-size: 12px; font-weight: bold; margin-top: 15px; text-align: center; display: none; }
         hr { border: 0; border-top: 2px dashed #eee; margin: 25px 0; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888;">Sincronizando frota...</p>
+    <div class="header-box">
+        <h1>TELEJUR ELETROMECÂNICA<br>UNIDADE JURUTI</h1>
+        <h2>Checklist de Veículos</h2>
+        <p id="txtSync" style="font-size:10px; color:#888; margin-top:10px;">Sincronizando frota...</p>
+    </div>
     
     <div id="painel" class="grid-status"></div>
 
@@ -45,15 +57,15 @@
             <option value="EZEQUIEL">EZEQUIEL</option>
         </select>
 
+        <div id="alertaBloqueio">🔒 ACESSO RESTRITO: MOTORISTA NÃO AUTORIZADO PARA SKY MUNCK.</div>
+
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="buscarDados()">
-            <option value="">-- AGUARDANDO --</option>
+            <option value="">-- SELECIONE O MOTORISTA --</option>
         </select>
         
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Veículo | Placa">
         <input type="text" id="idMot" class="readonly" readonly placeholder="ID: CONDUTOR X">
-
-        <div id="alertaBloqueio">⚠️ MOTORISTA NÃO AUTORIZADO PARA ESTE VEÍCULO (SKY MUNCK).</div>
 
         <label>KM Inicial</label>
         <input type="number" id="kmi" inputmode="numeric" placeholder="KM de Saída">
@@ -111,45 +123,59 @@
 
     window.processarSync = (res) => {
         const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-        const selectTag = document.getElementById('tag');
-        selectTag.innerHTML = '<option value="">-- SELECIONE --</option>';
-        document.getElementById('painel').innerHTML = tags.map(t => {
-            const o = res.ocupados[t], count = (res.contagem[t] || 0) + 1;
-            const opt = document.createElement('option');
-            opt.value = t; opt.disabled = !!o;
-            opt.setAttribute('data-count', count);
-            opt.text = t + (o ? " (🔴 EM USO)" : "");
-            selectTag.appendChild(opt);
-            return `<div class="v-box ${o?'ocupado':'livre'}"><b>${t}</b>${o?'🔴 '+o.nome.split(' ')[0]:'🟢 LIVRE'}</div>`;
-        }).join('');
-        document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
-        validarTrava();
-    }
-
-    function validarTrava() {
-        const motorista = document.getElementById("nomeMot").value;
-        const tag = document.getElementById("tag").value;
         const muncks = ["TJUR 04", "TJUR 07", "TJUR 09"];
         const autorizados = ["ADRIANO NASCIMENTO", "FRANCIVALDO COSTA"];
+        
+        const motorista = document.getElementById("nomeMot").value;
+        const selectTag = document.getElementById('tag');
+        const painel = document.getElementById('painel');
         const alerta = document.getElementById("alertaBloqueio");
-        const btnI = document.getElementById("btnEnviarInicio");
-        const btnF = document.getElementById("btnEnviarFim");
+        
+        const isMunckAuth = autorizados.includes(motorista);
+        
+        selectTag.innerHTML = '<option value="">-- SELECIONE A TAG --</option>';
+        painel.innerHTML = '';
 
-        if (muncks.includes(tag) && !autorizados.includes(motorista) && motorista !== "") {
-            alerta.style.display = "block";
-            btnI.style.display = "none";
-            btnF.style.display = "none";
-        } else {
-            alerta.style.display = "none";
-            btnI.style.display = "block";
-            btnF.style.display = "block";
-        }
+        tags.forEach(t => {
+            const isOcupado = !!res.ocupados[t];
+            const isMunck = muncks.includes(t);
+            const bloqueado = isMunck && !isMunckAuth && motorista !== "";
+            const count = (res.contagem[t] || 0) + 1;
+
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.setAttribute('data-count', count);
+            
+            if (bloqueado) {
+                opt.text = `🔒 ${t} (RESTRITO)`;
+                opt.disabled = true;
+            } else {
+                opt.text = t + (isOcupado ? " (🔴 EM USO)" : "");
+                opt.disabled = isOcupado;
+            }
+            selectTag.appendChild(opt);
+
+            let statusHTML = '';
+            let classeCor = isOcupado ? 'ocupado' : 'livre';
+            
+            if (bloqueado) {
+                classeCor = 'restrito';
+                statusHTML = `🔒 RESTRITO`;
+            } else if (isOcupado) {
+                statusHTML = `🔴 ${res.ocupados[t].nome.split(' ')[0]}`;
+            } else {
+                statusHTML = `🟢 LIVRE`;
+            }
+            painel.innerHTML += `<div class="v-box ${classeCor}"><b>${t}</b>${statusHTML}</div>`;
+        });
+
+        alerta.style.display = (!isMunckAuth && motorista !== "") ? "block" : "none";
+        document.getElementById('txtSync').innerText = "Última atualização: " + new Date().toLocaleTimeString();
     }
 
     function buscarDados() {
         const t = document.getElementById("tag"), n = document.getElementById("nomeMot").value;
-        if(!t.value || !n) { validarTrava(); return; }
-        validarTrava();
+        if(!t.value || !n) return;
         nTrajeto = t.options[t.selectedIndex].getAttribute('data-count') + "º Trajeto";
         window.processarMot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
@@ -159,8 +185,11 @@
     }
 
     function registrarEEnviar(tipo) {
+        const tagVal = document.getElementById("tag").value;
+        if(!tagVal) { alert("Selecione um veículo!"); return; }
+
         const d = {
-            data: dataH, tag: document.getElementById("tag").value, id: document.getElementById("idMot").value,
+            data: dataH, tag: tagVal, id: document.getElementById("idMot").value,
             nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value,
             oleo: document.getElementById("proxOleo").value, corSelo: document.getElementById("corSelo").value,
             tipoOleo: document.getElementById("tipoOleo").value, validadeSelo: document.getElementById("validadeSelo").value,
@@ -177,6 +206,7 @@
             chamarScript({...d, acao: "registrar", callback: "processarReg"});
         } else {
             const kf = document.getElementById("kmf").value;
+            if(!kf) { alert("Informe o KM Final!"); return; }
             const hf = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             window.processarFim = () => {
                 const msg = window.encodeURIComponent(`🏁 *TRAJETO FINALIZADO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${d.id}*\n👤 *Nome:* ${d.nome}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n📏 *KM Final:* ${kf}\n🕒 *Hora Chegada:* ${hf}\n📝 *Obs:* ${d.obs}\n---------------------------`);
