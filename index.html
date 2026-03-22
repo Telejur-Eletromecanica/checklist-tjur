@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.5</title>
+    <title>TELEJUR v10.6</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ef6c00; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -16,7 +16,8 @@
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         
-        #statusOleo { margin-top: 10px; font-size: 13px; font-weight: bold; padding: 10px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; }
+        /* ALERTA DE ÓLEO MELHORADO */
+        #statusOleo { margin-top: 10px; font-size: 14px; font-weight: bold; padding: 12px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; line-height: 1.4; }
         
         #corSelo option[value="VERDE"] { background-color: #c8e6c9; color: #1b5e20; }
         #corSelo option[value="VERMELHO"] { background-color: #ffcdd2; color: #b71c1c; }
@@ -41,9 +42,9 @@
 
 <div class="card">
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v10_5');location.reload();}">🗑️ Reset</button>
+    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v10_6');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.5</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.6</h2>
     <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
     
     <div id="painel" class="grid-status"></div>
@@ -92,7 +93,9 @@
         <input type="number" id="kmi" oninput="calcularOleo()">
 
         <label id="labelOleo">Próx. troca óleo</label>
-        <div id="containerOleo"><input type="number" id="proxOleo" oninput="calcularOleo()"></div>
+        <div id="containerOleo">
+            <input type="text" id="proxOleo" oninput="calcularOleo()" placeholder="Carregando...">
+        </div>
         <div id="statusOleo"></div>
 
         <label>Tipo de Óleo</label>
@@ -135,25 +138,35 @@
             osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
             osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-        } catch(e) { console.log("Erro som"); }
+        } catch(e) {}
     }
 
+    // CORREÇÃO: Limpa o texto e calcula apenas números
     function calcularOleo() {
-        const kmi = Number(document.getElementById('kmi').value);
-        const prox = Number(document.getElementById('proxOleo').value);
+        const valKmi = document.getElementById('kmi').value;
+        const valProx = document.getElementById('proxOleo').value;
         const statusDiv = document.getElementById('statusOleo');
-        if (kmi <= 0 || prox <= 0 || isNaN(kmi) || isNaN(prox)) { statusDiv.style.display = "none"; return; }
+
+        // Extrai apenas números caso venha "10000 KM" da planilha
+        const kmi = parseFloat(valKmi);
+        const prox = parseFloat(String(valProx).replace(/[^\d]/g, ''));
+
+        if (isNaN(kmi) || isNaN(prox) || kmi <= 0 || prox <= 0) {
+            statusDiv.style.display = "none";
+            return;
+        }
 
         const resta = prox - kmi;
         statusDiv.style.display = "block";
+        
         if (resta <= 0) {
-            statusDiv.innerHTML = `⚠️ ÓLEO VENCIDO!<br>Excedido em ${Math.abs(resta)} KM`;
+            statusDiv.innerHTML = `⚠️ ÓLEO VENCIDO!<br><small>Excedido em ${Math.abs(resta)} KM</small>`;
             statusDiv.style.background = "#ffebee"; statusDiv.style.color = "var(--danger)"; statusDiv.style.borderColor = "var(--danger)";
         } else if (resta <= 500) {
-            statusDiv.innerHTML = `🔔 MANUTENÇÃO PRÓXIMA<br>Faltam ${resta} KM`;
+            statusDiv.innerHTML = `🔔 TROCAR EM BREVE<br><small>Faltam ${resta} KM</small>`;
             statusDiv.style.background = "#fff3e0"; statusDiv.style.color = "var(--warning)"; statusDiv.style.borderColor = "var(--warning)";
         } else {
-            statusDiv.innerHTML = `✅ ÓLEO EM DIA<br>Faltam ${resta} KM para a troca`;
+            statusDiv.innerHTML = `✅ ÓLEO EM DIA<br><small>Faltam ${resta} KM para a troca</small>`;
             statusDiv.style.background = "#e8f5e9"; statusDiv.style.color = "var(--success)"; statusDiv.style.borderColor = "var(--success)";
         }
     }
@@ -195,9 +208,18 @@
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             document.getElementById("idMot").value = d.id;
             const container = document.getElementById("containerOleo");
-            container.innerHTML = `<input type="${d.tipoOleo === "data" ? "date" : "number"}" id="proxOleo" oninput="calcularOleo()">`;
+            
+            // Define se o campo de óleo é data ou número para cálculo
+            if(d.tipoOleo === "data") {
+                container.innerHTML = `<input type="date" id="proxOleo" oninput="calcularOleo()">`;
+            } else {
+                container.innerHTML = `<input type="text" id="proxOleo" oninput="calcularOleo()" placeholder="KM Próxima Troca">`;
+            }
+            
             document.getElementById("proxOleo").value = d.oleo;
             if(d.tipoLubrificante) document.getElementById("tipoOleo").value = d.tipoLubrificante;
+            
+            // Dispara cálculo imediato se já houver KM inicial
             calcularOleo();
         };
         s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot`;
@@ -222,14 +244,14 @@
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
-            localStorage.setItem("trip_v10_5", JSON.stringify(d)); location.reload();
+            localStorage.setItem("trip_v10_6", JSON.stringify(d)); location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
         document.body.appendChild(s);
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v10_5"));
+        const d = JSON.parse(localStorage.getItem("trip_v10_6"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -251,7 +273,7 @@
                     emitirBip();
                     document.getElementById("agradecimento").innerText = "MUITO OBRIGADO, " + d.nome.split(' ')[0] + "!";
                     document.getElementById("msgSucesso").style.display = "flex"; 
-                    setTimeout(() => { enviarWhats(true, kf, hF); }, 2000); 
+                    setTimeout(() => { enviarWhats(true, kf, hF); }, 2500); 
                 }
             };
             s.src = `${URL}?acao=finalizar&tag=${d.tag}&nome=${encodeURIComponent(d.nome)}&kmf=${kf}&horaF=${hF}&obs=${encodeURIComponent(document.getElementById("obs").value)}&callback=cb_fin`;
@@ -260,21 +282,21 @@
     }
 
     function enviarWhats(isF, kf, hF) {
-        const d = JSON.parse(localStorage.getItem("trip_v10_5"));
+        const d = JSON.parse(localStorage.getItem("trip_v10_6"));
         const numId = d.id.replace(/\D/g, "").replace(/^0+/, "");
         const idT = `*ID*: CONDUTOR ${numId}`;
         let m = isF ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
         m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 ${idT}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
-        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Troca Óleo:* ${d.oleo}${d.oleo.includes('/') ? '' : ' KM'}\n`;
+        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Troca Óleo:* ${d.oleo}${d.oleo.includes('/') || isNaN(d.oleo.replace(/[^\d]/g,'')) ? '' : ' KM'}\n`;
         if(isF) {
             m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            localStorage.removeItem("trip_v10_5");
+            localStorage.removeItem("trip_v10_6");
         }
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
         if(isF) setTimeout(() => { location.reload(); }, 2000);
     }
 
-    window.onload = () => { sync(); const s = localStorage.getItem("trip_v10_5"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("trip_v10_6"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
 </script>
 </body>
 </html>
