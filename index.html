@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.9.8</title>
+    <title>TELEJUR v11.0.0</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ff9800; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -27,6 +27,7 @@
         .btn-final { background: var(--primary); }
         .readonly { background: #f9f9f9 !important; color: #444; font-weight: bold; }
         
+        #infoOleoAnterior { padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px; display: none; text-align: center; }
         #alertaBloqueio { background: #fff3f3; color: var(--danger); padding: 12px; border-radius: 8px; border: 2px solid var(--danger); font-size: 13px; font-weight: bold; margin-top: 15px; text-align: center; display: none; }
         hr { border: 0; border-top: 2px dashed #eee; margin: 25px 0; }
     </style>
@@ -68,10 +69,12 @@
         <input type="text" id="idMot" class="readonly" readonly placeholder="ID: CONDUTOR X">
 
         <label>KM Inicial</label>
-        <input type="number" id="kmi" inputmode="numeric" placeholder="KM de Saída">
+        <input type="number" id="kmi" inputmode="numeric" oninput="calcularOleo('inicio')" placeholder="KM de Saída">
 
-        <label>Próxima Troca Óleo (KM)</label>
-        <input type="text" id="proxOleo" placeholder="Ex: 156.223 KM">
+        <label>KM Próxima Troca Óleo</label>
+        <input type="number" id="proxOleo" inputmode="numeric" oninput="calcularOleo('inicio')" placeholder="Ex: 156223">
+        
+        <div id="infoOleoAnterior"></div>
 
         <div style="display:flex; gap:5px">
             <div style="flex:1">
@@ -100,7 +103,7 @@
         <button id="btnEnviarInicio" onclick="registrarEEnviar('inicio')" class="btn btn-inicio">✅ ENVIAR INÍCIO DE TRAJETO</button>
         <hr>
         <label>KM Final</label>
-        <input type="number" id="kmf" inputmode="numeric" placeholder="KM de Chegada">
+        <input type="number" id="kmf" inputmode="numeric" oninput="calcularOleo('final')" placeholder="KM de Chegada">
         <button id="btnEnviarFim" onclick="registrarEEnviar('final')" class="btn btn-final">🏁 ENVIAR FINAL DE TRAJETO</button>
     </div>
 </div>
@@ -108,7 +111,7 @@
 <script>
     const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
-    let cacheStatus = { ocupados: {}, contagem: {} };
+    let cacheStatus = { ocupados: {}, contagem: {}, ultimosOleos: {} };
 
     function chamarScript(params) {
         const s = document.createElement('script');
@@ -130,8 +133,6 @@
     function atualizarInterface() {
         const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
         const muncks = ["TJUR 04", "TJUR 07", "TJUR 09"];
-        
-        // NOVOS AUTORIZADOS CONFORME SOLICITADO
         const autorizados = ["LAFAITE BATISTA", "WALTER GONÇALVES", "REGINALDO"];
         
         const motorista = document.getElementById("nomeMot").value;
@@ -145,64 +146,98 @@
         painel.innerHTML = '';
 
         tags.forEach(t => {
-            const isOcupado = !!cacheStatus.ocupados[t];
+            const ocupadoObj = cacheStatus.ocupados[t];
             const isMunck = muncks.includes(t);
             const bloqueado = isMunck && !isMunckAuth && motorista !== "";
-            const count = (cacheStatus.contagem[t] || 0) + 1;
-
+            
             const opt = document.createElement('option');
             opt.value = t;
-            opt.setAttribute('data-count', count);
             if (bloqueado) {
                 opt.text = `🔒 ${t} (RESTRITO)`;
                 opt.disabled = true;
             } else {
-                opt.text = t + (isOcupado ? " (🔴 EM USO)" : "");
-                opt.disabled = isOcupado;
+                opt.text = t + (ocupadoObj ? ` (🔴 COM ${ocupadoObj.nome.split(' ')[0]})` : "");
             }
             selectTag.appendChild(opt);
 
-            let statusTXT = isOcupado ? `🔴 ${cacheStatus.ocupados[t].nome.split(' ')[0]}` : `🟢 LIVRE`;
-            let classe = isOcupado ? 'ocupado' : 'livre';
-            
-            if (bloqueado) {
-                classe = 'restrito';
-                statusTXT = `🔒 RESTRITO`;
-            }
+            let statusTXT = ocupadoObj ? `🔴 ${ocupadoObj.nome.split(' ')[0]}` : `🟢 LIVRE`;
+            let classe = ocupadoObj ? 'ocupado' : 'livre';
+            if (bloqueado) { classe = 'restrito'; statusTXT = `🔒 RESTRITO`; }
             painel.innerHTML += `<div class="v-box ${classe}"><b>${t}</b>${statusTXT}</div>`;
         });
-
         alerta.style.display = (!isMunckAuth && motorista !== "") ? "block" : "none";
     }
 
+    function calcularOleo(fase) {
+        const tag = document.getElementById("tag").value;
+        const kmAtual = parseFloat(document.getElementById(fase === 'inicio' ? 'kmi' : 'kmf').value);
+        let oleoProgramado = parseFloat(document.getElementById('proxOleo').value);
+        
+        // Se não digitou ainda, tenta pegar o último do cache daquela TAG
+        if (!oleoProgramado) oleoProgramado = parseFloat(cacheStatus.ultimosOleos[tag]);
+
+        const divInfo = document.getElementById("infoOleoAnterior");
+
+        if (!kmAtual || !oleoProgramado) {
+            divInfo.style.display = "none";
+            return;
+        }
+
+        const saldo = oleoProgramado - kmAtual;
+        divInfo.style.display = "block";
+
+        if (saldo > 0) {
+            divInfo.style.background = "#e8f5e9";
+            divInfo.style.color = "#2e7d32";
+            divInfo.innerHTML = `✅ <b>Faltam ${saldo.toLocaleString()} KM</b> para a troca.`;
+        } else {
+            divInfo.style.background = "#fff3f3";
+            divInfo.style.color = "#c62828";
+            divInfo.innerHTML = `⚠️ <b>Troca Vencida há ${Math.abs(saldo).toLocaleString()} KM!</b>`;
+        }
+    }
+
     function buscarDados() {
-        const t = document.getElementById("tag"), n = document.getElementById("nomeMot").value;
-        if(!t.value || !n) return;
-        let nTrajeto = t.options[t.selectedIndex].getAttribute('data-count') + "º Trajeto";
+        const t = document.getElementById("tag").value;
+        const n = document.getElementById("nomeMot").value;
+        if(!t || !n) return;
+
+        // Se o veículo estiver ocupado pelo motorista atual, preenche para finalizar
+        if (cacheStatus.ocupados[t] && cacheStatus.ocupados[t].nome === n) {
+            document.getElementById("kmi").value = cacheStatus.ocupados[t].kmi;
+            document.getElementById("proxOleo").value = cacheStatus.ocupados[t].oleoProg;
+            calcularOleo('inicio');
+        } else {
+            // Se for início, preenche o campo de próxima troca com o último registro conhecido
+            document.getElementById("proxOleo").value = cacheStatus.ultimosOleos[t] || "";
+            calcularOleo('inicio');
+        }
+
         window.processarMot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             document.getElementById("idMot").value = "ID: " + d.id;
-            window.trajetoAtual = nTrajeto;
         };
-        chamarScript({ acao: "buscarDadosMotorista", tag: t.value, nome: n, callback: "processarMot" });
+        chamarScript({ acao: "buscarDadosMotorista", tag: t, nome: n, callback: "processarMot" });
     }
 
     function registrarEEnviar(tipo) {
-        const tagVal = document.getElementById("tag").value;
-        if(!tagVal || !document.getElementById("nomeMot").value) { alert("Selecione Motorista e Veículo!"); return; }
+        const motorista = document.getElementById("nomeMot").value;
+        const tag = document.getElementById("tag").value;
+        if(!tag || !motorista) { alert("Selecione Motorista e TAG!"); return; }
 
         const d = {
-            data: dataH, tag: tagVal, id: document.getElementById("idMot").value,
-            nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value,
+            data: dataH, tag: tag, id: document.getElementById("idMot").value,
+            nome: motorista, kmi: document.getElementById("kmi").value,
             oleo: document.getElementById("proxOleo").value, corSelo: document.getElementById("corSelo").value,
             tipoOleo: document.getElementById("tipoOleo").value, validadeSelo: document.getElementById("validadeSelo").value,
-            obs: document.getElementById("obs").value || "Nenhuma", trajeto: window.trajetoAtual || "1º Trajeto",
+            obs: document.getElementById("obs").value || "Nenhuma",
+            trajeto: (cacheStatus.contagem[tag] || 0) + 1 + "º Trajeto",
             horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
         };
 
         if(tipo === 'inicio') {
             window.processarReg = (res) => {
-                const msg = window.encodeURIComponent(`✅ *CHECKLIST CONCLUÍDO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${d.id}*\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${res.v}\n🔢 *Placa:* ${res.p}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo.split('-').reverse().join('/')}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Próxima Troca Óleo:* ${d.oleo}\n---------------------------\n📝 *Obs:* ${d.obs}`);
+                const msg = window.encodeURIComponent(`✅ *INÍCIO DE TRAJETO*\n👤 *${d.nome}*\n🏷️ *TAG:* ${d.tag}\n📍 *Trajeto:* ${d.trajeto}\n📏 *KM Inicial:* ${d.kmi}\n⌛ *Troca Óleo:* ${d.oleo} KM`);
                 window.open(`https://api.whatsapp.com/send?text=${msg}`);
                 sync();
             };
@@ -210,13 +245,16 @@
         } else {
             const kf = document.getElementById("kmf").value;
             if(!kf) { alert("Informe o KM Final!"); return; }
-            const hf = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            window.processarFim = () => {
-                const msg = window.encodeURIComponent(`🏁 *TRAJETO FINALIZADO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${d.id}*\n👤 *Nome:* ${d.nome}\n📍 *Trajeto:* ${d.trajeto}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n📏 *KM Final:* ${kf}\n🕒 *Hora Chegada:* ${hf}\n📝 *Obs:* ${d.obs}\n---------------------------`);
-                window.open(`https://api.whatsapp.com/send?text=${msg}`);
-                location.reload();
+            window.processarFim = (res) => {
+                if(res.res === "erro") {
+                    alert("⚠️ Erro: Não foi encontrado um trajeto em aberto para você neste veículo.");
+                } else {
+                    const msg = window.encodeURIComponent(`🏁 *FINAL DE TRAJETO*\n👤 *${d.nome}*\n🏷️ *TAG:* ${d.tag}\n📏 *KM Final:* ${kf}`);
+                    window.open(`https://api.whatsapp.com/send?text=${msg}`);
+                    location.reload();
+                }
             };
-            chamarScript({acao: "finalizar", tag: d.tag, kmf: kf, horaF: hf, obs: d.obs, callback: "processarFim"});
+            chamarScript({acao: "finalizar", tag: d.tag, nome: motorista, kmf: kf, horaF: new Date().toLocaleTimeString('pt-BR'), obs: d.obs, callback: "processarFim"});
         }
     }
     window.onload = sync;
