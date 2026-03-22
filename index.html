@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.9.3</title>
+    <title>TELEJUR v10.9.4</title>
     <style>
-        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
+        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ff9800; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .grid-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-bottom: 15px; }
@@ -14,10 +14,11 @@
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; display: block; }
         .btn-inicio { background: var(--success); }
         .btn-final { background: var(--primary); }
         .readonly { background: #f9f9f9 !important; color: #444; font-weight: bold; }
+        #alertaBloqueio { background: #fff3e0; color: #e65100; padding: 10px; border-radius: 8px; border: 1px solid var(--warning); font-size: 13px; font-weight: bold; margin-top: 15px; text-align: center; display: none; }
         hr { border: 0; border-top: 2px dashed #eee; margin: 25px 0; }
     </style>
 </head>
@@ -52,6 +53,8 @@
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Veículo | Placa">
         <input type="text" id="idMot" class="readonly" readonly placeholder="ID: CONDUTOR X">
 
+        <div id="alertaBloqueio">⚠️ MOTORISTA NÃO AUTORIZADO PARA ESTE VEÍCULO (SKY MUNCK).</div>
+
         <label>KM Inicial</label>
         <input type="number" id="kmi" inputmode="numeric" placeholder="KM de Saída">
 
@@ -80,13 +83,13 @@
         </select>
 
         <label>Observações</label>
-        <textarea id="obs" rows="2" placeholder="Descreva problemas se houver..."></textarea>
+        <textarea id="obs" rows="2" placeholder="Observações..."></textarea>
 
-        <button onclick="registrarEEnviar('inicio')" class="btn btn-inicio">✅ ENVIAR INÍCIO DE TRAJETO</button>
+        <button id="btnEnviarInicio" onclick="registrarEEnviar('inicio')" class="btn btn-inicio">✅ ENVIAR INÍCIO DE TRAJETO</button>
         <hr>
         <label>KM Final</label>
         <input type="number" id="kmf" inputmode="numeric" placeholder="KM de Chegada">
-        <button onclick="registrarEEnviar('final')" class="btn btn-final">🏁 ENVIAR FINAL DE TRAJETO</button>
+        <button id="btnEnviarFim" onclick="registrarEEnviar('final')" class="btn btn-final">🏁 ENVIAR FINAL DE TRAJETO</button>
     </div>
 </div>
 
@@ -120,11 +123,33 @@
             return `<div class="v-box ${o?'ocupado':'livre'}"><b>${t}</b>${o?'🔴 '+o.nome.split(' ')[0]:'🟢 LIVRE'}</div>`;
         }).join('');
         document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
-    };
+        validarTrava();
+    }
+
+    function validarTrava() {
+        const motorista = document.getElementById("nomeMot").value;
+        const tag = document.getElementById("tag").value;
+        const muncks = ["TJUR 04", "TJUR 07", "TJUR 09"];
+        const autorizados = ["ADRIANO NASCIMENTO", "FRANCIVALDO COSTA"];
+        const alerta = document.getElementById("alertaBloqueio");
+        const btnI = document.getElementById("btnEnviarInicio");
+        const btnF = document.getElementById("btnEnviarFim");
+
+        if (muncks.includes(tag) && !autorizados.includes(motorista) && motorista !== "") {
+            alerta.style.display = "block";
+            btnI.style.display = "none";
+            btnF.style.display = "none";
+        } else {
+            alerta.style.display = "none";
+            btnI.style.display = "block";
+            btnF.style.display = "block";
+        }
+    }
 
     function buscarDados() {
         const t = document.getElementById("tag"), n = document.getElementById("nomeMot").value;
-        if(!t.value || !n) return;
+        if(!t.value || !n) { validarTrava(); return; }
+        validarTrava();
         nTrajeto = t.options[t.selectedIndex].getAttribute('data-count') + "º Trajeto";
         window.processarMot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
