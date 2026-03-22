@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v11.3</title>
+    <title>TELEJUR v11.6</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ef6c00; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -12,7 +12,11 @@
         .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
         .livre { background: #e8f5e9; color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
-        .bloqueado { background: #f5f5f5; color: #999; border-style: dashed; }
+        
+        /* NOVO: Estilo para a lista de IDs usados */
+        .id-badge-container { margin: 10px 0; padding: 10px; background: #fff3e0; border-radius: 8px; border: 1px solid var(--warning); }
+        .id-badge { display: inline-block; background: var(--warning); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin: 2px; font-weight: bold; }
+        
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         #statusOleo { margin-top: 10px; font-size: 14px; font-weight: bold; padding: 12px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; }
@@ -34,12 +38,17 @@
 
 <div class="card">
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v11_3');location.reload();}">🗑️ Reset</button>
+    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar?')){localStorage.removeItem('trip_v11_6');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v11.3</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v11.6</h2>
+    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Sincronizando...</p>
     
     <div id="painel" class="grid-status"></div>
+
+    <div id="containerIdsUsados" class="id-badge-container" style="display:none">
+        <span style="font-size: 10px; color: var(--warning); font-weight: bold;">IDs JÁ USADOS HOJE:</span><br>
+        <div id="listaIdsUsados"></div>
+    </div>
 
     <div id="formContainer">
         <label>Motorista</label>
@@ -64,18 +73,16 @@
             <option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option>
             <option value="TJUR 13">TJUR 13</option>
         </select>
-        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
+        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Placa/Veículo">
 
-        <label>ID Condutor</label>
-        <input type="text" id="idMot" class="readonly" readonly>
+        <label>ID Atribuído</label>
+        <input type="text" id="idMot" class="readonly" readonly placeholder="Aguardando...">
 
         <label>Cor do Selo</label>
         <select id="corSelo">
             <option value="">-- SELECIONE --</option>
-            <option value="VERDE">VERDE</option>
-            <option value="VERMELHO">VERMELHO</option>
-            <option value="AZUL">AZUL</option>
-            <option value="AMARELO">AMARELO</option>
+            <option value="VERDE">VERDE</option><option value="VERMELHO">VERMELHO</option>
+            <option value="AZUL">AZUL</option><option value="AMARELO">AMARELO</option>
         </select>
 
         <label>Validade Selo</label>
@@ -84,7 +91,7 @@
         <label>KM Inicial</label>
         <input type="number" id="kmi" oninput="calcularOleo()">
 
-        <label id="labelOleo">Próx. troca óleo</label>
+        <label id="labelOleo">Próxima troca de óleo</label>
         <div id="containerOleo">
             <input type="text" id="proxOleo" oninput="calcularOleo()" placeholder="Carregando...">
         </div>
@@ -94,10 +101,8 @@
         <label>Tipo de Óleo</label>
         <select id="tipoOleo">
             <option value="">-- SELECIONE --</option>
-            <option value="15W40">15W40</option>
-            <option value="5W30">5W30</option>
-            <option value="10W40">10W40</option>
-            <option value="20W50">20W50</option>
+            <option value="15W40">15W40</option><option value="5W30">5W30</option>
+            <option value="10W40">10W40</option><option value="20W50">20W50</option>
             <option value="OUTRO">OUTRO / NÃO INFORMADO</option>
         </select>
 
@@ -121,18 +126,47 @@
 <script>
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
-    let idsOcupadosNoDia = [];
+    let idsJaUsadosHoje = [];
 
-    function emitirBip() {
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-        } catch(e) {}
+    // --- CORREÇÃO: IGNORE PONTOS NO KM (v11.6) ---
+    function formatarNumeroKM(val) {
+        if(!val) return 0;
+        // Remove pontos de milhar e converte vírgula em decimal se necessário
+        let limpo = String(val).replace(/\./g, '').replace(',', '.');
+        return parseFloat(limpo) || 0;
+    }
+
+    async function sync() {
+        return new Promise((resolve) => {
+            const s = document.createElement('script');
+            const ts = new Date().getTime();
+            window.cb_sync = (res) => {
+                idsJaUsadosHoje = res.idsOcupados || [];
+                
+                // Atualiza Painel de IDs Usados
+                const container = document.getElementById('containerIdsUsados');
+                const lista = document.getElementById('listaIdsUsados');
+                if(idsJaUsadosHoje.length > 0) {
+                    container.style.display = 'block';
+                    lista.innerHTML = idsJaUsadosHoje.map(id => `<span class="id-badge">${id}</span>`).join('');
+                } else { container.style.display = 'none'; }
+
+                const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
+                const painel = document.getElementById('painel');
+                painel.innerHTML = '';
+                tags.forEach(t => {
+                    const infoOcupado = res.ocupados[t];
+                    let classe = infoOcupado ? 'ocupado' : 'livre';
+                    let statusTxt = infoOcupado ? '🔴 '+infoOcupado.nome.split(' ')[0] : '🟢 LIVRE';
+                    painel.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
+                });
+                document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
+                if(s.parentNode) document.body.removeChild(s);
+                resolve();
+            };
+            s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${ts}`;
+            document.body.appendChild(s);
+        });
     }
 
     function calcularOleo() {
@@ -153,12 +187,15 @@
                 txtInfo = `✅ EM DIA: FALTAM ${diffDias} DIAS`; cor = "#e8f5e9"; txtWhats = `✅ EM DIA (Faltam ${diffDias} dias)`;
             }
         } else {
-            const proxKM = parseFloat(campoProx.value.replace(/[^\d]/g, ''));
-            const kmInicial = parseFloat(document.getElementById('kmi').value) || 0;
-            const kmFinal = parseFloat(document.getElementById('kmf').value) || 0;
+            // CORREÇÃO: IGNORANDO PONTOS NA CONTA
+            const proxKM = formatarNumeroKM(campoProx.value);
+            const kmInicial = formatarNumeroKM(document.getElementById('kmi').value);
+            const kmFinal = formatarNumeroKM(document.getElementById('kmf').value);
             const kmAtual = (kmFinal > 0) ? kmFinal : kmInicial;
-            if (isNaN(proxKM) || kmAtual === 0) { statusDiv.style.display = "none"; return; }
-            const resta = proxKM - kmAtual;
+            
+            if (proxKM === 0 || kmAtual === 0) { statusDiv.style.display = "none"; return; }
+            
+            const resta = Math.floor(proxKM - kmAtual);
             if (resta <= 0) {
                 txtInfo = `⚠️ VENCIDO EM ${Math.abs(resta)} KM`; cor = "#ffebee"; txtWhats = `🚨 VENCIDO (Excedido em ${Math.abs(resta)} KM)`;
             } else {
@@ -169,64 +206,51 @@
         hiddenStatus.value = txtWhats;
     }
 
-    async function sync() {
-        const s = document.createElement('script');
-        const timestamp = new Date().getTime();
-        window.cb_sync = (res) => {
-            idsOcupadosNoDia = res.idsOcupados || [];
-            const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-            const selT = document.getElementById('tag'), painel = document.getElementById('painel');
-            painel.innerHTML = '';
-            tags.forEach(t => {
-                const infoOcupado = res.ocupados[t];
-                let classe = infoOcupado ? 'ocupado' : 'livre';
-                let statusTxt = infoOcupado ? '🔴 '+infoOcupado.nome.split(' ')[0] : '🟢 LIVRE';
-                painel.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
-            });
-            document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
-            if(s.parentNode) document.body.removeChild(s);
-        };
-        s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${timestamp}`;
-        document.body.appendChild(s);
-    }
-    setInterval(sync, 15000); // Sincroniza mais rápido (15s)
-
     async function buscarDados() {
         const t = document.getElementById("tag").value, n = document.getElementById("nomeMot").value;
         if(!t || !n) return;
-        
-        // Antes de buscar dados, forçamos uma sincronização de IDs
-        await sync();
+        document.getElementById("idMot").value = "Calculando ID...";
+        await sync(); 
 
         const s = document.createElement('script');
         window.cb_mot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             
-            // LÓGICA DE SEQUÊNCIA DE ID - V11.3
-            // Filtramos apenas os números de todos os IDs detectados na planilha hoje
-            let numeros = idsOcupadosNoDia.map(id => {
-                let n = String(id).replace(/[^\d]/g, '');
+            // LÓGICA DE SEQUÊNCIA DE ID - v11.6
+            let numerosUsados = idsJaUsadosHoje.map(idStr => {
+                let n = String(idStr).replace(/[^\d]/g, '');
                 return n ? parseInt(n) : 0;
             });
-            
-            let proximoNumero = (numeros.length > 0) ? Math.max(...numeros) + 1 : 1;
-            document.getElementById("idMot").value = `ID ${proximoNumero < 10 ? '0' + proximoNumero : proximoNumero}`;
+            let maiorNum = (numerosUsados.length > 0) ? Math.max(...numerosUsados) : 0;
+            let novoID = maiorNum + 1;
+            document.getElementById("idMot").value = `ID ${novoID < 10 ? '0' + novoID : novoID}`;
 
             const container = document.getElementById("containerOleo");
-            container.innerHTML = `<input type="${d.tipoOleo === "data" ? "date" : "number"}" id="proxOleo" oninput="calcularOleo()">`;
+            container.innerHTML = `<input type="${d.tipoOleo === "data" ? "date" : "text"}" id="proxOleo" oninput="calcularOleo()">`;
             document.getElementById("proxOleo").value = d.oleo;
             if(d.tipoLubrificante) document.getElementById("tipoOleo").value = d.tipoLubrificante;
             calcularOleo();
+            if(s.parentNode) document.body.removeChild(s);
         };
         s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot&_=${new Date().getTime()}`;
         document.body.appendChild(s);
     }
 
-    function salvarSaida() {
+    async function salvarSaida() {
+        const idAtual = document.getElementById("idMot").value;
+        await sync(); 
+        
+        // TRAVA LÓGICA ANTI-DUPLICIDADE
+        if(idsJaUsadosHoje.some(id => String(id).trim() === idAtual.trim())) {
+            alert(`ATENÇÃO: O ${idAtual} acabou de ser usado. O sistema vai gerar o próximo ID.`);
+            buscarDados(); return;
+        }
+
         let valOleo = document.getElementById("proxOleo").value;
         if(document.getElementById("proxOleo").type === "date" && valOleo) valOleo = new Date(valOleo + "T12:00:00").toLocaleDateString('pt-BR');
+        
         const d = {
-            data: dataH, tag: document.getElementById("tag").value, id: document.getElementById("idMot").value,
+            data: dataH, tag: document.getElementById("tag").value, id: idAtual,
             nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value, 
             oleo: valOleo, corSelo: document.getElementById("corSelo").value,
             tipoOleo: document.getElementById("tipoOleo").value,
@@ -235,18 +259,20 @@
             validadeSelo: document.getElementById("validadeSelo").value ? new Date(document.getElementById("validadeSelo").value + "T12:00:00").toLocaleDateString('pt-BR') : "",
             acao: "registrar", callback: "cb_reg"
         };
-        if(!d.tag || !d.kmi || !d.nome || !d.validadeSelo || !d.oleo || !d.corSelo || !d.tipoOleo) return alert("Preencha todos os campos!");
+
+        if(!d.tag || !d.kmi || !d.nome || !d.validadeSelo || !d.oleo || !d.corSelo || !d.tipoOleo) return alert("Preencha tudo!");
+
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
-            localStorage.setItem("trip_v11_3", JSON.stringify(d)); location.reload();
+            localStorage.setItem("trip_v11_6", JSON.stringify(d)); location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
         document.body.appendChild(s);
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v11_3"));
+        const d = JSON.parse(localStorage.getItem("trip_v11_6"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -265,7 +291,7 @@
             calcularOleo();
             const s = document.createElement('script'), hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             window.cb_fin = (res) => { 
-                if(res.res === "fim") { emitirBip(); document.getElementById("agradecimento").innerText = "MUITO OBRIGADO, " + d.nome.split(' ')[0] + "!"; document.getElementById("msgSucesso").style.display = "flex"; setTimeout(() => { enviarWhats(true, kf, hF); }, 2500); }
+                if(res.res === "fim") { document.getElementById("agradecimento").innerText = "OBRIGADO, " + d.nome.split(' ')[0] + "!"; document.getElementById("msgSucesso").style.display = "flex"; setTimeout(() => { enviarWhats(true, kf, hF); }, 2500); }
             };
             s.src = `${URL}?acao=finalizar&tag=${d.tag}&nome=${encodeURIComponent(d.nome)}&kmf=${kf}&horaF=${hF}&obs=${encodeURIComponent(document.getElementById("obs").value)}&callback=cb_fin`;
             document.body.appendChild(s);
@@ -273,19 +299,20 @@
     }
 
     function enviarWhats(isF, kf, hF) {
-        const d = JSON.parse(localStorage.getItem("trip_v11_3"));
+        const d = JSON.parse(localStorage.getItem("trip_v11_6"));
         let stOleoFinal = document.getElementById("statusOleoTexto").value || d.stOleo;
         let m = isF ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
         m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
         m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Limite Troca:* ${d.oleo}\n🛠️ *Status Óleo:* ${stOleoFinal}\n`;
         if(isF) {
             m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            localStorage.removeItem("trip_v11_3");
+            localStorage.removeItem("trip_v11_6");
         }
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
         if(isF) setTimeout(() => { location.reload(); }, 2000);
     }
-    window.onload = () => { sync(); const s = localStorage.getItem("trip_v11_3"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("trip_v11_6"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    setInterval(sync, 20000);
 </script>
 </body>
 </html>
