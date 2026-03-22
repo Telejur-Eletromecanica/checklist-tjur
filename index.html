@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.3</title>
+    <title>TELEJUR v10.4</title>
     <style>
+        /* [ESTILOS ORIGINAIS MANTIDOS] */
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
@@ -15,12 +16,10 @@
         .bloqueado { background: #f5f5f5; color: #999; border-style: dashed; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        
         #corSelo option[value="VERDE"] { background-color: #c8e6c9; color: #1b5e20; }
         #corSelo option[value="VERMELHO"] { background-color: #ffcdd2; color: #b71c1c; }
         #corSelo option[value="AZUL"] { background-color: #bbdefb; color: #0d47a1; }
         #corSelo option[value="AMARELO"] { background-color: #fff9c4; color: #f57f17; }
-
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-azul { background: var(--primary); color: white; }
         .btn-refresh { background: #555; color: white; padding: 6px 10px; font-size: 10px; border-radius: 5px; cursor: pointer; border:none; float: right; margin-left: 5px; }
@@ -41,7 +40,7 @@
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
     <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v10_3');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.3</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.4</h2>
     <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
     
     <div id="painel" class="grid-status"></div>
@@ -72,7 +71,7 @@
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
 
         <label>ID Condutor</label>
-        <input type="text" id="idMot" class="readonly" readonly>
+        <input type="text" id="idMot" class="readonly" readonly placeholder="Aguardando TAG...">
 
         <label>Cor do Selo</label>
         <select id="corSelo">
@@ -123,7 +122,6 @@
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
 
-    // Função para emitir o BIP sonoro
     function emitirBip() {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
@@ -131,10 +129,10 @@
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Frequência do bip
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
         gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
         oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.15); // Duração curta
+        oscillator.stop(audioCtx.currentTime + 0.15);
     }
 
     async function sync() {
@@ -178,13 +176,17 @@
     }
     setInterval(sync, 20000);
 
+    // --- NOVA LÓGICA DE ID AUTOMÁTICO ADICIONADA AQUI ---
     async function buscarDados() {
         const t = document.getElementById("tag").value, n = document.getElementById("nomeMot").value;
         if(!t || !n) return;
         const s = document.createElement('script');
         window.cb_mot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
-            document.getElementById("idMot").value = d.id;
+            
+            // Atribui o ID Condutor vindo da API (que já calcula o próximo livre na planilha)
+            document.getElementById("idMot").value = d.id; 
+
             const container = document.getElementById("containerOleo");
             if(d.tipoOleo === "data") {
                 container.innerHTML = `<input type="date" id="proxOleo">`;
@@ -195,11 +197,14 @@
             }
             document.getElementById("proxOleo").value = d.oleo;
             if(d.tipoLubrificante) document.getElementById("tipoOleo").value = d.tipoLubrificante;
+            if(s.parentNode) document.body.removeChild(s);
         };
-        s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot`;
+        // Chama a API que agora verifica o histórico do dia para a TAG selecionada
+        s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&data=${dataH}&callback=cb_mot`;
         document.body.appendChild(s);
     }
 
+    // [RESTANTE DO CÓDIGO ORIGINAL MANTIDO SEM ALTERAÇÕES]
     function salvarSaida() {
         let valOleo = document.getElementById("proxOleo").value;
         if(document.getElementById("proxOleo").type === "date") {
