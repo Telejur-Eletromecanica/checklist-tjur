@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.9.6</title>
+    <title>TELEJUR v10.9.8</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ff9800; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
         .header-box { text-align: center; margin-bottom: 20px; }
-        .header-box h1 { color: var(--primary); font-size: 18px; margin: 0; text-transform: uppercase; }
+        .header-box h1 { color: var(--primary); font-size: 18px; margin: 0; text-transform: uppercase; line-height: 1.2; }
         .header-box h2 { color: #555; font-size: 14px; margin: 5px 0 0 0; font-weight: normal; }
         
         .grid-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-bottom: 15px; }
-        .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; min-height: 45px; display: flex; flex-direction: column; justify-content: center; transition: 0.3s; }
+        .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; min-height: 45px; display: flex; flex-direction: column; justify-content: center; }
         .livre { background: #e8f5e9; color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
-        .restrito { background: #eeeeee; color: #999; border-style: dashed; filter: grayscale(1); }
+        .restrito { background: #f5f5f5; color: #bbb; border-style: dashed; }
         
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
@@ -27,7 +27,7 @@
         .btn-final { background: var(--primary); }
         .readonly { background: #f9f9f9 !important; color: #444; font-weight: bold; }
         
-        #alertaBloqueio { background: #ffebee; color: var(--danger); padding: 10px; border-radius: 8px; border: 1px solid var(--danger); font-size: 12px; font-weight: bold; margin-top: 15px; text-align: center; display: none; }
+        #alertaBloqueio { background: #fff3f3; color: var(--danger); padding: 12px; border-radius: 8px; border: 2px solid var(--danger); font-size: 13px; font-weight: bold; margin-top: 15px; text-align: center; display: none; }
         hr { border: 0; border-top: 2px dashed #eee; margin: 25px 0; }
     </style>
 </head>
@@ -44,8 +44,8 @@
 
     <div id="formFull">
         <label>Motorista</label>
-        <select id="nomeMot" onchange="sync()">
-            <option value="">-- SELECIONE --</option>
+        <select id="nomeMot" onchange="atualizarInterface()">
+            <option value="">-- SELECIONE O MOTORISTA --</option>
             <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
             <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
             <option value="FRANCINILDO TEXEIRA">FRANCINILDO TEXEIRA</option>
@@ -57,11 +57,11 @@
             <option value="EZEQUIEL">EZEQUIEL</option>
         </select>
 
-        <div id="alertaBloqueio">🔒 ACESSO RESTRITO: MOTORISTA NÃO AUTORIZADO PARA SKY MUNCK.</div>
+        <div id="alertaBloqueio">🔒 ACESSO RESTRITO:<br>MOTORISTA NÃO AUTORIZADO PARA SKY MUNCK (04, 07, 09).</div>
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="buscarDados()">
-            <option value="">-- SELECIONE O MOTORISTA --</option>
+            <option value="">-- SELECIONE A TAG --</option>
         </select>
         
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Veículo | Placa">
@@ -108,7 +108,7 @@
 <script>
     const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
-    let nTrajeto = "1º Trajeto";
+    let cacheStatus = { ocupados: {}, contagem: {} };
 
     function chamarScript(params) {
         const s = document.createElement('script');
@@ -122,9 +122,17 @@
     }
 
     window.processarSync = (res) => {
+        cacheStatus = res;
+        atualizarInterface();
+        document.getElementById('txtSync').innerText = "Última atualização: " + new Date().toLocaleTimeString();
+    }
+
+    function atualizarInterface() {
         const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
         const muncks = ["TJUR 04", "TJUR 07", "TJUR 09"];
-        const autorizados = ["ADRIANO NASCIMENTO", "FRANCIVALDO COSTA"];
+        
+        // NOVOS AUTORIZADOS CONFORME SOLICITADO
+        const autorizados = ["LAFAITE BATISTA", "WALTER GONÇALVES", "REGINALDO"];
         
         const motorista = document.getElementById("nomeMot").value;
         const selectTag = document.getElementById('tag');
@@ -137,15 +145,14 @@
         painel.innerHTML = '';
 
         tags.forEach(t => {
-            const isOcupado = !!res.ocupados[t];
+            const isOcupado = !!cacheStatus.ocupados[t];
             const isMunck = muncks.includes(t);
             const bloqueado = isMunck && !isMunckAuth && motorista !== "";
-            const count = (res.contagem[t] || 0) + 1;
+            const count = (cacheStatus.contagem[t] || 0) + 1;
 
             const opt = document.createElement('option');
             opt.value = t;
             opt.setAttribute('data-count', count);
-            
             if (bloqueado) {
                 opt.text = `🔒 ${t} (RESTRITO)`;
                 opt.disabled = true;
@@ -155,45 +162,41 @@
             }
             selectTag.appendChild(opt);
 
-            let statusHTML = '';
-            let classeCor = isOcupado ? 'ocupado' : 'livre';
+            let statusTXT = isOcupado ? `🔴 ${cacheStatus.ocupados[t].nome.split(' ')[0]}` : `🟢 LIVRE`;
+            let classe = isOcupado ? 'ocupado' : 'livre';
             
             if (bloqueado) {
-                classeCor = 'restrito';
-                statusHTML = `🔒 RESTRITO`;
-            } else if (isOcupado) {
-                statusHTML = `🔴 ${res.ocupados[t].nome.split(' ')[0]}`;
-            } else {
-                statusHTML = `🟢 LIVRE`;
+                classe = 'restrito';
+                statusTXT = `🔒 RESTRITO`;
             }
-            painel.innerHTML += `<div class="v-box ${classeCor}"><b>${t}</b>${statusHTML}</div>`;
+            painel.innerHTML += `<div class="v-box ${classe}"><b>${t}</b>${statusTXT}</div>`;
         });
 
         alerta.style.display = (!isMunckAuth && motorista !== "") ? "block" : "none";
-        document.getElementById('txtSync').innerText = "Última atualização: " + new Date().toLocaleTimeString();
     }
 
     function buscarDados() {
         const t = document.getElementById("tag"), n = document.getElementById("nomeMot").value;
         if(!t.value || !n) return;
-        nTrajeto = t.options[t.selectedIndex].getAttribute('data-count') + "º Trajeto";
+        let nTrajeto = t.options[t.selectedIndex].getAttribute('data-count') + "º Trajeto";
         window.processarMot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             document.getElementById("idMot").value = "ID: " + d.id;
+            window.trajetoAtual = nTrajeto;
         };
         chamarScript({ acao: "buscarDadosMotorista", tag: t.value, nome: n, callback: "processarMot" });
     }
 
     function registrarEEnviar(tipo) {
         const tagVal = document.getElementById("tag").value;
-        if(!tagVal) { alert("Selecione um veículo!"); return; }
+        if(!tagVal || !document.getElementById("nomeMot").value) { alert("Selecione Motorista e Veículo!"); return; }
 
         const d = {
             data: dataH, tag: tagVal, id: document.getElementById("idMot").value,
             nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value,
             oleo: document.getElementById("proxOleo").value, corSelo: document.getElementById("corSelo").value,
             tipoOleo: document.getElementById("tipoOleo").value, validadeSelo: document.getElementById("validadeSelo").value,
-            obs: document.getElementById("obs").value || "Nenhuma", trajeto: nTrajeto,
+            obs: document.getElementById("obs").value || "Nenhuma", trajeto: window.trajetoAtual || "1º Trajeto",
             horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
         };
 
