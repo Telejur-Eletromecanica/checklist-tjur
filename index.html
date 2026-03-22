@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v11.6</title>
+    <title>TELEJUR v11.7</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ef6c00; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -12,11 +12,8 @@
         .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
         .livre { background: #e8f5e9; color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
-        
-        /* NOVO: Estilo para a lista de IDs usados */
         .id-badge-container { margin: 10px 0; padding: 10px; background: #fff3e0; border-radius: 8px; border: 1px solid var(--warning); }
         .id-badge { display: inline-block; background: var(--warning); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin: 2px; font-weight: bold; }
-        
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         #statusOleo { margin-top: 10px; font-size: 14px; font-weight: bold; padding: 12px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; }
@@ -38,15 +35,15 @@
 
 <div class="card">
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar?')){localStorage.removeItem('trip_v11_6');location.reload();}">🗑️ Reset</button>
+    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar?')){localStorage.removeItem('trip_v11_7');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v11.6</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v11.7</h2>
     <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Sincronizando...</p>
     
     <div id="painel" class="grid-status"></div>
 
     <div id="containerIdsUsados" class="id-badge-container" style="display:none">
-        <span style="font-size: 10px; color: var(--warning); font-weight: bold;">IDs JÁ USADOS HOJE:</span><br>
+        <span style="font-size: 10px; color: var(--warning); font-weight: bold;">FILA DE HOJE:</span><br>
         <div id="listaIdsUsados"></div>
     </div>
 
@@ -73,10 +70,10 @@
             <option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option>
             <option value="TJUR 13">TJUR 13</option>
         </select>
-        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Placa/Veículo">
+        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
 
         <label>ID Atribuído</label>
-        <input type="text" id="idMot" class="readonly" readonly placeholder="Aguardando...">
+        <input type="text" id="idMot" class="readonly" readonly placeholder="Gerando número na fila...">
 
         <label>Cor do Selo</label>
         <select id="corSelo">
@@ -128,12 +125,9 @@
     const dataH = new Date().toLocaleDateString('pt-BR');
     let idsJaUsadosHoje = [];
 
-    // --- CORREÇÃO: IGNORE PONTOS NO KM (v11.6) ---
     function formatarNumeroKM(val) {
         if(!val) return 0;
-        // Remove pontos de milhar e converte vírgula em decimal se necessário
-        let limpo = String(val).replace(/\./g, '').replace(',', '.');
-        return parseFloat(limpo) || 0;
+        return parseFloat(String(val).replace(/\./g, '').replace(',', '.')) || 0;
     }
 
     async function sync() {
@@ -142,8 +136,6 @@
             const ts = new Date().getTime();
             window.cb_sync = (res) => {
                 idsJaUsadosHoje = res.idsOcupados || [];
-                
-                // Atualiza Painel de IDs Usados
                 const container = document.getElementById('containerIdsUsados');
                 const lista = document.getElementById('listaIdsUsados');
                 if(idsJaUsadosHoje.length > 0) {
@@ -187,14 +179,11 @@
                 txtInfo = `✅ EM DIA: FALTAM ${diffDias} DIAS`; cor = "#e8f5e9"; txtWhats = `✅ EM DIA (Faltam ${diffDias} dias)`;
             }
         } else {
-            // CORREÇÃO: IGNORANDO PONTOS NA CONTA
             const proxKM = formatarNumeroKM(campoProx.value);
             const kmInicial = formatarNumeroKM(document.getElementById('kmi').value);
             const kmFinal = formatarNumeroKM(document.getElementById('kmf').value);
             const kmAtual = (kmFinal > 0) ? kmFinal : kmInicial;
-            
             if (proxKM === 0 || kmAtual === 0) { statusDiv.style.display = "none"; return; }
-            
             const resta = Math.floor(proxKM - kmAtual);
             if (resta <= 0) {
                 txtInfo = `⚠️ VENCIDO EM ${Math.abs(resta)} KM`; cor = "#ffebee"; txtWhats = `🚨 VENCIDO (Excedido em ${Math.abs(resta)} KM)`;
@@ -209,21 +198,23 @@
     async function buscarDados() {
         const t = document.getElementById("tag").value, n = document.getElementById("nomeMot").value;
         if(!t || !n) return;
-        document.getElementById("idMot").value = "Calculando ID...";
+        document.getElementById("idMot").value = "Gerando ID...";
         await sync(); 
 
         const s = document.createElement('script');
         window.cb_mot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             
-            // LÓGICA DE SEQUÊNCIA DE ID - v11.6
+            // LÓGICA DE FILA CORRIGIDA (v11.7)
             let numerosUsados = idsJaUsadosHoje.map(idStr => {
-                let n = String(idStr).replace(/[^\d]/g, '');
-                return n ? parseInt(n) : 0;
+                let extraido = String(idStr).replace(/[^\d]/g, '');
+                return extraido ? parseInt(extraido) : 0;
             });
-            let maiorNum = (numerosUsados.length > 0) ? Math.max(...numerosUsados) : 0;
-            let novoID = maiorNum + 1;
-            document.getElementById("idMot").value = `ID ${novoID < 10 ? '0' + novoID : novoID}`;
+            let maior = (numerosUsados.length > 0) ? Math.max(...numerosUsados) : 0;
+            let proxNum = maior + 1;
+            // Formata o número com zero à esquerda
+            let numFormatado = proxNum < 10 ? '0' + proxNum : proxNum;
+            document.getElementById("idMot").value = numFormatado;
 
             const container = document.getElementById("containerOleo");
             container.innerHTML = `<input type="${d.tipoOleo === "data" ? "date" : "text"}" id="proxOleo" oninput="calcularOleo()">`;
@@ -237,12 +228,12 @@
     }
 
     async function salvarSaida() {
-        const idAtual = document.getElementById("idMot").value;
+        const idSimples = document.getElementById("idMot").value;
         await sync(); 
         
-        // TRAVA LÓGICA ANTI-DUPLICIDADE
-        if(idsJaUsadosHoje.some(id => String(id).trim() === idAtual.trim())) {
-            alert(`ATENÇÃO: O ${idAtual} acabou de ser usado. O sistema vai gerar o próximo ID.`);
+        // Verifica se o ID simples (01, 02...) já existe na lista
+        if(idsJaUsadosHoje.some(id => String(id).includes(idSimples))) {
+            alert(`O número ${idSimples} já foi usado agora. Atualizando fila...`);
             buscarDados(); return;
         }
 
@@ -250,7 +241,7 @@
         if(document.getElementById("proxOleo").type === "date" && valOleo) valOleo = new Date(valOleo + "T12:00:00").toLocaleDateString('pt-BR');
         
         const d = {
-            data: dataH, tag: document.getElementById("tag").value, id: idAtual,
+            data: dataH, tag: document.getElementById("tag").value, id: idSimples,
             nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value, 
             oleo: valOleo, corSelo: document.getElementById("corSelo").value,
             tipoOleo: document.getElementById("tipoOleo").value,
@@ -265,14 +256,14 @@
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
-            localStorage.setItem("trip_v11_6", JSON.stringify(d)); location.reload();
+            localStorage.setItem("trip_v11_7", JSON.stringify(d)); location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
         document.body.appendChild(s);
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v11_6"));
+        const d = JSON.parse(localStorage.getItem("trip_v11_7"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -299,19 +290,23 @@
     }
 
     function enviarWhats(isF, kf, hF) {
-        const d = JSON.parse(localStorage.getItem("trip_v11_6"));
+        const d = JSON.parse(localStorage.getItem("trip_v11_7"));
         let stOleoFinal = document.getElementById("statusOleoTexto").value || d.stOleo;
+        
+        // --- FORMATAÇÃO ID: CONDUTOR (v11.7) ---
+        let idWhatsApp = "ID: CONDUTOR " + d.id;
+        
         let m = isF ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
-        m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
+        m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *${idWhatsApp}*\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
         m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Limite Troca:* ${d.oleo}\n🛠️ *Status Óleo:* ${stOleoFinal}\n`;
         if(isF) {
             m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            localStorage.removeItem("trip_v11_6");
+            localStorage.removeItem("trip_v11_7");
         }
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
         if(isF) setTimeout(() => { location.reload(); }, 2000);
     }
-    window.onload = () => { sync(); const s = localStorage.getItem("trip_v11_6"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("trip_v11_7"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
     setInterval(sync, 20000);
 </script>
 </body>
