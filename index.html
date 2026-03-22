@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v11.2</title>
+    <title>TELEJUR v11.3</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ef6c00; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -34,9 +34,9 @@
 
 <div class="card">
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v11_2');location.reload();}">🗑️ Reset</button>
+    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v11_3');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v11.2</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v11.3</h2>
     <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
     
     <div id="painel" class="grid-status"></div>
@@ -171,49 +171,46 @@
 
     async function sync() {
         const s = document.createElement('script');
-        const motSel = document.getElementById('nomeMot').value;
-        const autorizadosSky = ["REGINALDO", "LAFAITE BATISTA", "WALTER GONÇALVES"];
+        const timestamp = new Date().getTime();
         window.cb_sync = (res) => {
             idsOcupadosNoDia = res.idsOcupados || [];
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
             const selT = document.getElementById('tag'), painel = document.getElementById('painel');
             painel.innerHTML = '';
             tags.forEach(t => {
-                const infoOcupado = res.ocupados[t], infoFrota = res.frota[t];
-                const isSky = infoFrota.veiculo === "SKY MUNCK", bloqueado = (isSky && !autorizadosSky.includes(motSel));
-                const opt = Array.from(selT.options).find(o => o.value === t);
-                if(opt) {
-                    if(infoOcupado) { opt.disabled = true; opt.text = t + " (EM USO)"; }
-                    else if(bloqueado) { opt.disabled = true; opt.text = t + " (RESTRITO)"; }
-                    else { opt.disabled = false; opt.text = t; }
-                }
-                let classe = infoOcupado ? 'ocupado' : (bloqueado ? 'bloqueado' : 'livre');
-                let statusTxt = infoOcupado ? '🔴 '+infoOcupado.nome.split(' ')[0] : (bloqueado ? '🔒 RESTRITO' : '🟢 LIVRE');
+                const infoOcupado = res.ocupados[t];
+                let classe = infoOcupado ? 'ocupado' : 'livre';
+                let statusTxt = infoOcupado ? '🔴 '+infoOcupado.nome.split(' ')[0] : '🟢 LIVRE';
                 painel.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
             });
             document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
             if(s.parentNode) document.body.removeChild(s);
         };
-        s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${new Date().getTime()}`;
+        s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${timestamp}`;
         document.body.appendChild(s);
     }
-    setInterval(sync, 20000);
+    setInterval(sync, 15000); // Sincroniza mais rápido (15s)
 
     async function buscarDados() {
         const t = document.getElementById("tag").value, n = document.getElementById("nomeMot").value;
         if(!t || !n) return;
+        
+        // Antes de buscar dados, forçamos uma sincronização de IDs
+        await sync();
+
         const s = document.createElement('script');
         window.cb_mot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             
-            // LÓGICA DE ID PADRONIZADA (V11.2) - SOMENTE "ID XX"
-            let numerosOcupados = idsOcupadosNoDia.map(id => {
-                const extrair = String(id).replace(/[^\d]/g, '');
-                return extrair ? parseInt(extrair) : 0;
+            // LÓGICA DE SEQUÊNCIA DE ID - V11.3
+            // Filtramos apenas os números de todos os IDs detectados na planilha hoje
+            let numeros = idsOcupadosNoDia.map(id => {
+                let n = String(id).replace(/[^\d]/g, '');
+                return n ? parseInt(n) : 0;
             });
-            let maiorId = numerosOcupados.length > 0 ? Math.max(...numerosOcupados) : 0;
-            let novoNum = maiorId + 1;
-            document.getElementById("idMot").value = `ID ${novoNum < 10 ? '0' + novoNum : novoNum}`;
+            
+            let proximoNumero = (numeros.length > 0) ? Math.max(...numeros) + 1 : 1;
+            document.getElementById("idMot").value = `ID ${proximoNumero < 10 ? '0' + proximoNumero : proximoNumero}`;
 
             const container = document.getElementById("containerOleo");
             container.innerHTML = `<input type="${d.tipoOleo === "data" ? "date" : "number"}" id="proxOleo" oninput="calcularOleo()">`;
@@ -221,7 +218,7 @@
             if(d.tipoLubrificante) document.getElementById("tipoOleo").value = d.tipoLubrificante;
             calcularOleo();
         };
-        s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot`;
+        s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot&_=${new Date().getTime()}`;
         document.body.appendChild(s);
     }
 
@@ -242,14 +239,14 @@
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
-            localStorage.setItem("trip_v11_2", JSON.stringify(d)); location.reload();
+            localStorage.setItem("trip_v11_3", JSON.stringify(d)); location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
         document.body.appendChild(s);
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v11_2"));
+        const d = JSON.parse(localStorage.getItem("trip_v11_3"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -276,19 +273,19 @@
     }
 
     function enviarWhats(isF, kf, hF) {
-        const d = JSON.parse(localStorage.getItem("trip_v11_2"));
+        const d = JSON.parse(localStorage.getItem("trip_v11_3"));
         let stOleoFinal = document.getElementById("statusOleoTexto").value || d.stOleo;
         let m = isF ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
         m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
         m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Limite Troca:* ${d.oleo}\n🛠️ *Status Óleo:* ${stOleoFinal}\n`;
         if(isF) {
             m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            localStorage.removeItem("trip_v11_2");
+            localStorage.removeItem("trip_v11_3");
         }
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
         if(isF) setTimeout(() => { location.reload(); }, 2000);
     }
-    window.onload = () => { sync(); const s = localStorage.getItem("trip_v11_2"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("trip_v11_3"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
 </script>
 </body>
 </html>
