@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.8.6</title>
+    <title>TELEJUR v10.8.8</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -11,26 +11,29 @@
         .grid-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; border: 1px solid #ddd; min-height: 45px; display: flex; flex-direction: column; justify-content: center; }
         .livre { background: #e8f5e9; color: var(--success); }
-        .ocupado { background: #ffebee; color: var(--danger); }
+        .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
         .bloqueado { background: #f5f5f5; color: #999; border-style: dashed; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; background: var(--primary); color: white; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; }
+        .btn-inicio { background: var(--success); }
+        .btn-final { background: var(--primary); }
         .readonly { background: #f1f1f1 !important; color: #444; font-weight: bold; }
-        .status-oleo { font-size: 13px; padding: 10px; border-radius: 8px; margin-top: 8px; font-weight: bold; text-align: center; }
-        .vencido { background: #ffebee; color: var(--danger); border: 1px solid var(--danger); }
+        .status-oleo { font-size: 12px; padding: 8px; border-radius: 8px; margin-top: 8px; font-weight: bold; text-align: center; }
+        .vencido { background: #ffebee; color: var(--danger); }
         .em-dia { background: #e8f5e9; color: var(--success); }
+        hr { border: 0; border-top: 2px solid #eee; margin: 25px 0; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.8.6</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888;">Sincronizando...</p>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.8.8</h2>
+    <p id="txtSync" style="text-align:center; font-size:10px; color:#888;">Sincronizando frota...</p>
     
     <div id="painel" class="grid-status"></div>
 
-    <div id="formContainer">
+    <div id="formFull">
         <label>Motorista</label>
         <select id="nomeMot" onchange="sync()">
             <option value="">-- SELECIONE --</option>
@@ -47,7 +50,7 @@
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="buscarDados()">
-            <option value="">-- SELECIONE MOTORISTA --</option>
+            <option value="">-- AGUARDANDO --</option>
         </select>
         
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Veículo | Placa">
@@ -67,7 +70,7 @@
         </div>
 
         <label>KM Inicial</label>
-        <input type="number" id="kmi" inputmode="numeric" oninput="calcOleo()" placeholder="KM Atual">
+        <input type="number" id="kmi" inputmode="numeric" oninput="calcOleo()" placeholder="KM na saída">
 
         <label id="labelOleo">Próxima Troca Óleo (KM)</label>
         <input type="text" id="proxOleo" oninput="calcOleo()" placeholder="KM ou Data">
@@ -78,19 +81,21 @@
             <option value="15W40">15W40</option><option value="5W30">5W30</option><option value="10W40">10W40</option><option value="OUTRO">OUTRO</option>
         </select>
 
-        <button onclick="registrarEEnviar()" class="btn">Registrar e Enviar WhatsApp</button>
-    </div>
+        <label>Observações</label>
+        <textarea id="obs" rows="2" placeholder="Nenhuma"></textarea>
 
-    <div id="telaAtiva" style="display:none">
-        <div id="infoViagem" style="background:#e8f5e9; padding:15px; border-radius:10px; border-left:5px solid var(--success); margin-bottom:15px"></div>
+        <button onclick="registrarEEnviar('inicio')" class="btn btn-inicio">✅ ENVIAR INÍCIO DE TRAJETO</button>
+        
+        <hr>
+        
         <label>KM Final</label>
-        <input type="number" id="kmf" inputmode="numeric" placeholder="KM de chegada">
-        <button onclick="finalizar()" class="btn" style="background:#444">Finalizar Trajeto</button>
+        <input type="number" id="kmf" inputmode="numeric" placeholder="KM na chegada">
+        <button onclick="registrarEEnviar('final')" class="btn btn-final">🏁 ENVIAR FINAL DE TRAJETO</button>
     </div>
 </div>
 
 <script>
-    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const URL = "https://script.google.com/macros/s/SEU_ID_SCRIPT/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
     const autorizadosSKY = ["REGINALDO", "LAFAITE BATISTA", "WALTER GONÇALVES"];
     const tagsSKY = ["TJUR 04", "TJUR 07", "TJUR 09"];
@@ -106,11 +111,11 @@
 
         if(isDate) {
             const diff = Math.ceil((new Date(document.getElementById("proxOleo").value) - new Date()) / 86400000);
-            statusOleoMsg = diff < 0 ? `VENCIDO HÁ ${Math.abs(diff)} DIAS` : `Vence em ${diff} dias`;
+            statusOleoMsg = diff < 0 ? `${Math.abs(diff)} dias vencidos` : `${diff} dias p/ troca`;
             div.className = "status-oleo " + (diff < 0 ? "vencido" : "em-dia");
         } else {
             const r = prox - kmi;
-            statusOleoMsg = r < 0 ? `VENCIDO HÁ ${Math.abs(r)} KM` : `Faltam ${r} KM`;
+            statusOleoMsg = r < 0 ? `${Math.abs(r)} KM VENCIDOS` : `${r} KM p/ troca`;
             div.className = "status-oleo " + (r <= 500 ? "vencido" : "em-dia");
         }
         div.innerText = statusOleoMsg.toUpperCase();
@@ -131,7 +136,7 @@
                 selectTag.appendChild(opt);
                 return `<div class="v-box ${o?'ocupado':(block?'bloqueado':'livre')}"><b>${t}</b>${o?'🔴 '+o.nome.split(' ')[0]:(block?'🔒 BLOQ':'🟢 LIVRE')}</div>`;
             }).join('');
-            document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
+            document.getElementById('txtSync').innerText = "Última Sinc: " + new Date().toLocaleTimeString();
         };
         const s = document.createElement('script'); s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${Date.now()}`;
         document.body.appendChild(s);
@@ -149,42 +154,41 @@
         document.body.appendChild(s);
     }
 
-    function registrarEEnviar() {
+    function registrarEEnviar(tipo) {
         const d = {
             data: dataH, tag: document.getElementById("tag").value, id: document.getElementById("idMot").value,
             nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value,
             oleo: document.getElementById("proxOleo").value, corSelo: document.getElementById("corSelo").value,
             tipoOleo: document.getElementById("tipoOleo").value, validadeSelo: document.getElementById("validadeSelo").value,
-            horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}), acao: "registrar", callback: "cb_reg"
+            obs: document.getElementById("obs").value || "Nenhuma",
+            horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
         };
-        if(!d.tag || !d.kmi || !d.nome || !d.oleo) return alert("Preencha tudo!");
-        
-        window.cb_reg = (res) => {
-            localStorage.setItem("jornada_TJUR", JSON.stringify(d));
-            const msg = window.encodeURIComponent(`📌 *INÍCIO DE TRAJETO*\n\n🚗 *Veículo:* ${d.tag} (${res.v})\n🔢 *Placa:* ${res.p}\n🆔 *Motorista:* ${d.nome} (${d.id})\n\n📏 *KM Inicial:* ${d.kmi}\n🛢️ *Troca de Óleo:* ${statusOleoMsg}\n🧪 *Tipo:* ${d.tipoOleo}\n\n🏷️ *Selo:* ${d.corSelo}\n📅 *Venc. Selo:* ${d.validadeSelo}\n🕒 *Saída:* ${d.horaI}\n📅 *Data:* ${d.data}`);
-            window.open(`https://api.whatsapp.com/send?text=${msg}`);
-            location.reload();
-        };
-        const s = document.createElement('script'); s.src = `${URL}?${new URLSearchParams(d)}`;
-        document.body.appendChild(s);
+
+        if(!d.tag || !d.kmi || !d.nome) return alert("Preencha os dados do motorista e veículo!");
+
+        if(tipo === 'inicio') {
+            window.cb_reg = (res) => {
+                const msg = window.encodeURIComponent(`✅ *CHECKLIST INICIADO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${res.v}\n🔢 *Placa:* ${res.p}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo.split('-').reverse().join('/')}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⏳ *Troca Óleo:* ${statusOleoMsg}\n---------------------------\n📝 *Obs:* ${d.obs}\n\n📍 *Saída Registrada*`);
+                window.open(`https://api.whatsapp.com/send?text=${msg}`);
+            };
+            const s = document.createElement('script'); s.src = `${URL}?${new URLSearchParams({...d, acao: "registrar", callback: "cb_reg"})}`;
+            document.body.appendChild(s);
+        } else {
+            const kf = document.getElementById("kmf").value;
+            if(!kf) return alert("Digite o KM Final para encerrar!");
+            const hf = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            window.cb_fin = () => {
+                const rodado = limpar(kf) - limpar(d.kmi);
+                const msg = window.encodeURIComponent(`✅ *CHECKLIST CONCLUÍDO*\n---------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚚 *Veículo:* ${document.getElementById("veiculoInfo").value.split('|')[0]}\n\n---------------------------\n📏 *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo.split('-').reverse().join('/')}\n🧪 *Tipo Óleo:* ${d.tipoOleo}\n⏳ *Troca Óleo:* ${d.oleo} KM\n\n---------------------------\n🕒 *Hora Fim:* ${hf}\n📏 *KM Final:* ${kf}\n🛣️ *Rodado:* ${rodado} KM\n📝 *Obs:* ${d.obs}\n\n🏁 *Trajeto Finalizado*`);
+                window.open(`https://api.whatsapp.com/send?text=${msg}`);
+                location.reload();
+            };
+            const s = document.createElement('script'); s.src = `${URL}?acao=finalizar&tag=${d.tag}&kmf=${limpar(kf)}&horaF=${hf}&obs=${d.obs}&callback=cb_fin`;
+            document.body.appendChild(s);
+        }
     }
 
-    function finalizar() {
-        const d = JSON.parse(localStorage.getItem("jornada_TJUR")), kf = document.getElementById("kmf").value;
-        if(!kf) return alert("Digite o KM Final!");
-        const hf = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-        window.cb_fin = () => {
-            const rodado = limpar(kf) - limpar(d.kmi);
-            const msg = window.encodeURIComponent(`🏁 *FIM DE TRAJETO*\n\n🚗 *Veículo:* ${d.tag}\n🆔 *Motorista:* ${d.nome}\n🔢 *KM Final:* ${kf}\n📏 *Rodado:* ${rodado} KM\n🕒 *Chegada:* ${hf}`);
-            localStorage.removeItem("jornada_TJUR");
-            window.open(`https://api.whatsapp.com/send?text=${msg}`);
-            location.reload();
-        };
-        const s = document.createElement('script'); s.src = `${URL}?acao=finalizar&tag=${d.tag}&kmf=${limpar(kf)}&horaF=${hf}&callback=cb_fin`;
-        document.body.appendChild(s);
-    }
-
-    window.onload = () => { sync(); const trip = localStorage.getItem("jornada_TJUR"); if(trip) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(trip); document.getElementById("infoViagem").innerHTML = `<b>TRAJETO EM CURSO</b><br>🚗 ${d.tag} - ${d.nome}<br>🕒 Saída: ${d.horaI}`; } };
+    window.onload = sync;
 </script>
 </body>
 </html>
