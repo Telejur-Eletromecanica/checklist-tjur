@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v11.1</title>
+    <title>TELEJUR v11.2</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ef6c00; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -15,8 +15,7 @@
         .bloqueado { background: #f5f5f5; color: #999; border-style: dashed; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        
-        #statusOleo { margin-top: 10px; font-size: 15px; font-weight: bold; padding: 12px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; }
+        #statusOleo { margin-top: 10px; font-size: 14px; font-weight: bold; padding: 12px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; }
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-azul { background: var(--primary); color: white; }
         .btn-refresh { background: #555; color: white; padding: 6px 10px; font-size: 10px; border-radius: 5px; cursor: pointer; border:none; float: right; margin-left: 5px; }
@@ -35,9 +34,9 @@
 
 <div class="card">
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v11_1');location.reload();}">🗑️ Reset</button>
+    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v11_2');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v11.1</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v11.2</h2>
     <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
     
     <div id="painel" class="grid-status"></div>
@@ -120,7 +119,7 @@
 </div>
 
 <script>
-    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
     let idsOcupadosNoDia = [];
 
@@ -193,4 +192,103 @@
                 painel.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
             });
             document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
-            if(s.parentNode)
+            if(s.parentNode) document.body.removeChild(s);
+        };
+        s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${new Date().getTime()}`;
+        document.body.appendChild(s);
+    }
+    setInterval(sync, 20000);
+
+    async function buscarDados() {
+        const t = document.getElementById("tag").value, n = document.getElementById("nomeMot").value;
+        if(!t || !n) return;
+        const s = document.createElement('script');
+        window.cb_mot = (d) => {
+            document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
+            
+            // LÓGICA DE ID PADRONIZADA (V11.2) - SOMENTE "ID XX"
+            let numerosOcupados = idsOcupadosNoDia.map(id => {
+                const extrair = String(id).replace(/[^\d]/g, '');
+                return extrair ? parseInt(extrair) : 0;
+            });
+            let maiorId = numerosOcupados.length > 0 ? Math.max(...numerosOcupados) : 0;
+            let novoNum = maiorId + 1;
+            document.getElementById("idMot").value = `ID ${novoNum < 10 ? '0' + novoNum : novoNum}`;
+
+            const container = document.getElementById("containerOleo");
+            container.innerHTML = `<input type="${d.tipoOleo === "data" ? "date" : "number"}" id="proxOleo" oninput="calcularOleo()">`;
+            document.getElementById("proxOleo").value = d.oleo;
+            if(d.tipoLubrificante) document.getElementById("tipoOleo").value = d.tipoLubrificante;
+            calcularOleo();
+        };
+        s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot`;
+        document.body.appendChild(s);
+    }
+
+    function salvarSaida() {
+        let valOleo = document.getElementById("proxOleo").value;
+        if(document.getElementById("proxOleo").type === "date" && valOleo) valOleo = new Date(valOleo + "T12:00:00").toLocaleDateString('pt-BR');
+        const d = {
+            data: dataH, tag: document.getElementById("tag").value, id: document.getElementById("idMot").value,
+            nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value, 
+            oleo: valOleo, corSelo: document.getElementById("corSelo").value,
+            tipoOleo: document.getElementById("tipoOleo").value,
+            stOleo: document.getElementById("statusOleoTexto").value,
+            horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+            validadeSelo: document.getElementById("validadeSelo").value ? new Date(document.getElementById("validadeSelo").value + "T12:00:00").toLocaleDateString('pt-BR') : "",
+            acao: "registrar", callback: "cb_reg"
+        };
+        if(!d.tag || !d.kmi || !d.nome || !d.validadeSelo || !d.oleo || !d.corSelo || !d.tipoOleo) return alert("Preencha todos os campos!");
+        const s = document.createElement('script');
+        window.cb_reg = (res) => {
+            d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
+            localStorage.setItem("trip_v11_2", JSON.stringify(d)); location.reload();
+        };
+        s.src = `${URL}?${new URLSearchParams(d)}`;
+        document.body.appendChild(s);
+    }
+
+    function prepararFim() {
+        const d = JSON.parse(localStorage.getItem("trip_v11_2"));
+        document.getElementById("telaAtiva").style.display = "none";
+        document.getElementById("formContainer").style.display = "block";
+        document.getElementById("fimCampos").style.display = "block";
+        document.getElementById("tag").value = d.tag; document.getElementById("nomeMot").value = d.nome;
+        document.getElementById("idMot").value = d.id; document.getElementById("kmi").value = d.kmi;
+        document.getElementById("validadeSelo").type = "text"; document.getElementById("validadeSelo").value = d.validadeSelo;
+        document.getElementById("tipoOleo").innerHTML = `<option value="${d.tipoOleo}">${d.tipoOleo}</option>`;
+        document.getElementById("corSelo").innerHTML = `<option value="${d.corSelo}">${d.corSelo}</option>`;
+        document.getElementById("containerOleo").innerHTML = `<input type="text" id="proxOleo" value="${d.oleo}" readonly class="readonly">`;
+        document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
+        ["tag", "nomeMot", "idMot", "kmi", "validadeSelo", "proxOleo", "corSelo", "tipoOleo"].forEach(i => document.getElementById(i).classList.add("readonly"));
+        document.getElementById("btnAcao").innerText = "Concluir Checklist";
+        document.getElementById("btnAcao").onclick = () => {
+            const kf = document.getElementById("kmf").value;
+            if(!kf || Number(kf) <= Number(d.kmi)) return alert("KM Final inválido!");
+            calcularOleo();
+            const s = document.createElement('script'), hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            window.cb_fin = (res) => { 
+                if(res.res === "fim") { emitirBip(); document.getElementById("agradecimento").innerText = "MUITO OBRIGADO, " + d.nome.split(' ')[0] + "!"; document.getElementById("msgSucesso").style.display = "flex"; setTimeout(() => { enviarWhats(true, kf, hF); }, 2500); }
+            };
+            s.src = `${URL}?acao=finalizar&tag=${d.tag}&nome=${encodeURIComponent(d.nome)}&kmf=${kf}&horaF=${hF}&obs=${encodeURIComponent(document.getElementById("obs").value)}&callback=cb_fin`;
+            document.body.appendChild(s);
+        };
+    }
+
+    function enviarWhats(isF, kf, hF) {
+        const d = JSON.parse(localStorage.getItem("trip_v11_2"));
+        let stOleoFinal = document.getElementById("statusOleoTexto").value || d.stOleo;
+        let m = isF ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
+        m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
+        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Limite Troca:* ${d.oleo}\n🛠️ *Status Óleo:* ${stOleoFinal}\n`;
+        if(isF) {
+            m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
+            localStorage.removeItem("trip_v11_2");
+        }
+        window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
+        if(isF) setTimeout(() => { location.reload(); }, 2000);
+    }
+    window.onload = () => { sync(); const s = localStorage.getItem("trip_v11_2"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+</script>
+</body>
+</html>
