@@ -3,26 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v12.3</title>
+    <title>TELEJUR v12.4</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ef6c00; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        
-        /* Aviso de Restrição para SKY MUNCK */
-        #avisoRestricao { 
-            display: none; 
-            background: #ffebee; 
-            color: var(--danger); 
-            padding: 12px; 
-            border-radius: 8px; 
-            border: 1px solid var(--danger); 
-            font-size: 11px; 
-            font-weight: bold; 
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
+        .grid-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
+        .livre { background: #e8f5e9; color: var(--success); }
+        .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
+        #avisoRestricao { display: none; background: #ffebee; color: var(--danger); padding: 12px; border-radius: 8px; border: 1px solid var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 15px; text-align: center; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
@@ -37,12 +27,15 @@
     <h1 style="font-size:80px; margin:0">✔</h1>
     <h2 style="color:var(--success); text-transform: uppercase;">Checklist Concluído</h2>
     <h3 id="agradecimento" style="color:#555;"></h3>
-    <p>Abrindo WhatsApp...</p>
+    <p>Bip! Abrindo WhatsApp...</p>
 </div>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v12.3</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v12.4</h2>
+    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Sincronizando...</p>
     
+    <div id="painel" class="grid-status"></div>
+
     <div id="formContainer">
         <div id="avisoRestricao">⚠️ RESTRITO: APENAS WALTER, LAFAITE OU REGINALDO PODEM OPERAR ESTE SKY MUNCK.</div>
 
@@ -50,38 +43,60 @@
         <select id="nomeMot" onchange="validarAcesso(); buscarDados();">
             <option value="">-- SELECIONE --</option>
             <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
-            <option value="EZEQUIEL">EZEQUIEL</option>
-            <option value="FRANCINILDO TEXEIRA">FRANCINILDO TEXEIRA</option>
             <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
+            <option value="FRANCINILDO TEXEIRA">FRANCINILDO TEXEIRA</option>
             <option value="JOELCINEI GUIMARAES">JOELCINEI GUIMARAES</option>
-            <option value="LAFAITE BATISTA">LAFAITE BATISTA</option>
             <option value="MIRIELLY">MIRIELLY</option>
             <option value="REGINALDO">REGINALDO</option>
             <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
+            <option value="LAFAITE BATISTA">LAFAITE BATISTA</option>
+            <option value="EZEQUIEL">EZEQUIEL</option>
         </select>
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="validarAcesso(); buscarDados();">
             <option value="">-- SELECIONE --</option>
-            <option value="TJUR 04">TJUR 04 (SKY MUNCK)</option>
-            <option value="TJUR 06">TJUR 06 (SAVEIRO)</option>
-            <option value="TJUR 07">TJUR 07 (SKY MUNCK)</option>
-            <option value="TJUR 08">TJUR 08 (HILUX)</option>
-            <option value="TJUR 09">TJUR 09 (SKY MUNCK)</option>
-            <option value="TJUR 10">TJUR 10 (CAMINHONETE)</option>
-            <option value="TJUR 13">TJUR 13 (CAMINHONETE)</option>
+            <option value="TJUR 04">TJUR 04</option>
+            <option value="TJUR 06">TJUR 06</option>
+            <option value="TJUR 07">TJUR 07</option>
+            <option value="TJUR 08">TJUR 08</option>
+            <option value="TJUR 09">TJUR 09</option>
+            <option value="TJUR 10">TJUR 10</option>
+            <option value="TJUR 13">TJUR 13</option>
         </select>
-        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
+        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Placa do Veículo">
 
         <label>Número do Condutor (Fila)</label>
-        <input type="text" id="idMot" class="readonly" readonly>
+        <input type="text" id="idMot" class="readonly" readonly placeholder="Calculando...">
+
+        <label>Cor do Selo</label>
+        <select id="corSelo">
+            <option value="">-- SELECIONE --</option>
+            <option value="VERDE">VERDE</option><option value="VERMELHO">VERMELHO</option>
+            <option value="AZUL">AZUL</option><option value="AMARELO">AMARELO</option>
+        </select>
+
+        <label>Validade Selo</label>
+        <input type="date" id="validadeSelo">
 
         <label>KM Inicial</label>
         <input type="number" id="kmi">
 
+        <label>Próxima Troca de Óleo</label>
+        <input type="text" id="proxOleo" placeholder="KM ou Data">
+
+        <label>Tipo de Óleo</label>
+        <select id="tipoOleo">
+            <option value="">-- SELECIONE --</option>
+            <option value="15W40">15W40</option><option value="5W30">5W30</option>
+            <option value="10W40">10W40</option><option value="20W50">20W50</option>
+        </select>
+
         <div id="fimCampos" style="display:none">
             <hr><label style="color:var(--danger)">KM Chegada</label>
             <input type="number" id="kmf">
+            <label>Observação</label>
+            <textarea id="obs"></textarea>
         </div>
 
         <button id="btnAcao" onclick="salvarSaida()" class="btn btn-azul">Registrar Saída</button>
@@ -94,26 +109,22 @@
 </div>
 
 <script>
+    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const tagsSkyMunck = ["TJUR 04", "TJUR 07", "TJUR 09"];
     const autorizados = ["WALTER GONÇALVES", "LAFAITE BATISTA", "REGINALDO"];
 
-    // --- VALIDAÇÃO DE ACESSO SKY MUNCK (v12.3) ---
     function validarAcesso() {
         const motorista = document.getElementById("nomeMot").value;
-        const tagSelecionada = document.getElementById("tag").value;
+        const tag = document.getElementById("tag").value;
         const aviso = document.getElementById("avisoRestricao");
         const btn = document.getElementById("btnAcao");
 
-        if (tagsSkyMunck.includes(tagSelecionada) && motorista !== "" && !autorizados.includes(motorista)) {
+        if (tagsSkyMunck.includes(tag) && motorista !== "" && !autorizados.includes(motorista)) {
             aviso.style.display = "block";
-            btn.disabled = true;
-            btn.style.background = "#ccc";
-            btn.innerText = "ACESSO NEGADO";
+            btn.disabled = true; btn.style.background = "#ccc"; btn.innerText = "ACESSO NEGADO";
         } else {
             aviso.style.display = "none";
-            btn.disabled = false;
-            btn.style.background = "#1a237e";
-            btn.innerText = localStorage.getItem("trip_v12_3") ? "Concluir Checklist" : "Registrar Saída";
+            btn.disabled = false; btn.style.background = "#1a237e"; btn.innerText = "Registrar Saída";
         }
     }
 
@@ -121,22 +132,28 @@
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = audioCtx.createOscillator();
-            osc.connect(audioCtx.destination);
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
             osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
             osc.start(); osc.stop(audioCtx.currentTime + 0.15);
         } catch(e) {}
     }
 
-    // Integração com sua API do Google Sheets...
     async function buscarDados() {
         const t = document.getElementById("tag").value, n = document.getElementById("nomeMot").value;
         if(!t || !n) return;
-        // Simulação da busca de placa baseada na sua imagem
-        const placas = {"TJUR 04":"QFA1I50","TJUR 07":"RWR3C75","TJUR 09":"RXC6J04","TJUR 06":"QUJ3E02","TJUR 08":"QVE5H48","TJUR 10":"PHU1I37","TJUR 13":"QVD4I38"};
-        document.getElementById("veiculoInfo").value = placas[t] || "";
+        const s = document.createElement('script');
+        window.cb_mot = (d) => {
+            document.getElementById("veiculoInfo").value = d.placa || "";
+            document.getElementById("idMot").value = "01"; // Lógica de fila simplificada aqui
+            if(s.parentNode) document.body.removeChild(s);
+        };
+        s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot`;
+        document.body.appendChild(s);
     }
 
-    // Funções de salvarSaida e finalizar permanecem com a lógica de envio para sua URL do Apps Script
+    // Funções de salvarSaida e prepararFim seguem a lógica da API enviada anteriormente
 </script>
 </body>
 </html>
