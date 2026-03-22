@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.6</title>
+    <title>TELEJUR v10.8</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ef6c00; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -16,13 +16,8 @@
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         
-        /* ALERTA DE ÓLEO MELHORADO */
-        #statusOleo { margin-top: 10px; font-size: 14px; font-weight: bold; padding: 12px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; line-height: 1.4; }
-        
-        #corSelo option[value="VERDE"] { background-color: #c8e6c9; color: #1b5e20; }
-        #corSelo option[value="VERMELHO"] { background-color: #ffcdd2; color: #b71c1c; }
-        #corSelo option[value="AZUL"] { background-color: #bbdefb; color: #0d47a1; }
-        #corSelo option[value="AMARELO"] { background-color: #fff9c4; color: #f57f17; }
+        /* STATUS DO ÓLEO DINÂMICO */
+        #statusOleo { margin-top: 10px; font-size: 15px; font-weight: bold; padding: 12px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; }
 
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-azul { background: var(--primary); color: white; }
@@ -42,9 +37,9 @@
 
 <div class="card">
     <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v10_6');location.reload();}">🗑️ Reset</button>
+    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v10_8');location.reload();}">🗑️ Reset</button>
     
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.6</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.8</h2>
     <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
     
     <div id="painel" class="grid-status"></div>
@@ -90,11 +85,11 @@
         <input type="date" id="validadeSelo">
 
         <label>KM Inicial</label>
-        <input type="number" id="kmi" oninput="calcularOleo()">
+        <input type="number" id="kmi" oninput="validarTudoOleo()">
 
         <label id="labelOleo">Próx. troca óleo</label>
         <div id="containerOleo">
-            <input type="text" id="proxOleo" oninput="calcularOleo()" placeholder="Carregando...">
+            <input type="text" id="proxOleo" oninput="validarTudoOleo()" placeholder="Carregando...">
         </div>
         <div id="statusOleo"></div>
 
@@ -110,7 +105,7 @@
 
         <div id="fimCampos" style="display:none">
             <hr><label style="color:var(--danger)">KM Chegada</label>
-            <input type="number" id="kmf">
+            <input type="number" id="kmf" oninput="validarTudoOleo()">
             <label>Observação</label>
             <textarea id="obs"></textarea>
         </div>
@@ -128,6 +123,7 @@
 <script>
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const dataH = new Date().toLocaleDateString('pt-BR');
+    let idsOcupadosNoDia = [];
 
     function emitirBip() {
         try {
@@ -141,32 +137,39 @@
         } catch(e) {}
     }
 
-    // CORREÇÃO: Limpa o texto e calcula apenas números
-    function calcularOleo() {
-        const valKmi = document.getElementById('kmi').value;
-        const valProx = document.getElementById('proxOleo').value;
+    // LÓGICA HÍBRIDA: DATA E KM (INICIAL E FINAL)
+    function validarTudoOleo() {
+        const campoProx = document.getElementById('proxOleo');
         const statusDiv = document.getElementById('statusOleo');
+        if(!campoProx || !campoProx.value) return;
 
-        // Extrai apenas números caso venha "10000 KM" da planilha
-        const kmi = parseFloat(valKmi);
-        const prox = parseFloat(String(valProx).replace(/[^\d]/g, ''));
+        let vencido = false;
+        
+        // Verifica se é DATA (formato YYYY-MM-DD ou contém /)
+        if (campoProx.type === "date" || campoProx.value.includes('-')) {
+            const dataTroca = new Date(campoProx.value + "T12:00:00");
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0);
+            if (hoje > dataTroca) vencido = true;
+        } 
+        // Verifica se é KM
+        else {
+            const proxKM = parseFloat(campoProx.value.replace(/[^\d]/g, ''));
+            const kmInicial = parseFloat(document.getElementById('kmi').value);
+            const kmFinal = parseFloat(document.getElementById('kmf').value);
+            
+            // Se estiver finalizando, checa pelo KM Final. Se não, pelo Inicial.
+            const kmAtual = (!isNaN(kmFinal) && kmFinal > 0) ? kmFinal : kmInicial;
 
-        if (isNaN(kmi) || isNaN(prox) || kmi <= 0 || prox <= 0) {
-            statusDiv.style.display = "none";
-            return;
+            if (!isNaN(proxKM) && !isNaN(kmAtual) && kmAtual >= proxKM) vencido = true;
         }
 
-        const resta = prox - kmi;
         statusDiv.style.display = "block";
-        
-        if (resta <= 0) {
-            statusDiv.innerHTML = `⚠️ ÓLEO VENCIDO!<br><small>Excedido em ${Math.abs(resta)} KM</small>`;
+        if (vencido) {
+            statusDiv.innerHTML = `⚠️ STATUS: ÓLEO VENCIDO`;
             statusDiv.style.background = "#ffebee"; statusDiv.style.color = "var(--danger)"; statusDiv.style.borderColor = "var(--danger)";
-        } else if (resta <= 500) {
-            statusDiv.innerHTML = `🔔 TROCAR EM BREVE<br><small>Faltam ${resta} KM</small>`;
-            statusDiv.style.background = "#fff3e0"; statusDiv.style.color = "var(--warning)"; statusDiv.style.borderColor = "var(--warning)";
         } else {
-            statusDiv.innerHTML = `✅ ÓLEO EM DIA<br><small>Faltam ${resta} KM para a troca</small>`;
+            statusDiv.innerHTML = `✅ STATUS: ÓLEO EM DIA`;
             statusDiv.style.background = "#e8f5e9"; statusDiv.style.color = "var(--success)"; statusDiv.style.borderColor = "var(--success)";
         }
     }
@@ -176,6 +179,7 @@
         const motSel = document.getElementById('nomeMot').value;
         const autorizadosSky = ["REGINALDO", "LAFAITE BATISTA", "WALTER GONÇALVES"];
         window.cb_sync = (res) => {
+            idsOcupadosNoDia = res.idsOcupados || [];
             const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
             const selT = document.getElementById('tag'), painel = document.getElementById('painel');
             painel.innerHTML = '';
@@ -206,21 +210,21 @@
         const s = document.createElement('script');
         window.cb_mot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
-            document.getElementById("idMot").value = d.id;
+            
+            // Lógica do Próximo ID Livre
+            let proximoId = 1;
+            while(idsOcupadosNoDia.includes(proximoId)) { proximoId++; }
+            document.getElementById("idMot").value = `CONDUTOR ${proximoId}`;
+
             const container = document.getElementById("containerOleo");
-            
-            // Define se o campo de óleo é data ou número para cálculo
             if(d.tipoOleo === "data") {
-                container.innerHTML = `<input type="date" id="proxOleo" oninput="calcularOleo()">`;
+                container.innerHTML = `<input type="date" id="proxOleo" oninput="validarTudoOleo()">`;
             } else {
-                container.innerHTML = `<input type="text" id="proxOleo" oninput="calcularOleo()" placeholder="KM Próxima Troca">`;
+                container.innerHTML = `<input type="text" id="proxOleo" oninput="validarTudoOleo()">`;
             }
-            
             document.getElementById("proxOleo").value = d.oleo;
             if(d.tipoLubrificante) document.getElementById("tipoOleo").value = d.tipoLubrificante;
-            
-            // Dispara cálculo imediato se já houver KM inicial
-            calcularOleo();
+            validarTudoOleo();
         };
         s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot`;
         document.body.appendChild(s);
@@ -244,14 +248,14 @@
         const s = document.createElement('script');
         window.cb_reg = (res) => {
             d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
-            localStorage.setItem("trip_v10_6", JSON.stringify(d)); location.reload();
+            localStorage.setItem("trip_v10_8", JSON.stringify(d)); location.reload();
         };
         s.src = `${URL}?${new URLSearchParams(d)}`;
         document.body.appendChild(s);
     }
 
     function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v10_6"));
+        const d = JSON.parse(localStorage.getItem("trip_v10_8"));
         document.getElementById("telaAtiva").style.display = "none";
         document.getElementById("formContainer").style.display = "block";
         document.getElementById("fimCampos").style.display = "block";
@@ -282,21 +286,19 @@
     }
 
     function enviarWhats(isF, kf, hF) {
-        const d = JSON.parse(localStorage.getItem("trip_v10_6"));
-        const numId = d.id.replace(/\D/g, "").replace(/^0+/, "");
-        const idT = `*ID*: CONDUTOR ${numId}`;
+        const d = JSON.parse(localStorage.getItem("trip_v10_8"));
         let m = isF ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
-        m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 ${idT}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
-        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Troca Óleo:* ${d.oleo}${d.oleo.includes('/') || isNaN(d.oleo.replace(/[^\d]/g,'')) ? '' : ' KM'}\n`;
+        m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
+        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Troca Óleo:* ${d.oleo}\n`;
         if(isF) {
             m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            localStorage.removeItem("trip_v10_6");
+            localStorage.removeItem("trip_v10_8");
         }
         window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
         if(isF) setTimeout(() => { location.reload(); }, 2000);
     }
 
-    window.onload = () => { sync(); const s = localStorage.getItem("trip_v10_6"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("trip_v10_8"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
 </script>
 </body>
 </html>
