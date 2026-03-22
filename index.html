@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v12.0.0</title>
+    <title>TELEJUR v12.0.2</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -20,6 +20,7 @@
         .btn-final { background: var(--primary); }
         .readonly { background: #f9f9f9 !important; color: #444; font-weight: bold; }
         #infoOleo { padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px; text-align: center; display: none; font-weight: bold; }
+        #loadingMsg { color: #f39c12; font-weight: bold; font-size: 12px; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -27,7 +28,9 @@
 <div class="card">
     <div class="header-box">
         <h1 style="font-size:18px; color:var(--primary); margin:0;">TELEJUR ELETROMECÂNICA</h1>
-        <p id="txtSync" style="font-size:10px; color:#888;">Sincronizando frota...</p>
+        <p id="txtSync" style="font-size:10px; color:#888;">Aguardando Google...</p>
+        <div id="loadingMsg">Iniciando...</div>
+        <button id="btnRetry" onclick="sync()" style="display:none; padding:5px; font-size:10px; margin-top:5px;">TENTAR NOVAMENTE</button>
     </div>
     
     <div id="painel" class="grid-status"></div>
@@ -58,7 +61,7 @@
         <option value="TJUR 13">TJUR 13</option>
     </select>
     
-    <input type="text" id="idMot" class="readonly" readonly placeholder="Aguardando ID Livre...">
+    <input type="text" id="idMot" class="readonly" readonly placeholder="Calculando ID...">
     
     <label>KM Atual</label>
     <input type="text" id="kmInput" oninput="calcularOleo()" placeholder="Ex: 150.000">
@@ -99,27 +102,41 @@
         params.callback = params.callback || "callbackPadrao";
         const query = new URLSearchParams(params).toString();
         s.src = `${URL_SCRIPT}?${query}&_=${Date.now()}`;
+        
+        const timeout = setTimeout(() => {
+            document.getElementById('loadingMsg').innerText = "⚠️ Google demorou a responder.";
+            document.getElementById('loadingMsg').style.color = "red";
+            document.getElementById('btnRetry').style.display = "inline-block";
+        }, 8000);
+
+        s.onload = () => {
+            clearTimeout(timeout);
+            document.getElementById('btnRetry').style.display = "none";
+        };
         document.body.appendChild(s);
     }
 
     function sync() { 
+        document.getElementById('loadingMsg').innerText = "Sincronizando banco de dados...";
+        document.getElementById('loadingMsg').style.color = "#f39c12";
         chamarScript({ acao: "statusGeral", data: dataH, callback: "processarSync" }); 
     }
 
     window.processarSync = (res) => {
         cacheStatus = res;
-        document.getElementById("idMot").value = res.proximoID;
+        document.getElementById("idMot").value = res.proximoID || "CONDUTOR 1";
         const painel = document.getElementById('painel');
         painel.innerHTML = '';
         ["TJUR 04","TJUR 06","TJUR 07","TJUR 08","TJUR 09","TJUR 10","TJUR 13"].forEach(t => {
             const ocup = res.ocupados[t];
             painel.innerHTML += `<div class="v-box ${ocup?'ocupado':'livre'}"><b>${t}</b><br>${ocup?ocup.nome.split(' ')[0]:'LIVRE'}</div>`;
         });
-        document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
+        document.getElementById('txtSync').innerText = "Última Sincronia: " + new Date().toLocaleTimeString();
+        document.getElementById('loadingMsg').innerText = "✅ Sistema Conectado";
+        document.getElementById('loadingMsg').style.color = "green";
     }
 
     function calcularOleo() {
-        // Remove pontos para o cálculo matemático
         const km = parseInt(document.getElementById("kmInput").value.replace(/\./g, '')) || 0;
         const prox = parseInt(document.getElementById("proxOleo").value.replace(/\./g, '')) || 0;
         const div = document.getElementById("infoOleo");
@@ -135,13 +152,13 @@
         const t = document.getElementById("tag").value;
         const n = document.getElementById("nomeMot").value;
         if(!t) return;
-        const ocupado = cacheStatus.ocupados[t];
+        const ocupado = cacheStatus.ocupados ? cacheStatus.ocupados[t] : null;
         if (ocupado && ocupado.nome === n) {
             document.getElementById("kmInput").value = ocupado.kmi;
             document.getElementById("proxOleo").value = ocupado.oleoProg;
             document.getElementById("idMot").value = ocupado.id;
         } else {
-            document.getElementById("proxOleo").value = cacheStatus.ultimosOleos[t] || "";
+            document.getElementById("proxOleo").value = (cacheStatus.ultimosOleos && cacheStatus.ultimosOleos[t]) ? cacheStatus.ultimosOleos[t] : "";
         }
         calcularOleo();
     }
@@ -152,7 +169,7 @@
         const kmRaw = document.getElementById("kmInput").value;
         const proxRaw = document.getElementById("proxOleo").value;
         
-        if(!tag || !nome || !kmRaw) { alert("Preencha TAG, Motorista e KM!"); return; }
+        if(!tag || !nome || !kmRaw) { alert("⚠️ TAG, Motorista e KM são obrigatórios!"); return; }
 
         const btn = document.getElementById(tipo === 'inicio' ? "btnInicio" : "btnFim");
         btn.disabled = true;
@@ -162,29 +179,28 @@
             acao: tipo === 'inicio' ? "registrar" : "finalizar",
             tag: tag, nome: nome, data: dataH,
             id: document.getElementById("idMot").value,
-            kmi: kmRaw.replace(/\./g, ''), // Salva sem ponto na planilha
+            kmi: kmRaw.replace(/\./g, ''),
             kmf: kmRaw.replace(/\./g, ''),
             oleo: proxRaw.replace(/\./g, ''),
             corSelo: document.getElementById("corSelo").value,
             validadeSelo: document.getElementById("validadeSelo").value,
             tipoOleo: document.getElementById("tipoOleo").value,
             obs: document.getElementById("obs").value || "Nenhuma",
-            trajeto: (cacheStatus.contagem[tag] || 0) + 1 + "º Trajeto",
+            trajeto: (cacheStatus.contagem ? (cacheStatus.contagem[tag] || 0) : 0) + 1 + "º Trajeto",
             horaI: new Date().toLocaleTimeString('pt-BR'),
             horaF: new Date().toLocaleTimeString('pt-BR')
         };
 
         window.callbackFinal = (res) => {
-            if(res.res === "erro") { alert("Erro ao salvar."); btn.disabled = false; return; }
-            
-            // Monta mensagem WhatsApp
-            let msg = `*${tipo==='inicio'?'✅ INÍCIO':'🏁 FINAL} DE TRAJETO*\n`;
-            msg += `👤 *Motorista:* ${nome}\n🆔 *ID:* ${dados.id}\n🏷️ *TAG:* ${tag}\n📏 *KM:* ${kmRaw}\n⌛ *Próx. Troca:* ${proxRaw}\n📝 *Obs:* ${dados.obs}`;
-
+            if(res.res === "erro") { 
+                alert("❌ Erro ao salvar dados."); 
+                btn.disabled = false; btn.innerText = "Tentar Novamente"; 
+                return; 
+            }
+            let msg = `*${tipo==='inicio'?'✅ INÍCIO':'🏁 FINAL'} DE TRAJETO*\n👤 *Motorista:* ${nome}\n🆔 *ID:* ${dados.id}\n🏷️ *TAG:* ${tag}\n🚚 *Veículo:* ${tag}\n📏 *KM:* ${kmRaw}\n⌛ *Próx. Troca:* ${proxRaw}\n📝 *Obs:* ${dados.obs}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
             setTimeout(() => { location.reload(); }, 1500);
         };
-
         chamarScript({...dados, callback: "callbackFinal"});
     }
     window.onload = sync;
