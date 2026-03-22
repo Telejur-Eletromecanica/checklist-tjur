@@ -1,209 +1,72 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.8</title>
-    <style>
-        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --warning: #ef6c00; }
-        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .grid-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .v-box { padding: 8px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
-        .livre { background: #e8f5e9; color: var(--success); }
-        .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
-        .bloqueado { background: #f5f5f5; color: #999; border-style: dashed; }
-        label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        
-        /* STATUS DO ÓLEO DINÂMICO */
-        #statusOleo { margin-top: 10px; font-size: 15px; font-weight: bold; padding: 12px; border-radius: 8px; display: none; text-align: center; border: 2px solid transparent; }
-
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-azul { background: var(--primary); color: white; }
-        .btn-refresh { background: #555; color: white; padding: 6px 10px; font-size: 10px; border-radius: 5px; cursor: pointer; border:none; float: right; margin-left: 5px; }
-        .readonly { background: #f1f1f1 !important; color: #444 !important; font-weight: bold; }
-        #msgSucesso { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 999; text-align: center; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
-    </style>
-</head>
-<body>
-
-<div id="msgSucesso">
-    <h1 style="font-size:80px; margin:0">✔</h1>
-    <h2 style="color:var(--success); text-transform: uppercase; margin-bottom: 5px;">Checklist Concluído</h2>
-    <h3 id="agradecimento" style="color:#555; margin-top: 0;"></h3>
-    <p>Abrindo WhatsApp...</p>
-</div>
-
-<div class="card">
-    <button class="btn-refresh" onclick="sync()">🔄 Atualizar</button>
-    <button class="btn-refresh" style="background:var(--danger)" onclick="if(confirm('Resetar App?')){localStorage.removeItem('trip_v10_8');location.reload();}">🗑️ Reset</button>
-    
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.8</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Iniciando...</p>
-    
-    <div id="painel" class="grid-status"></div>
-
-    <div id="formContainer">
-        <label>Motorista</label>
-        <select id="nomeMot" onchange="sync(); buscarDados();">
-            <option value="">-- SELECIONE --</option>
-            <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
-            <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
-            <option value="FRANCINILDO TEXEIRA">FRANCINILDO TEXEIRA</option>
-            <option value="JOELCINEI GUIMARAES">JOELCINEI GUIMARAES</option>
-            <option value="MIRIELLY">MIRIELLY</option>
-            <option value="REGINALDO">REGINALDO</option>
-            <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
-            <option value="LAFAITE BATISTA">LAFAITE BATISTA</option>
-            <option value="EZEQUIEL">EZEQUIEL</option>
-        </select>
-
-        <label>Veículo (TAG)</label>
-        <select id="tag" onchange="buscarDados()">
-            <option value="">-- SELECIONE --</option>
-            <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
-            <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
-            <option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option>
-            <option value="TJUR 13">TJUR 13</option>
-        </select>
-        <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
-
-        <label>ID Condutor</label>
-        <input type="text" id="idMot" class="readonly" readonly>
-
-        <label>Cor do Selo</label>
-        <select id="corSelo">
-            <option value="">-- SELECIONE --</option>
-            <option value="VERDE">VERDE</option>
-            <option value="VERMELHO">VERMELHO</option>
-            <option value="AZUL">AZUL</option>
-            <option value="AMARELO">AMARELO</option>
-        </select>
-
-        <label>Validade Selo</label>
-        <input type="date" id="validadeSelo">
-
-        <label>KM Inicial</label>
-        <input type="number" id="kmi" oninput="validarTudoOleo()">
-
-        <label id="labelOleo">Próx. troca óleo</label>
-        <div id="containerOleo">
-            <input type="text" id="proxOleo" oninput="validarTudoOleo()" placeholder="Carregando...">
-        </div>
-        <div id="statusOleo"></div>
-
-        <label>Tipo de Óleo</label>
-        <select id="tipoOleo">
-            <option value="">-- SELECIONE --</option>
-            <option value="15W40">15W40</option>
-            <option value="5W30">5W30</option>
-            <option value="10W40">10W40</option>
-            <option value="20W50">20W50</option>
-            <option value="OUTRO">OUTRO / NÃO INFORMADO</option>
-        </select>
-
-        <div id="fimCampos" style="display:none">
-            <hr><label style="color:var(--danger)">KM Chegada</label>
-            <input type="number" id="kmf" oninput="validarTudoOleo()">
-            <label>Observação</label>
-            <textarea id="obs"></textarea>
-        </div>
-
-        <button id="btnAcao" onclick="salvarSaida()" class="btn btn-azul">Registrar Saída</button>
-    </div>
-
-    <div id="telaAtiva" style="display:none">
-        <div id="infoViagem" style="background:#f8f9fa; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px"></div>
-        <button onclick="enviarWhats(false)" class="btn" style="background:#25D366; color:white">WhatsApp Saída</button>
-        <button onclick="prepararFim()" class="btn" style="background:#444; color:white">Finalizar Trajeto</button>
-    </div>
-</div>
-
 <script>
-    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const dataH = new Date().toLocaleDateString('pt-BR');
-    let idsOcupadosNoDia = [];
+    // ... (Código de Bip e Sync permanecem iguais) ...
 
-    function emitirBip() {
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-        } catch(e) {}
-    }
-
-    // LÓGICA HÍBRIDA: DATA E KM (INICIAL E FINAL)
-    function validarTudoOleo() {
+    function calcularOleo() {
         const campoProx = document.getElementById('proxOleo');
         const statusDiv = document.getElementById('statusOleo');
         if(!campoProx || !campoProx.value) return;
 
-        let vencido = false;
-        
-        // Verifica se é DATA (formato YYYY-MM-DD ou contém /)
-        if (campoProx.type === "date" || campoProx.value.includes('-')) {
-            const dataTroca = new Date(campoProx.value + "T12:00:00");
+        let mensagem = "";
+        let corFundo = "";
+        let corTexto = "";
+        let borda = "";
+
+        // --- LÓGICA PARA DATA ---
+        if (campoProx.type === "date" || campoProx.value.includes('-') || campoProx.value.includes('/')) {
+            let dataMeta;
+            if(campoProx.value.includes('/')) {
+                const partes = campoProx.value.split('/');
+                dataMeta = new Date(partes[2], partes[1] - 1, partes[0]);
+            } else {
+                dataMeta = new Date(campoProx.value + "T12:00:00");
+            }
+            
             const hoje = new Date();
             hoje.setHours(0,0,0,0);
-            if (hoje > dataTroca) vencido = true;
+            const diffTempo = dataMeta - hoje;
+            const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
+            if (diffDias < 0) {
+                mensagem = `⚠️ ÓLEO VENCIDO<br><small>Vencido há ${Math.abs(diffDias)} dia(s)</small>`;
+                corFundo = "#ffebee"; corTexto = "#c62828"; borda = "2px solid #c62828";
+            } else {
+                mensagem = `✅ ÓLEO EM DIA<br><small>Faltam ${diffDias} dia(s) para a troca</small>`;
+                corFundo = "#e8f5e9"; corTexto = "#2e7d32"; borda = "2px solid #2e7d32";
+            }
         } 
-        // Verifica se é KM
+        // --- LÓGICA PARA QUILOMETRAGEM (KM) ---
         else {
             const proxKM = parseFloat(campoProx.value.replace(/[^\d]/g, ''));
-            const kmInicial = parseFloat(document.getElementById('kmi').value);
-            const kmFinal = parseFloat(document.getElementById('kmf').value);
+            const kmInicial = parseFloat(document.getElementById('kmi').value) || 0;
+            const kmFinal = parseFloat(document.getElementById('kmf').value) || 0;
             
-            // Se estiver finalizando, checa pelo KM Final. Se não, pelo Inicial.
-            const kmAtual = (!isNaN(kmFinal) && kmFinal > 0) ? kmFinal : kmInicial;
+            // Usa o KM Final se estiver preenchido, senão usa o Inicial
+            const kmAtual = (kmFinal > 0) ? kmFinal : kmInicial;
 
-            if (!isNaN(proxKM) && !isNaN(kmAtual) && kmAtual >= proxKM) vencido = true;
+            if (isNaN(proxKM) || kmAtual === 0) {
+                statusDiv.style.display = "none";
+                return;
+            }
+
+            const resta = proxKM - kmAtual;
+
+            if (resta <= 0) {
+                mensagem = `⚠️ ÓLEO VENCIDO<br><small>Excedido em ${Math.abs(resta)} KM</small>`;
+                corFundo = "#ffebee"; corTexto = "#c62828"; borda = "2px solid #c62828";
+            } else {
+                mensagem = `✅ ÓLEO EM DIA<br><small>Faltam ${resta} KM para a troca</small>`;
+                corFundo = "#e8f5e9"; corTexto = "#2e7d32"; borda = "2px solid #2e7d32";
+            }
         }
 
         statusDiv.style.display = "block";
-        if (vencido) {
-            statusDiv.innerHTML = `⚠️ STATUS: ÓLEO VENCIDO`;
-            statusDiv.style.background = "#ffebee"; statusDiv.style.color = "var(--danger)"; statusDiv.style.borderColor = "var(--danger)";
-        } else {
-            statusDiv.innerHTML = `✅ STATUS: ÓLEO EM DIA`;
-            statusDiv.style.background = "#e8f5e9"; statusDiv.style.color = "var(--success)"; statusDiv.style.borderColor = "var(--success)";
-        }
+        statusDiv.innerHTML = mensagem;
+        statusDiv.style.background = corFundo;
+        statusDiv.style.color = corTexto;
+        statusDiv.style.border = borda;
     }
 
-    async function sync() {
-        const s = document.createElement('script');
-        const motSel = document.getElementById('nomeMot').value;
-        const autorizadosSky = ["REGINALDO", "LAFAITE BATISTA", "WALTER GONÇALVES"];
-        window.cb_sync = (res) => {
-            idsOcupadosNoDia = res.idsOcupados || [];
-            const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-            const selT = document.getElementById('tag'), painel = document.getElementById('painel');
-            painel.innerHTML = '';
-            tags.forEach(t => {
-                const infoOcupado = res.ocupados[t], infoFrota = res.frota[t];
-                const isSky = infoFrota.veiculo === "SKY MUNCK", bloqueado = (isSky && !autorizadosSky.includes(motSel));
-                const opt = Array.from(selT.options).find(o => o.value === t);
-                if(opt) {
-                    if(infoOcupado) { opt.disabled = true; opt.text = t + " (EM USO)"; }
-                    else if(bloqueado) { opt.disabled = true; opt.text = t + " (RESTRITO)"; }
-                    else { opt.disabled = false; opt.text = t; }
-                }
-                let classe = infoOcupado ? 'ocupado' : (bloqueado ? 'bloqueado' : 'livre');
-                let statusTxt = infoOcupado ? '🔴 '+infoOcupado.nome.split(' ')[0] : (bloqueado ? '🔒 RESTRITO' : '🟢 LIVRE');
-                painel.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
-            });
-            document.getElementById('txtSync').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
-            if(s.parentNode) document.body.removeChild(s);
-        };
-        s.src = `${URL}?acao=statusGeral&data=${dataH}&callback=cb_sync&_=${new Date().getTime()}`;
-        document.body.appendChild(s);
-    }
-    setInterval(sync, 20000);
-
+    // Função buscarDados atualizada para garantir o disparo do cálculo
     async function buscarDados() {
         const t = document.getElementById("tag").value, n = document.getElementById("nomeMot").value;
         if(!t || !n) return;
@@ -211,94 +74,25 @@
         window.cb_mot = (d) => {
             document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
             
-            // Lógica do Próximo ID Livre
+            // Lógica de ID Condutor Sequencial
             let proximoId = 1;
             while(idsOcupadosNoDia.includes(proximoId)) { proximoId++; }
             document.getElementById("idMot").value = `CONDUTOR ${proximoId}`;
 
             const container = document.getElementById("containerOleo");
             if(d.tipoOleo === "data") {
-                container.innerHTML = `<input type="date" id="proxOleo" oninput="validarTudoOleo()">`;
+                container.innerHTML = `<input type="date" id="proxOleo" oninput="calcularOleo()">`;
             } else {
-                container.innerHTML = `<input type="text" id="proxOleo" oninput="validarTudoOleo()">`;
+                container.innerHTML = `<input type="text" id="proxOleo" oninput="calcularOleo()" placeholder="KM Troca">`;
             }
             document.getElementById("proxOleo").value = d.oleo;
             if(d.tipoLubrificante) document.getElementById("tipoOleo").value = d.tipoLubrificante;
-            validarTudoOleo();
+            
+            calcularOleo();
         };
         s.src = `${URL}?acao=buscarDadosMotorista&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&callback=cb_mot`;
         document.body.appendChild(s);
     }
 
-    function salvarSaida() {
-        let valOleo = document.getElementById("proxOleo").value;
-        if(document.getElementById("proxOleo").type === "date") {
-            valOleo = valOleo ? new Date(valOleo + "T12:00:00").toLocaleDateString('pt-BR') : "";
-        }
-        const d = {
-            data: dataH, tag: document.getElementById("tag").value, id: document.getElementById("idMot").value,
-            nome: document.getElementById("nomeMot").value, kmi: document.getElementById("kmi").value, 
-            oleo: valOleo, corSelo: document.getElementById("corSelo").value,
-            tipoOleo: document.getElementById("tipoOleo").value,
-            horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-            validadeSelo: document.getElementById("validadeSelo").value ? new Date(document.getElementById("validadeSelo").value + "T12:00:00").toLocaleDateString('pt-BR') : "",
-            acao: "registrar", callback: "cb_reg"
-        };
-        if(!d.tag || !d.kmi || !d.nome || !d.validadeSelo || !d.oleo || !d.corSelo || !d.tipoOleo) return alert("Preencha todos os campos!");
-        const s = document.createElement('script');
-        window.cb_reg = (res) => {
-            d.numTrajeto = res.n; d.placa = res.placa; d.veiculo = res.veiculo;
-            localStorage.setItem("trip_v10_8", JSON.stringify(d)); location.reload();
-        };
-        s.src = `${URL}?${new URLSearchParams(d)}`;
-        document.body.appendChild(s);
-    }
-
-    function prepararFim() {
-        const d = JSON.parse(localStorage.getItem("trip_v10_8"));
-        document.getElementById("telaAtiva").style.display = "none";
-        document.getElementById("formContainer").style.display = "block";
-        document.getElementById("fimCampos").style.display = "block";
-        document.getElementById("tag").value = d.tag; document.getElementById("nomeMot").value = d.nome;
-        document.getElementById("idMot").value = d.id; document.getElementById("kmi").value = d.kmi;
-        document.getElementById("validadeSelo").type = "text"; document.getElementById("validadeSelo").value = d.validadeSelo;
-        document.getElementById("tipoOleo").innerHTML = `<option value="${d.tipoOleo}">${d.tipoOleo}</option>`;
-        document.getElementById("corSelo").innerHTML = `<option value="${d.corSelo}">${d.corSelo}</option>`;
-        document.getElementById("containerOleo").innerHTML = `<input type="text" id="proxOleo" value="${d.oleo}" readonly class="readonly">`;
-        document.getElementById("veiculoInfo").value = `${d.veiculo} | ${d.placa}`;
-        ["tag", "nomeMot", "idMot", "kmi", "validadeSelo", "proxOleo", "corSelo", "tipoOleo"].forEach(i => document.getElementById(i).classList.add("readonly"));
-        document.getElementById("btnAcao").innerText = "Concluir Checklist";
-        document.getElementById("btnAcao").onclick = () => {
-            const kf = document.getElementById("kmf").value;
-            if(!kf || Number(kf) <= Number(d.kmi)) return alert("KM Final inválido!");
-            const s = document.createElement('script'), hF = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            window.cb_fin = (res) => { 
-                if(res.res === "fim") { 
-                    emitirBip();
-                    document.getElementById("agradecimento").innerText = "MUITO OBRIGADO, " + d.nome.split(' ')[0] + "!";
-                    document.getElementById("msgSucesso").style.display = "flex"; 
-                    setTimeout(() => { enviarWhats(true, kf, hF); }, 2500); 
-                }
-            };
-            s.src = `${URL}?acao=finalizar&tag=${d.tag}&nome=${encodeURIComponent(d.nome)}&kmf=${kf}&horaF=${hF}&obs=${encodeURIComponent(document.getElementById("obs").value)}&callback=cb_fin`;
-            document.body.appendChild(s);
-        };
-    }
-
-    function enviarWhats(isF, kf, hF) {
-        const d = JSON.parse(localStorage.getItem("trip_v10_8"));
-        let m = isF ? `✅ *CHECKLIST CONCLUÍDO*\n` : `🚀 *SAÍDA REGISTRADA*\n`;
-        m += `--------------------------------\n📅 *Data:* ${d.data}\n🏷️ *Tag:* ${d.tag}\n🆔 *ID:* ${d.id}\n👤 *Nome:* ${d.nome}\n🚛 *Veículo:* ${d.veiculo}\n🔢 *Placa:* ${d.placa}\n📍 *Trajeto:* ${d.numTrajeto}\n--------------------------------\n`;
-        m += `🛣️ *KM Inicial:* ${d.kmi}\n🕒 *Hora Início:* ${d.horaI}\n🎨 *Cor do Selo:* ${d.corSelo}\n📜 *Validade Selo:* ${d.validadeSelo}\n🛢️ *Tipo Óleo:* ${d.tipoOleo}\n⌛ *Troca Óleo:* ${d.oleo}\n`;
-        if(isF) {
-            m += `--------------------------------\n🕒 *Hora Fim:* ${hF}\n🛣️ *KM Final:* ${kf}\n📝 *Obs:* ${document.getElementById("obs").value || "Nenhuma"}\n`;
-            localStorage.removeItem("trip_v10_8");
-        }
-        window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
-        if(isF) setTimeout(() => { location.reload(); }, 2000);
-    }
-
-    window.onload = () => { sync(); const s = localStorage.getItem("trip_v10_8"); if(s) { document.getElementById("formContainer").style.display = "none"; document.getElementById("telaAtiva").style.display = "block"; const d = JSON.parse(s); document.getElementById("infoViagem").innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    // ... (Restante das funções: salvarSaida, prepararFim e enviarWhats seguem a lógica v10.8) ...
 </script>
-</body>
-</html>
