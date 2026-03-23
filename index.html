@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR JURUTI v17.0</title>
+    <title>TELEJUR JURUTI v19.0</title>
     <style>
-        :root { --navy: #0d47a1; --green: #1b5e20; --red: #b71c1c; --orange: #e65100; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        .container { max-width: 480px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-        .header { text-align: center; border-bottom: 3px solid var(--navy); margin-bottom: 15px; padding-bottom: 10px; }
-        .header h1 { font-size: 18px; color: var(--navy); margin: 0; }
-        #syncStatus { font-size: 11px; color: #7f8c8d; display: block; margin-top: 5px; cursor: pointer; }
+        :root { --navy: #1a237e; --green: #2e7d32; --red: #c62828; --gray: #9e9e9e; --light: #f5f5f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: #eaeff1; margin: 0; padding: 10px; }
+        .container { max-width: 480px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 4px solid var(--navy); margin-bottom: 15px; }
+        .header h1 { margin: 0; font-size: 20px; color: var(--navy); }
+        .header h2 { margin: 5px 0; font-size: 14px; color: #555; }
         
-        .frota-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 15px 0; }
-        .v-tag { padding: 8px 2px; border-radius: 6px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
-        .v-livre { background: #e8f5e9; color: var(--green); }
+        .frota-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 15px 0; }
+        .v-tag { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 2px solid #eee; }
+        .v-livre { background: #e8f5e9; color: var(--green); border-color: #c8e6c9; }
         .v-trajeto { background: #ffebee; color: var(--red); border-color: #ffcdd2; }
-        .v-block { background: #f5f5f5; color: #bdc3c7; }
+        .v-lock { background: #eee; color: #aaa; border-color: #ddd; }
 
-        label { font-size: 11px; font-weight: bold; display: block; margin-top: 10px; color: var(--navy); }
+        label { display: block; margin-top: 12px; font-size: 11px; font-weight: bold; color: var(--navy); text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        input:read-only { background: #eee; color: #777; }
+        input:read-only { background: var(--light); color: #666; }
 
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; color: white; margin-top: 15px; cursor: pointer; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; color: white; margin-top: 15px; cursor: pointer; transition: 0.3s; }
         .btn-ini { background: var(--green); }
         .btn-fim { background: var(--navy); }
         .btn:disabled { background: #ccc !important; cursor: not-allowed; }
 
-        #alertaOleo { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; display: none; border: 1px solid; }
+        #calcOleo { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; display: none; }
     </style>
 </head>
 <body>
@@ -35,52 +35,49 @@
 <div class="container">
     <div class="header">
         <h1>TELEJUR ELETROMECÂNICA</h1>
-        <p style="margin:0; font-size:12px; font-weight:bold;">Checklist Unidade Juruti</p>
-        <span id="syncStatus" onclick="location.reload()">⏳ Sincronizando...</span>
+        <h2>Checklist de Veículos | Unidade Juruti</h2>
+        <span id="sync" style="font-size:10px; color:gray;">Sincronizando banco de dados...</span>
     </div>
 
-    <div id="grid" class="frota-grid"></div>
+    <div id="frotaGrid" class="frota-grid"></div>
 
-    <label>Condutor</label>
-    <select id="mot" onchange="regras()">
-        <option value="">-- SELECIONE --</option>
-        <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
-        <option value="FRANCIVALDO COSTA">FRANCIVALDO COSTA</option>
-        <option value="FRANCINILDO TEXEIRA">FRANCINILDO TEXEIRA</option>
-        <option value="JOELCINEI GUIMARAES">JOELCINEI GUIMARAES</option>
-        <option value="REGINALDO">REGINALDO</option>
-        <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
-        <option value="LAFAITE BATISTA">LAFAITE BATISTA</option>
-        <option value="MIRIELLY">MIRIELLY</option>
-        <option value="EZEQUIEL">EZEQUIEL</option>
+    <label>Condutor Autorizado</label>
+    <select id="nomeMot" onchange="aplicarRegras()">
+        <option value="">-- SELECIONE SEU NOME --</option>
+        <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
+        <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARAES</option>
+        <option>REGINALDO</option><option>WALTER GONÇALVES</option>
+        <option>LAFAITE BATISTA</option><option>MIRIELLY</option><option>EZEQUIEL</option>
     </select>
 
     <label>TAG do Veículo</label>
-    <select id="tag" onchange="carregar()"></select>
+    <select id="tagSel" onchange="carregarVeiculo()"></select>
 
-    <div style="display:flex; gap:8px;">
-        <div style="flex:2"><label>Veículo</label><input id="v_n" readonly></div>
-        <div style="flex:1"><label>Placa</label><input id="v_p" readonly></div>
+    <div style="display: flex; gap: 8px;">
+        <div style="flex: 2;"><label>Veículo</label><input id="v_nome" readonly></div>
+        <div style="flex: 1;"><label>Placa</label><input id="v_placa" readonly></div>
     </div>
 
-    <label>ID Operação (Dia)</label><input id="idC" readonly>
-    
-    <label id="lKm">KM/Horas</label>
-    <input type="text" id="km" placeholder="Ex: 12500" oninput="validarNumero(this); alertarOleo()">
+    <label>ID da Operação (Único no Dia)</label>
+    <input id="idOp" readonly>
 
-    <label id="lOl">Próxima Revisão</label>
-    <input id="oleo" oninput="alertarOleo()">
-    <div id="alertaOleo"></div>
+    <label id="lblKm">Leitura Inicial (KM ou Horas)</label>
+    <input type="number" id="kmLeitura" placeholder="0" oninput="monitorarOleo()">
 
-    <div style="display:flex; gap:8px;">
-        <div style="flex:1"><label>Selo</label><select id="cor"><option>VERDE</option><option>VERMELHO</option></select></div>
-        <div style="flex:1"><label>Validade</label><input type="date" id="val"></div>
+    <label id="lblOleo">Próxima Revisão</label>
+    <input id="oleoInput" oninput="monitorarOleo()">
+    <div id="calcOleo"></div>
+
+    <div style="display: flex; gap: 8px;">
+        <div style="flex: 1;"><label>Cor Selo</label><select id="corSelo"><option>VERDE</option><option>VERMELHO</option></select></div>
+        <div style="flex: 1;"><label>Validade</label><input type="date" id="valSelo"></div>
     </div>
 
-    <label>Observações</label><textarea id="obs" rows="2"></textarea>
+    <label>Observações Técnicas</label>
+    <textarea id="obs" rows="2" placeholder="Descreva o estado do veículo..."></textarea>
 
-    <button id="bI" onclick="enviar('registrar')" class="btn btn-ini" disabled>INICIAR TRAJETO</button>
-    <button id="bF" onclick="enviar('finalizar')" class="btn btn-fim" disabled>FINALIZAR TRAJETO</button>
+    <button id="btnIni" onclick="enviar('registrar')" class="btn btn-ini" style="display:none;">▶ INICIAR TRAJETO</button>
+    <button id="btnFim" onclick="enviar('finalizar')" class="btn btn-fim" style="display:none;">🏁 FINALIZAR TRAJETO</button>
 </div>
 
 <script>
@@ -88,123 +85,120 @@
     const HOJE = new Date().toLocaleDateString('pt-BR');
     let DB = { ocupados: {}, frota: {}, proximoID: "" };
 
-    function chamar(p) {
+    function chamar(params) {
         const s = document.createElement('script');
-        s.src = `${API}?${new URLSearchParams(p).toString()}`;
+        s.src = `${API}?${new URLSearchParams(params).toString()}`;
         document.body.appendChild(s);
     }
 
-    function validarNumero(input) {
-        // Remove pontos e vírgulas para o cálculo não quebrar
-        input.value = input.value.replace(/[.,]/g, "");
-    }
+    window.onload = () => chamar({ acao: "statusGeral", data: HOJE, callback: "sincronizar" });
 
-    window.onload = () => chamar({ acao: "statusGeral", data: HOJE, callback: "onSync" });
-
-    window.onSync = (r) => {
+    window.sincronizar = (r) => {
         DB = r;
-        document.getElementById('syncStatus').innerText = "✅ Conectado: " + new Date().toLocaleTimeString();
-        regras();
+        document.getElementById('sync').innerText = "✅ Banco de Dados Sincronizado: " + new Date().toLocaleTimeString();
+        aplicarRegras();
     };
 
-    function regras() {
-        const m = document.getElementById('mot').value;
-        const sel = document.getElementById('tag');
-        const g = document.getElementById('grid');
+    function aplicarRegras() {
+        const mot = document.getElementById('nomeMot').value;
+        const grid = document.getElementById('frotaGrid');
+        const sel = document.getElementById('tagSel');
         const muncks = ["TJUR 04", "TJUR 07", "TJUR 09"];
-        const auth = ["LAFAITE BATISTA", "WALTER GONÇALVES", "REGINALDO"];
-        
-        sel.innerHTML = '<option value="">-- SELECIONE --</option>';
-        g.innerHTML = '';
+        const autorizados = ["LAFAITE BATISTA", "WALTER GONÇALVES", "REGINALDO"];
+
+        sel.innerHTML = '<option value="">-- SELECIONE A TAG --</option>';
+        grid.innerHTML = '';
 
         Object.keys(DB.frota).forEach(t => {
             const ocup = DB.ocupados[t];
-            const lock = muncks.includes(t) && !auth.includes(m) && m !== "";
-            g.innerHTML += `<div class="v-tag ${ocup?'v-trajeto':(lock?'v-block':'v-livre')}">${t}<br>${ocup?'EM USO':(lock?'BLOQUEIO':'LIVRE')}</div>`;
-            const o = document.createElement('option');
-            o.value = t; o.text = (lock?"🔒 ":(ocup?"🚩 ":"")) + t;
-            o.disabled = lock || (ocup && ocup.nome !== m && m !== "");
-            sel.appendChild(o);
+            const isMunck = muncks.includes(t);
+            const bloqueado = isMunck && !autorizados.includes(mot) && mot !== "";
+            
+            let classe = ocup ? "v-trajeto" : (bloqueado ? "v-lock" : "v-livre");
+            let texto = ocup ? "EM USO" : (bloqueado ? "RESTRITO" : "LIVRE");
+            grid.innerHTML += `<div class="v-tag ${classe}">${t}<br>${texto}</div>`;
+
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.text = (bloqueado ? "🔒 CADEADO - " : (ocup ? "🚩 EM USO - " : "✅ ")) + t;
+            opt.disabled = bloqueado || (ocup && ocup.nome !== mot && mot !== "");
+            sel.appendChild(opt);
         });
     }
 
-    function carregar() {
-        const t = document.getElementById('tag').value;
+    function carregarVeiculo() {
+        const t = document.getElementById('tagSel').value;
         if(!t) return;
         const info = DB.frota[t];
         const ocup = DB.ocupados[t];
-        
-        document.getElementById('v_n').value = info.v;
-        document.getElementById('v_p').value = info.p;
-        document.getElementById('oleo').type = info.tipo === "DATA" ? "date" : "text";
-        document.getElementById('lOl').innerText = "Próxima Revisão (" + info.tipo + ")";
+        const inputOleo = document.getElementById('oleoInput');
+
+        document.getElementById('v_nome').value = info.v;
+        document.getElementById('v_placa').value = info.p;
+        inputOleo.type = info.tipo === "DATA" ? "date" : "number";
+        document.getElementById('lblOleo').innerText = `Próxima Revisão (${info.tipo})`;
 
         if(ocup) {
-            document.getElementById('idC').value = ocup.id;
-            document.getElementById('oleo').value = ocup.oleo;
-            document.getElementById('lKm').innerText = "KM/HORAS FINAL";
-            document.getElementById('bI').disabled = true;
-            document.getElementById('bF').disabled = false;
+            document.getElementById('idOp').value = ocup.id;
+            inputOleo.value = ocup.oleo;
+            document.getElementById('lblKm').innerText = "Leitura FINAL";
+            document.getElementById('btnIni').style.display = "none";
+            document.getElementById('btnFim').style.display = "block";
         } else {
-            document.getElementById('idC').value = DB.proximoID;
-            document.getElementById('oleo').value = DB.ultimosOleos[t] || "";
-            document.getElementById('lKm').innerText = "KM/HORAS INICIAL";
-            document.getElementById('bI').disabled = false;
-            document.getElementById('bF').disabled = true;
+            document.getElementById('idOp').value = DB.proximoID;
+            inputOleo.value = DB.ultimosOleos[t] || "";
+            document.getElementById('lblKm').innerText = "Leitura INICIAL";
+            document.getElementById('btnIni').style.display = "block";
+            document.getElementById('btnFim').style.display = "none";
         }
+        monitorarOleo();
     }
 
-    function alertarOleo() {
-        const t = document.getElementById('tag').value;
-        if(!t || DB.frota[t].tipo !== "KM") return document.getElementById('alertaOleo').style.display="none";
+    function monitorarOleo() {
+        const t = document.getElementById('tagSel').value;
+        if(!t || DB.frota[t].tipo !== "KM") return document.getElementById('calcOleo').style.display="none";
         
-        const kmVal = parseInt(document.getElementById('km').value) || 0;
-        const oleoVal = parseInt(document.getElementById('oleo').value.replace(/[.,]/g, "")) || 0;
-        const alertBox = document.getElementById('alertaOleo');
+        const atual = parseInt(document.getElementById('kmLeitura').value) || 0;
+        const limite = parseInt(document.getElementById('oleoInput').value) || 0;
+        const box = document.getElementById('calcOleo');
 
-        if(kmVal > 0 && oleoVal > 0) {
-            const saldo = oleoVal - kmVal;
-            alertBox.style.display = "block";
-            alertBox.style.background = saldo > 0 ? "#e8f5e9" : "#ffebee";
-            alertBox.style.color = saldo > 0 ? "green" : "red";
-            alertBox.innerText = saldo > 0 ? `Faltam ${saldo} KM para revisão` : `ALERTA: Revisão vencida há ${Math.abs(saldo)} KM`;
+        if(atual > 0 && limite > 0) {
+            const saldo = limite - atual;
+            box.style.display = "block";
+            box.style.background = saldo > 0 ? "#e8f5e9" : "#ffebee";
+            box.style.color = saldo > 0 ? "green" : "red";
+            box.innerText = saldo > 0 ? `Faltam ${saldo} KM para a troca` : `ALERTA: Troca vencida há ${Math.abs(saldo)} KM`;
         }
     }
 
-    function enviar(a) {
-        const t = document.getElementById('tag').value;
-        const m = document.getElementById('mot').value;
-        const k = document.getElementById('km').value;
-        if(!t || !m || !k) return alert("Preencha Motorista, TAG e KM!");
+    function enviar(acao) {
+        const t = document.getElementById('tagSel').value;
+        const m = document.getElementById('nomeMot').value;
+        const k = document.getElementById('kmLeitura').value;
+        if(!t || !m || !k) return alert("Erro: Preencha Motorista, TAG e KM/Horas!");
 
-        const btn = document.getElementById(a === 'registrar' ? 'bI' : 'bF');
-        btn.disabled = true; btn.innerText = "⏳ PROCESSANDO...";
+        const btn = document.getElementById(acao === 'registrar' ? 'btnIni' : 'btnFim');
+        btn.disabled = true; btn.innerText = "⏳ SALVANDO...";
 
         const dados = {
-            acao: a, tag: t, nome: m, id: document.getElementById('idC').value,
-            kmi: k, kmf: k, oleo: document.getElementById('oleo').value,
-            corSelo: document.getElementById('cor').value, valSelo: document.getElementById('val').value,
+            acao: acao, tag: t, nome: m, id: document.getElementById('idOp').value,
+            kmi: k, kmf: k, oleo: document.getElementById('oleoInput').value,
+            corSelo: document.getElementById('corSelo').value, valSelo: document.getElementById('valSelo').value,
             obs: document.getElementById('obs').value || "Checklist OK",
-            data: HOJE, trajeto: DB.ocupados[t] ? DB.ocupados[t].trajetoNum : ((DB.contagem[t] || 0) + 1 + "º Trajeto"),
-            horaI: new Date().toLocaleTimeString(), horaF: new Date().toLocaleTimeString(), callback: "onFim"
+            data: HOJE, trajeto: DB.ocupados[t] ? DB.ocupados[t].trajeto : ((DB.contagem[t] || 0) + 1 + "º Trajeto"),
+            horaI: new Date().toLocaleTimeString(), horaF: new Date().toLocaleTimeString(), callback: "finalizarEnvio"
         };
 
-        window.onFim = (r) => {
-            if(r.res === "erro") { alert("Erro ao salvar!"); btn.disabled = false; return; }
-            
-            // FORMATO WHATSAPP MELHORADO
-            const msg = `*TELEJUR JURUTI - CHECKLIST*\n` +
-                        `--------------------------------\n` +
-                        `📌 *STATUS:* ${a.toUpperCase()}\n` +
-                        `👤 *CONDUTOR:* ${m}\n` +
+        window.finalizarEnvio = (r) => {
+            const txt = `*TELEJUR JURUTI - CHECKLIST*\n` +
+                        `📌 *STATUS:* ${acao.toUpperCase()}\n` +
+                        `👤 *MOTORISTA:* ${m}\n` +
                         `🆔 *OPERAÇÃO:* ${dados.id}\n` +
-                        `🏷️ *TAG:* ${t} (${document.getElementById('v_n').value})\n` +
-                        `🔢 *KM/HORAS:* ${k}\n` +
+                        `🚚 *VEÍCULO:* ${t} - ${document.getElementById('v_nome').value}\n` +
+                        `🔢 *LEITURA:* ${k}\n` +
                         `⌛ *REVISÃO:* ${dados.oleo}\n` +
-                        `📝 *OBS:* ${dados.obs}\n` +
-                        `--------------------------------`;
-            
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+                        `📝 *OBS:* ${dados.obs}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`);
             location.reload();
         };
         chamar(dados);
