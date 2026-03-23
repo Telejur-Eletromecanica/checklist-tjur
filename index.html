@@ -3,206 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR JURUTI v19.0</title>
+    <title>TELEJUR JURUTI v21.0</title>
     <style>
         :root { --navy: #1a237e; --green: #2e7d32; --red: #c62828; --gray: #9e9e9e; --light: #f5f5f5; }
         body { font-family: 'Segoe UI', sans-serif; background: #eaeff1; margin: 0; padding: 10px; }
         .container { max-width: 480px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 4px solid var(--navy); margin-bottom: 15px; }
-        .header h1 { margin: 0; font-size: 20px; color: var(--navy); }
-        .header h2 { margin: 5px 0; font-size: 14px; color: #555; }
         
+        /* Cabeçalho solicitado */
+        .header { text-align: center; border-bottom: 4px solid var(--navy); margin-bottom: 15px; }
+        .header h1 { margin: 0; font-size: 20px; color: var(--navy); text-transform: uppercase; }
+        .header h2 { margin: 2px 0; font-size: 16px; color: #333; }
+        .header p { margin: 2px 0 10px 0; font-size: 14px; color: #666; font-weight: bold; }
+
+        /* Grid de TAGs da Frota */
         .frota-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 15px 0; }
-        .v-tag { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 2px solid #eee; }
+        .v-tag { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 2px solid #eee; transition: 0.3s; }
         .v-livre { background: #e8f5e9; color: var(--green); border-color: #c8e6c9; }
         .v-trajeto { background: #ffebee; color: var(--red); border-color: #ffcdd2; }
-        .v-lock { background: #eee; color: #aaa; border-color: #ddd; }
+        .v-lock { background: #e0e0e0; color: #9e9e9e; border-color: #bdbdbd; cursor: not-allowed; opacity: 0.7; }
 
         label { display: block; margin-top: 12px; font-size: 11px; font-weight: bold; color: var(--navy); text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        input:read-only { background: var(--light); color: #666; }
-
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; color: white; margin-top: 15px; cursor: pointer; transition: 0.3s; }
-        .btn-ini { background: var(--green); }
-        .btn-fim { background: var(--navy); }
-        .btn:disabled { background: #ccc !important; cursor: not-allowed; }
-
-        #calcOleo { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; display: none; }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        input:read-only { background: var(--light); color: #555; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>TELEJUR ELETROMECÂNICA</h1>
-        <h2>Checklist de Veículos | Unidade Juruti</h2>
-        <span id="sync" style="font-size:10px; color:gray;">Sincronizando banco de dados...</span>
+        <h1>TELEJUR ELETROMECANICA</h1>
+        <h2>Checklist de Veículos</h2>
+        <p>Unidade Juruti</p>
     </div>
 
     <div id="frotaGrid" class="frota-grid"></div>
 
-    <label>Condutor Autorizado</label>
-    <select id="nomeMot" onchange="aplicarRegras()">
+    <label>Condutor</label>
+    <select id="nomeMot" onchange="validarAcesso()">
         <option value="">-- SELECIONE SEU NOME --</option>
-        <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-        <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARAES</option>
-        <option>REGINALDO</option><option>WALTER GONÇALVES</option>
-        <option>LAFAITE BATISTA</option><option>MIRIELLY</option><option>EZEQUIEL</option>
+        <option>ADRIANO NASCIMENTO</option>
+        <option>FRANCIVALDO COSTA</option>
+        <option>FRANCINILDO TEXEIRA</option>
+        <option>JOELCINEI GUIMARAES</option>
+        <option>REGINALDO</option>
+        <option>WALTER GONÇALVES</option>
+        <option>LAFAITE BATISTA</option>
+        <option>MIRIELLY</option>
+        <option>EZEQUIEL</option>
     </select>
 
     <label>TAG do Veículo</label>
-    <select id="tagSel" onchange="carregarVeiculo()"></select>
+    <select id="tagSel" onchange="carregarDadosVeiculo()">
+        <option value="">-- SELECIONE O CONDUTOR PRIMEIRO --</option>
+    </select>
 
     <div style="display: flex; gap: 8px;">
         <div style="flex: 2;"><label>Veículo</label><input id="v_nome" readonly></div>
         <div style="flex: 1;"><label>Placa</label><input id="v_placa" readonly></div>
     </div>
-
-    <label>ID da Operação (Único no Dia)</label>
-    <input id="idOp" readonly>
-
-    <label id="lblKm">Leitura Inicial (KM ou Horas)</label>
-    <input type="number" id="kmLeitura" placeholder="0" oninput="monitorarOleo()">
-
-    <label id="lblOleo">Próxima Revisão</label>
-    <input id="oleoInput" oninput="monitorarOleo()">
-    <div id="calcOleo"></div>
-
-    <div style="display: flex; gap: 8px;">
-        <div style="flex: 1;"><label>Cor Selo</label><select id="corSelo"><option>VERDE</option><option>VERMELHO</option></select></div>
-        <div style="flex: 1;"><label>Validade</label><input type="date" id="valSelo"></div>
-    </div>
-
-    <label>Observações Técnicas</label>
-    <textarea id="obs" rows="2" placeholder="Descreva o estado do veículo..."></textarea>
-
-    <button id="btnIni" onclick="enviar('registrar')" class="btn btn-ini" style="display:none;">▶ INICIAR TRAJETO</button>
-    <button id="btnFim" onclick="enviar('finalizar')" class="btn btn-fim" style="display:none;">🏁 FINALIZAR TRAJETO</button>
 </div>
 
 <script>
-    const API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const HOJE = new Date().toLocaleDateString('pt-BR');
-    let DB = { ocupados: {}, frota: {}, proximoID: "" };
-
-    function chamar(params) {
-        const s = document.createElement('script');
-        s.src = `${API}?${new URLSearchParams(params).toString()}`;
-        document.body.appendChild(s);
-    }
-
-    window.onload = () => chamar({ acao: "statusGeral", data: HOJE, callback: "sincronizar" });
-
-    window.sincronizar = (r) => {
-        DB = r;
-        document.getElementById('sync').innerText = "✅ Banco de Dados Sincronizado: " + new Date().toLocaleTimeString();
-        aplicarRegras();
+    // Configuração da Frota Conforme solicitado
+    const frotaFixa = {
+        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50", m: true }, 
+        "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02", m: false },
+        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75", m: true }, 
+        "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48", m: false },
+        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04", m: true }, 
+        "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37", m: false },
+        "TJUR 13": { v: "CAMINHONETE", p: "QVD4I38", m: false }
     };
 
-    function aplicarRegras() {
+    // Motoristas Autorizados para Munck (04, 07, 09)
+    const autorizadosMunck = ["LAFAITE BATISTA", "WALTER GONÇALVES", "REGINALDO"];
+
+    // Simulação de status (Será substituído pela conexão com a planilha na Parte 2)
+    let statusOcupacao = { "TJUR 08": "EM TRAJETO" }; 
+
+    function validarAcesso() {
         const mot = document.getElementById('nomeMot').value;
         const grid = document.getElementById('frotaGrid');
         const sel = document.getElementById('tagSel');
-        const muncks = ["TJUR 04", "TJUR 07", "TJUR 09"];
-        const autorizados = ["LAFAITE BATISTA", "WALTER GONÇALVES", "REGINALDO"];
-
-        sel.innerHTML = '<option value="">-- SELECIONE A TAG --</option>';
+        
         grid.innerHTML = '';
+        sel.innerHTML = '<option value="">-- SELECIONE A TAG --</option>';
 
-        Object.keys(DB.frota).forEach(t => {
-            const ocup = DB.ocupados[t];
-            const isMunck = muncks.includes(t);
-            const bloqueado = isMunck && !autorizados.includes(mot) && mot !== "";
+        Object.keys(frotaFixa).forEach(tag => {
+            const info = frotaFixa[tag];
+            const ocupada = statusOcupacao[tag] === "EM TRAJETO";
+            const restrito = info.m && !autorizadosMunck.includes(mot) && mot !== "";
             
-            let classe = ocup ? "v-trajeto" : (bloqueado ? "v-lock" : "v-livre");
-            let texto = ocup ? "EM USO" : (bloqueado ? "RESTRITO" : "LIVRE");
-            grid.innerHTML += `<div class="v-tag ${classe}">${t}<br>${texto}</div>`;
+            // Criar Visual das TAGs
+            let classe = ocupada ? "v-trajeto" : (restrito ? "v-lock" : "v-livre");
+            let textoStatus = ocupada ? "TRAJETO" : (restrito ? "RESTRITO" : "LIVRE");
+            grid.innerHTML += `<div class="v-tag ${classe}">${tag}<br>${textoStatus}</div>`;
 
+            // Criar Opções no Select
             const opt = document.createElement('option');
-            opt.value = t;
-            opt.text = (bloqueado ? "🔒 CADEADO - " : (ocup ? "🚩 EM USO - " : "✅ ")) + t;
-            opt.disabled = bloqueado || (ocup && ocup.nome !== mot && mot !== "");
+            opt.value = tag;
+            if (restrito) {
+                opt.text = `🔒 CADEADO - ${tag}`;
+                opt.disabled = true;
+            } else if (ocupada) {
+                opt.text = `🚩 EM TRAJETO - ${tag}`;
+                opt.disabled = true;
+            } else {
+                opt.text = `✅ ${tag}`;
+            }
             sel.appendChild(opt);
         });
     }
 
-    function carregarVeiculo() {
-        const t = document.getElementById('tagSel').value;
-        if(!t) return;
-        const info = DB.frota[t];
-        const ocup = DB.ocupados[t];
-        const inputOleo = document.getElementById('oleoInput');
-
-        document.getElementById('v_nome').value = info.v;
-        document.getElementById('v_placa').value = info.p;
-        inputOleo.type = info.tipo === "DATA" ? "date" : "number";
-        document.getElementById('lblOleo').innerText = `Próxima Revisão (${info.tipo})`;
-
-        if(ocup) {
-            document.getElementById('idOp').value = ocup.id;
-            inputOleo.value = ocup.oleo;
-            document.getElementById('lblKm').innerText = "Leitura FINAL";
-            document.getElementById('btnIni').style.display = "none";
-            document.getElementById('btnFim').style.display = "block";
-        } else {
-            document.getElementById('idOp').value = DB.proximoID;
-            inputOleo.value = DB.ultimosOleos[t] || "";
-            document.getElementById('lblKm').innerText = "Leitura INICIAL";
-            document.getElementById('btnIni').style.display = "block";
-            document.getElementById('btnFim').style.display = "none";
-        }
-        monitorarOleo();
+    function carregarDadosVeiculo() {
+        const tag = document.getElementById('tagSel').value;
+        if(!tag) return;
+        document.getElementById('v_nome').value = frotaFixa[tag].v;
+        document.getElementById('v_placa').value = frotaFixa[tag].p;
     }
 
-    function monitorarOleo() {
-        const t = document.getElementById('tagSel').value;
-        if(!t || DB.frota[t].tipo !== "KM") return document.getElementById('calcOleo').style.display="none";
-        
-        const atual = parseInt(document.getElementById('kmLeitura').value) || 0;
-        const limite = parseInt(document.getElementById('oleoInput').value) || 0;
-        const box = document.getElementById('calcOleo');
-
-        if(atual > 0 && limite > 0) {
-            const saldo = limite - atual;
-            box.style.display = "block";
-            box.style.background = saldo > 0 ? "#e8f5e9" : "#ffebee";
-            box.style.color = saldo > 0 ? "green" : "red";
-            box.innerText = saldo > 0 ? `Faltam ${saldo} KM para a troca` : `ALERTA: Troca vencida há ${Math.abs(saldo)} KM`;
-        }
-    }
-
-    function enviar(acao) {
-        const t = document.getElementById('tagSel').value;
-        const m = document.getElementById('nomeMot').value;
-        const k = document.getElementById('kmLeitura').value;
-        if(!t || !m || !k) return alert("Erro: Preencha Motorista, TAG e KM/Horas!");
-
-        const btn = document.getElementById(acao === 'registrar' ? 'btnIni' : 'btnFim');
-        btn.disabled = true; btn.innerText = "⏳ SALVANDO...";
-
-        const dados = {
-            acao: acao, tag: t, nome: m, id: document.getElementById('idOp').value,
-            kmi: k, kmf: k, oleo: document.getElementById('oleoInput').value,
-            corSelo: document.getElementById('corSelo').value, valSelo: document.getElementById('valSelo').value,
-            obs: document.getElementById('obs').value || "Checklist OK",
-            data: HOJE, trajeto: DB.ocupados[t] ? DB.ocupados[t].trajeto : ((DB.contagem[t] || 0) + 1 + "º Trajeto"),
-            horaI: new Date().toLocaleTimeString(), horaF: new Date().toLocaleTimeString(), callback: "finalizarEnvio"
-        };
-
-        window.finalizarEnvio = (r) => {
-            const txt = `*TELEJUR JURUTI - CHECKLIST*\n` +
-                        `📌 *STATUS:* ${acao.toUpperCase()}\n` +
-                        `👤 *MOTORISTA:* ${m}\n` +
-                        `🆔 *OPERAÇÃO:* ${dados.id}\n` +
-                        `🚚 *VEÍCULO:* ${t} - ${document.getElementById('v_nome').value}\n` +
-                        `🔢 *LEITURA:* ${k}\n` +
-                        `⌛ *REVISÃO:* ${dados.oleo}\n` +
-                        `📝 *OBS:* ${dados.obs}`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`);
-            location.reload();
-        };
-        chamar(dados);
-    }
+    // Iniciar visual vazio
+    window.onload = () => validarAcesso();
 </script>
 </body>
 </html>
