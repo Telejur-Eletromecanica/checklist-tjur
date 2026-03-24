@@ -1,28 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v32.2</title>
+    <title>TELEJUR v32.4</title>
     <style>
-        :root { --navy: #0d47a1; --red: #c62828; --green: #2e7d32; }
-        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        label { display: block; margin-top: 10px; font-size: 12px; font-weight: bold; color: var(--navy); }
-        .status-oleo { margin-top: 10px; padding: 10px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 14px; }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; margin-top: 15px; }
-        #msg { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:100; flex-direction:column; align-items:center; justify-content:center; }
+        :root { --navy: #0d47a1; --gold: #ffd600; --green: #2e7d32; --red: #c62828; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 10px; }
+        .card { max-width: 480px; margin: auto; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 5px solid var(--navy); }
+        .header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .header h1 { font-size: 18px; color: var(--navy); margin: 0; }
+        
+        .status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 15px; }
+        .tag-box { padding: 8px 2px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; }
+        .livre { background: #e8f5e9; color: var(--green); }
+        .ocupado { background: #ffebee; color: var(--red); }
+        .bloq { background: #f5f5f5; color: #999; border-style: dashed; }
+
+        label { display: block; margin-top: 12px; font-size: 11px; font-weight: bold; color: var(--navy); text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 10px; border: 1.5px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .readonly { background: #f1f3f4 !important; font-weight: bold; color: #444; }
+
+        .oleo-alerta { margin-top: 10px; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 14px; display: none; }
+        .oleo-ok { background: #e8f5e9; color: var(--green); border: 1px solid #c8e6c9; }
+        .oleo-vencido { background: #ffebee; color: var(--red); border: 2px solid #ffcdd2; }
+
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; color: white; }
+        .btn-start { background: var(--green); box-shadow: 0 4px #1b5e20; }
+        .btn-end { background: var(--red); box-shadow: 0 4px #8e1a1a; }
+        
+        #loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<div id="msg"><h1>⏳</h1><h3>PROCESSANDO...</h3></div>
+<div id="loader">
+    <div style="font-size: 50px;">⏳</div>
+    <h2 id="loaderTxt">Sincronizando...</h2>
+</div>
 
 <div class="card" id="app">
-    <h3 style="text-align:center; color:var(--navy); margin:0 0 15px 0;">TELEJUR JURUTI v32.2</h3>
-    
-    <div id="formContainer">
+    <div class="header"><h1>TELEJUR JURUTI v32.4</h1></div>
+    <div class="status-grid" id="gridTags"></div>
+
+    <form id="formPrincipal">
         <label>Condutor</label>
         <select id="nomeMot" onchange="sync()">
             <option value="">-- SELECIONE --</option>
@@ -34,37 +55,60 @@
         </select>
 
         <label>TAG</label>
-        <select id="tag" onchange="setupVeiculo()"></select>
+        <select id="tag" onchange="setup()"></select>
 
-        <label id="lblKmi">KM Inicial</label>
-        <input type="number" id="kmi" oninput="calcularOleo()">
+        <div style="display:flex; gap:8px">
+            <div style="flex:2"><label>Veículo</label><input id="v_nome" class="readonly" readonly></div>
+            <div style="flex:1"><label>Placa</label><input id="v_placa" class="readonly" readonly></div>
+        </div>
 
-        <label id="lblProx">Próxima Troca (KM)</label>
-        <div id="divOleo"><input type="number" id="oleoVal" oninput="calcularOleo()"></div>
+        <div style="display:flex; gap:8px">
+            <div style="flex:1"><label>ID</label><input id="v_id" class="readonly" readonly></div>
+            <div style="flex:1"><label>Trajeto</label><input id="v_trajeto" class="readonly" readonly></div>
+        </div>
 
-        <div id="statusOleo" class="status-oleo" style="display:none"></div>
-        
+        <div style="display:flex; gap:8px">
+            <div style="flex:1"><label id="lblKmi">KM Inicial</label><input type="number" id="kmi" oninput="calcOleo()"></div>
+            <div style="flex:1"><label id="lblProx">Próx. Troca</label><div id="boxOleo"><input type="number" id="oleoVal" oninput="calcOleo()"></div></div>
+        </div>
+
+        <div id="statusOleo" class="oleo-alerta"></div>
+        <input type="hidden" id="resOleo">
+
         <label>Observação</label>
         <textarea id="obs" rows="2"></textarea>
 
-        <button type="button" class="btn" style="background:var(--green)" onclick="salvar(false)">🚀 INICIAR TRAJETO</button>
-    </div>
+        <button type="button" class="btn btn-start" onclick="enviar(false)">🚀 INICIAR TRAJETO</button>
+    </form>
 </div>
 
 <script>
-    const URL_GAS = "SUA_URL_AQUI"; // <--- COLOQUE SUA URL AQUI
-    let DB = {};
+    const URL_GAS = "COLE_SUA_URL_AQUI"; // <--- COLOQUE A URL DA IMPLANTAÇÃO AQUI
+    let DB = { ocupados: {}, frota: {}, contagem: {} };
+
+    window.onload = () => {
+        const ativo = localStorage.getItem('tj_v32');
+        if(ativo) carregarFinal(JSON.parse(ativo));
+        sync();
+    };
 
     function sync() {
+        const mot = document.getElementById('nomeMot').value;
+        const skyArr = ["REGINALDO", "LAFAITE BATISTA", "WALTER GONÇALVES"];
         const cb = 'cb' + Date.now();
         window[cb] = (res) => {
             DB = res;
             const sel = document.getElementById('tag');
+            const grid = document.getElementById('gridTags');
             sel.innerHTML = '<option value="">-- SELECIONE --</option>';
+            grid.innerHTML = '';
+
             Object.keys(DB.frota).sort().forEach(t => {
                 const o = DB.ocupados[t];
-                let opt = new Option(t + (o ? ' (OCUPADO)' : ''), t);
-                opt.disabled = !!o;
+                const bloq = (DB.frota[t].v === "SKY MUNCK" && mot !== "" && !skyArr.includes(mot));
+                grid.innerHTML += `<div class="tag-box ${o?'ocupado':(bloq?'bloq':'livre')}">${t}<br>${o?o.nome.split(' ')[0]:(bloq?'🔒':'LIVRE')}</div>`;
+                let opt = new Option(t + (o?' 🔒':(bloq?' 🚫':'')), t);
+                opt.disabled = o || bloq;
                 sel.add(opt);
             });
         };
@@ -73,84 +117,93 @@
         document.body.appendChild(s);
     }
 
-    function setupVeiculo() {
+    function setup() {
         const t = document.getElementById('tag').value;
         const f = DB.frota[t];
-        const isData = f.t === 'data';
-        document.getElementById('lblKmi').innerText = isData ? "Horímetro Inicial" : "KM Inicial";
-        document.getElementById('lblProx').innerText = isData ? "Data Próx. Troca" : "Próx. Troca (KM)";
-        document.getElementById('divOleo').innerHTML = isData ? `<input type="date" id="oleoVal">` : `<input type="number" id="oleoVal" oninput="calcularOleo()">`;
+        const n = (DB.contagem[t] || 0) + 1;
+        document.getElementById('v_nome').value = f.v;
+        document.getElementById('v_placa').value = f.p;
+        document.getElementById('v_trajeto').value = n + "º Trajeto";
+        document.getElementById('v_id').value = "CONDUTOR " + n;
+        
+        const box = document.getElementById('boxOleo');
+        if(f.t === 'data') {
+            document.getElementById('lblKmi').innerText = "Horímetro Inicial";
+            box.innerHTML = `<input type="date" id="oleoVal">`;
+        } else {
+            document.getElementById('lblKmi').innerText = "KM Inicial";
+            box.innerHTML = `<input type="number" id="oleoVal" oninput="calcOleo()">`;
+        }
     }
 
-    function calcularOleo() {
-        const kmi = parseFloat(document.getElementById('kmi').value);
-        const prox = parseFloat(document.getElementById('oleoVal').value);
+    function calcOleo() {
+        const k = parseFloat(document.getElementById('kmi').value);
+        const p = parseFloat(document.getElementById('oleoVal').value);
         const st = document.getElementById('statusOleo');
-        
-        if (isNaN(kmi) || isNaN(prox)) { st.style.display = 'none'; return; }
-        
-        const resta = prox - kmi;
+        if(isNaN(k) || isNaN(p)) { st.style.display='none'; return ""; }
+        const r = p - k;
         st.style.display = 'block';
-        st.style.background = resta <= 0 ? '#ffebee' : '#e8f5e9';
-        st.style.color = resta <= 0 ? 'red' : 'green';
-        st.innerText = resta <= 0 ? "🚨 ÓLEO VENCIDO!" : "✅ RESTAM " + resta.toLocaleString() + " KM";
-        return resta + " KM";
+        st.className = 'oleo-alerta ' + (r <= 0 ? 'oleo-vencido' : 'oleo-ok');
+        st.innerText = r <= 0 ? "🚨 ÓLEO VENCIDO!" : "✅ RESTAM " + r.toLocaleString() + " KM";
+        document.getElementById('resOleo').value = r + " KM";
+        return r + " KM";
     }
 
-    function salvar(isFinal) {
+    function enviar(isF) {
         const mot = document.getElementById('nomeMot').value;
         const tag = document.getElementById('tag').value;
-        if(!mot || !tag) return alert("Selecione Motorista e TAG");
+        if(!mot || !tag) return alert("Preencha Motorista e TAG!");
 
-        document.getElementById('msg').style.display = 'flex';
-        const kmiVal = document.getElementById('kmi').value;
-        const nTraj = DB.contagem ? (DB.contagem[tag] || 0) + 1 : 1;
+        document.getElementById('loader').style.display = 'flex';
+        document.getElementById('loaderTxt').innerText = isF ? "Finalizando..." : "Registrando...";
 
-        const p = {
-            acao: isFinal ? 'finalizar' : 'registrar',
+        const d = {
+            acao: isF ? 'finalizar' : 'registrar',
             data: new Date().toLocaleDateString('pt-BR'),
             tag: tag,
             nome: mot,
-            kmi: kmiVal,
-            kmf: isFinal ? kmiVal : "",
-            horaI: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-            horaF: isFinal ? new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : "",
+            kmi: document.getElementById('kmi').value,
+            kmf: isF ? document.getElementById('kmi').value : "",
+            horaI: isF ? "" : new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+            horaF: isF ? new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : "",
             oleo: document.getElementById('oleoVal').value,
-            resta: calcularOleo() || "---",
-            nTrajeto: nTraj + "º",
-            id: "CONDUTOR " + nTraj,
-            veiculo: DB.frota[tag].v,
-            placa: DB.frota[tag].p,
+            resta: document.getElementById('resOleo').value || "---",
+            nTrajeto: document.getElementById('v_trajeto') ? document.getElementById('v_trajeto').value : "1º",
+            id: document.getElementById('v_id') ? document.getElementById('v_id').value : "CONDUTOR",
+            veiculo: document.getElementById('v_nome').value,
+            placa: document.getElementById('v_placa').value,
             obs: document.getElementById('obs').value
         };
 
         const cb = 'cb' + Date.now();
         window[cb] = () => {
-            if(!isFinal) localStorage.setItem('ativo_tj', JSON.stringify(p));
-            else localStorage.removeItem('ativo_tj');
-            location.reload();
+            if(!isF) localStorage.setItem('tj_v32', JSON.stringify(d));
+            else localStorage.removeItem('tj_v32');
+            
+            let m = (isF ? "🏁 *FINALIZADO*" : "🚀 *INICIADO*") + `\n👤 ${d.nome}\n🏷️ TAG: ${d.tag}\n📏 KM: ${d.kmi}\n💡 Resta: ${d.resta}`;
+            window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
+            setTimeout(() => location.reload(), 2000);
         };
         const s = document.createElement('script');
-        s.src = `${URL_GAS}?${new URLSearchParams(p)}&callback=${cb}`;
+        s.src = `${URL_GAS}?${new URLSearchParams(d)}&callback=${cb}`;
         document.body.appendChild(s);
     }
 
-    // Lógica para carregar tela de finalização
-    const salvo = localStorage.getItem('ativo_tj');
-    if(salvo) {
-        const d = JSON.parse(salvo);
-        document.getElementById('formContainer').innerHTML = `
-            <div style="background:#fff3e0; padding:10px; border-radius:10px; text-align:center; margin-bottom:10px">
-                <b>TRAJETO EM CURSO: ${d.tag}</b>
+    function carregarFinal(d) {
+        document.getElementById('app').innerHTML = `
+            <div class="header"><h1>FINALIZAR TRAJETO</h1></div>
+            <div style="background:#e3f2fd; padding:15px; border-radius:15px; margin-bottom:15px; text-align:center">
+                <b>${d.tag}</b> | ${d.nome}
             </div>
             <label>KM / Horímetro Final</label>
-            <input type="number" id="kmi">
+            <input type="number" id="kmi" style="text-align:center; font-size:22px">
             <label>Observação Final</label>
             <textarea id="obs"></textarea>
-            <input type="hidden" id="tag" value="${d.tag}">
-            <input type="hidden" id="nomeMot" value="${d.nome}">
-            <input type="hidden" id="oleoVal" value="${d.oleo}">
-            <button class="btn" style="background:var(--red)" onclick="salvar(true)">🏁 FINALIZAR TRAJETO</button>
+            <input type="hidden" id="tag" value="${d.tag}"><input type="hidden" id="nomeMot" value="${d.nome}">
+            <input type="hidden" id="oleoVal" value="${d.oleo}"><input type="hidden" id="resOleo" value="${d.resta}">
+            <input type="hidden" id="v_nome" value="${d.veiculo}"><input type="hidden" id="v_placa" value="${d.placa}">
+            <button class="btn btn-end" onclick="enviar(true)">🏁 ENCERRAR E ENVIAR</button>
+            <p onclick="localStorage.removeItem('tj_v32');location.reload()" style="text-align:center;color:red;font-size:10px;margin-top:15px">Cancelar Trajeto</p>
         `;
     }
 </script>
