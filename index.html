@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v23.0</title>
+    <title>TELEJUR v25.0</title>
     <style>
-        :root { --navy: #1a237e; --green: #2e7d32; --red: #c62828; --gold: #fbc02d; }
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
+        :root { --navy: #1a237e; --green: #2e7d32; --red: #c62828; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .header { text-align: center; border-bottom: 3px solid var(--navy); margin-bottom: 15px; padding-bottom: 10px; }
         label { display: block; margin-top: 12px; font-size: 11px; font-weight: bold; color: var(--navy); text-transform: uppercase; }
         select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         input:read-only { background: #f9f9f9; color: #666; }
-        .status-oleo { margin-top: 10px; padding: 10px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 13px; }
         .btn { width: 100%; padding: 18px; margin-top: 20px; border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .btn-start { background: var(--green); }
-        .btn-end { background: var(--red); }
+        .btn-start { background: var(--green); box-shadow: 0 4px #1b5e20; }
+        .btn-end { background: var(--red); box-shadow: 0 4px #8e0000; }
+        .status-oleo { margin-top: 10px; padding: 12px; border-radius: 8px; font-weight: bold; text-align: center; }
         .hidden { display: none; }
-        #telaSucesso { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #telaSucesso { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
 <div id="telaSucesso" class="hidden">
-    <h1 style="font-size: 80px;">✅</h1>
-    <h2 id="msgAgradecimento"></h2>
-    <p>Dados enviados e WhatsApp abrindo...</p>
+    <h1 style="font-size: 70px; margin:0;">✅</h1>
+    <h2 id="msgAgradecimento" style="color:var(--navy)">Obrigado!</h2>
+    <p>Os dados foram salvos na planilha.<br><b>Abrindo WhatsApp agora...</b></p>
 </div>
 
 <div class="card" id="formPrincipal">
     <div class="header">
-        <h1 style="margin:0; font-size:18px; color:var(--navy)">TELEJUR ELETROMECÂNICA</h1>
-        <small id="syncStatus">Sincronizando...</small>
+        <h1 style="margin:0; font-size:18px; color:var(--navy)">TELEJUR JURUTI</h1>
+        <small id="syncStatus">Sincronizando Frota...</small>
     </div>
 
     <label>Condutor / ID</label>
@@ -57,21 +57,18 @@
     </div>
 
     <div style="display:flex; gap:10px">
-        <div style="flex:1"><label id="lblKmi">KM/Hora Inicial</label><input type="number" id="kmi" oninput="calcularOleo()"></div>
+        <div style="flex:1"><label id="lblKmi">KM Inicial</label><input type="number" id="kmi" oninput="calcularOleo()"></div>
         <div style="flex:1"><label id="lblProx">Próx. Troca</label><input id="proxOleo" oninput="calcularOleo()"></div>
     </div>
 
     <div id="statusOleoBox" class="status-oleo hidden"></div>
 
     <div id="secaoSaida">
-        <label>Validade do Selo</label>
-        <input type="date" id="valSelo">
-        
+        <label>Validade do Selo</label><input type="date" id="valSelo">
         <label>Cor do Selo</label>
         <select id="corSelo">
             <option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
         </select>
-
         <label>Tipo de Óleo</label>
         <select id="tipoOleo">
             <option>15W40</option><option>5W30</option><option>10W40</option><option>SAE 90</option>
@@ -81,22 +78,23 @@
     <label>Observações</label>
     <textarea id="obs" rows="2"></textarea>
 
-    <button id="btnAcao" class="btn btn-start" onclick="enviar()">🚀 FINALIZAR TRAJETO INICIAL</button>
+    <button id="btnAcao" class="btn btn-start" onclick="processarEnvio()">🚀 FINALIZAR TRAJETO INICIAL</button>
 </div>
 
 <script>
-    const URL_GAS = "SUA_URL_AQUI"; 
+    const URL_GAS = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const HOJE = new Date().toLocaleDateString('pt-BR');
     let DB = { ocupados: {}, frota: {}, ultimosOleos: {} };
 
     window.onload = () => {
-        const id = 'jp_' + Date.now();
-        window[id] = (r) => { 
-            DB = r; 
+        const id = 'cb_' + Date.now();
+        window[id] = (r) => {
+            DB = r;
             const sel = document.getElementById('tagSel');
-            sel.innerHTML = '<option value="">-- SELECIONE TAG --</option>';
-            Object.keys(DB.frota).forEach(t => sel.innerHTML += `<option>${t}</option>`);
-            document.getElementById('syncStatus').innerText = "✅ Sincronizado";
+            sel.innerHTML = '<option value="">-- TAG --</option>';
+            Object.keys(DB.frota).sort().forEach(t => sel.innerHTML += `<option>${t}</option>`);
+            document.getElementById('syncStatus').innerText = "✅ Conectado";
+            delete window[id];
         };
         const s = document.createElement('script');
         s.src = `${URL_GAS}?acao=statusGeral&data=${HOJE}&callback=${id}`;
@@ -113,9 +111,8 @@
         document.getElementById('v_placa').value = info.p;
         document.getElementById('proxOleo').value = DB.ultimosOleos[tag] || "";
         
-        // Campo Automático Conforme TAG (Munck=Data, Hilux=KM)
         const isData = info.tipo === "DATA";
-        document.getElementById('lblKmi').innerText = isData ? "Horímetro Inicial" : "KM Inicial";
+        document.getElementById('lblKmi').innerText = isData ? "Horímetro" : "KM";
         document.getElementById('lblProx').innerText = isData ? "Data Próx. Troca" : "KM Próx. Troca";
         document.getElementById('proxOleo').type = isData ? "date" : "number";
 
@@ -134,59 +131,49 @@
     function calcularOleo() {
         const tag = document.getElementById('tagSel').value;
         if(!tag || DB.frota[tag].tipo === "DATA") return;
-
         const kmi = parseFloat(document.getElementById('kmi').value) || 0;
         const prox = parseFloat(document.getElementById('proxOleo').value) || 0;
         const box = document.getElementById('statusOleoBox');
-
         if(prox > 0) {
             box.classList.remove('hidden');
             const falta = prox - kmi;
-            if(falta <= 0) {
-                box.innerHTML = "🚨 ÓLEO VENCIDO!";
-                box.style.background = "#ffebee"; box.style.color = "red";
-            } else {
-                box.innerHTML = `⏳ Faltam ${falta.toLocaleString()} KM para a troca`;
-                box.style.background = "#e8f5e9"; box.style.color = "green";
-            }
-        }
+            if(falta <= 0) { box.innerHTML = "🚨 ÓLEO VENCIDO!"; box.style.background="#ffebee"; box.style.color="red"; }
+            else { box.innerHTML = `⏳ Faltam ${falta.toLocaleString()} KM para a troca`; box.style.background="#e8f5e9"; box.style.color="green"; }
+        } else { box.classList.add('hidden'); }
     }
 
-    function bip() {
-        const context = new AudioContext();
-        const osc = context.createOscillator();
-        osc.type = "sine";
-        osc.frequency.value = 880;
-        osc.connect(context.destination);
-        osc.start(); osc.stop(context.currentTime + 0.2);
-    }
-
-    function enviar() {
+    function processarEnvio() {
         const nome = document.getElementById('condutor').value;
         const tag = document.getElementById('tagSel').value;
-        const kmi = document.getElementById('kmi').value;
-        if(!nome || !tag || !kmi) return alert("Preencha Condutor, Tag e KM!");
+        const km = document.getElementById('kmi').value;
+        if(!nome || !tag || !km) return alert("Preencha Nome, Tag e KM!");
 
         const ocupado = DB.ocupados[tag];
         const acao = ocupado ? "finalizar" : "registrar";
         const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-
-        let params = `acao=${acao}&tag=${tag}&nome=${nome}&data=${HOJE}&id=${nome.split('(')[1]?.replace(')','') || '1'}`;
-        params += ocupado ? `&kmf=${kmi}&horaF=${hora}` : `&kmi=${kmi}&horaI=${hora}&oleo=${document.getElementById('proxOleo').value}&valSelo=${document.getElementById('valSelo').value}&corSelo=${document.getElementById('corSelo').value}&tipoOleo=${document.getElementById('tipoOleo').value}&placa=${document.getElementById('v_placa').value}&veiculo=${document.getElementById('v_nome').value}`;
-
-        const s = document.createElement('script');
-        s.src = `${URL_GAS}?${params}&callback=sucesso`;
-        document.body.appendChild(s);
-
-        bip();
+        
+        // Bloqueia tela e faz som
         document.getElementById('msgAgradecimento').innerText = `Obrigado, ${nome.split(' ')[0]}!`;
         document.getElementById('telaSucesso').classList.remove('hidden');
+        try { new AudioContext().createOscillator().start(); } catch(e){}
 
-        let whats = `*TELEJUR ${acao.toUpperCase()}*\n👤 ${nome}\n🚗 ${tag}\n📟 KM: ${kmi}\n⏰ ${hora}`;
-        setTimeout(() => {
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(whats)}`);
-            location.reload();
-        }, 2000);
+        let params = `acao=${acao}&tag=${tag}&nome=${nome}&data=${HOJE}&id=${nome.split('CONDUTOR ')[1]?.replace(')','') || '1'}`;
+        if(ocupado) {
+            params += `&kmf=${km}&horaF=${hora}&obs=${document.getElementById('obs').value}`;
+        } else {
+            params += `&kmi=${km}&horaI=${hora}&oleo=${document.getElementById('proxOleo').value}&valSelo=${document.getElementById('valSelo').value}&corSelo=${document.getElementById('corSelo').value}&tipoOleo=${document.getElementById('tipoOleo').value}&placa=${document.getElementById('v_placa').value}&veiculo=${document.getElementById('v_nome').value}`;
+        }
+
+        const callbackID = 'cb_' + Date.now();
+        window[callbackID] = (res) => {
+            let msg = `*TELEJUR ${acao.toUpperCase()}*\n👤 ${nome}\n🚗 ${tag}\n📟 ${km}\n⏰ ${hora}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+            setTimeout(() => location.reload(), 1500);
+        };
+
+        const s = document.createElement('script');
+        s.src = `${URL_GAS}?${params}&callback=${callbackID}`;
+        document.body.appendChild(s);
     }
 </script>
 </body>
