@@ -10,20 +10,20 @@
         .container { max-width: 480px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .header { text-align: center; border-bottom: 4px solid var(--navy); margin-bottom: 15px; }
         .header h1 { margin: 0; font-size: 18px; color: var(--navy); text-transform: uppercase; }
-        .header h2 { margin: 2px 0; font-size: 15px; color: #333; }
-        .header p { margin: 2px 0 10px 0; font-size: 13px; color: #666; font-weight: bold; }
-
+        
         .frota-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 15px 0; }
-        .v-tag { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 2px solid #eee; }
+        .v-tag { padding: 8px 2px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 2px solid #eee; }
         .v-livre { background: #e8f5e9; color: var(--green); border-color: #c8e6c9; }
         .v-trajeto { background: #ffebee; color: var(--red); border-color: #ffcdd2; animation: pulse 2s infinite; }
-        .v-lock { background: #e0e0e0; color: #9e9e9e; border-color: #bdbdbd; opacity: 0.6; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
         label { display: block; margin-top: 12px; font-size: 11px; font-weight: bold; color: var(--navy); text-transform: uppercase; }
-        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         input:read-only { background: var(--light); color: #555; }
-        #alertaOleo { margin-top: 8px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; display: none; }
+        
+        .btn-enviar { width: 100%; padding: 18px; margin-top: 20px; border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-saida { background: var(--green); border-bottom: 4px solid #1b5e20; }
+        .btn-retorno { background: var(--red); border-bottom: 4px solid #8e0000; }
     </style>
 </head>
 <body>
@@ -31,15 +31,13 @@
 <div class="container">
     <div class="header">
         <h1>TELEJUR ELETROMECANICA</h1>
-        <h2>Checklist de Veículos</h2>
-        <p>Unidade Juruti</p>
-        <span id="statusSync" style="font-size:10px; color:var(--gray);">Sincronizando com a Planilha...</span>
+        <p>Unidade Juruti | <span id="statusSync">Sincronizando...</span></p>
     </div>
 
     <div id="frotaGrid" class="frota-grid"></div>
 
     <label>Condutor</label>
-    <select id="nomeMot" onchange="validarAcesso()">
+    <select id="nomeMot">
         <option value="">-- SELECIONE SEU NOME --</option>
         <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
         <option>FRANCINILDO TEXEIRA</option><option>JOELCINEI GUIMARAES</option>
@@ -48,37 +46,110 @@
     </select>
 
     <label>TAG do Veículo</label>
-    <select id="tagSel" onchange="carregarDadosVeiculo()"></select>
+    <select id="tagSel" onchange="atualizarInterface()"></select>
 
     <div style="display: flex; gap: 8px;">
         <div style="flex: 2;"><label>Veículo</label><input id="v_nome" readonly></div>
         <div style="flex: 1;"><label>Placa</label><input id="v_placa" readonly></div>
     </div>
 
-    <label>ID Operação (Sequencial)</label>
+    <label>ID Operação</label>
     <input id="idOp" readonly>
 
     <label id="lblKm">KM Inicial / Horas</label>
-    <input type="number" id="kmInput" placeholder="0" oninput="calcularOleo()">
+    <input type="number" id="kmInput" placeholder="0">
 
     <label id="lblOleo">Próxima Revisão</label>
-    <input id="oleoInput" oninput="calcularOleo()">
-    <div id="alertaOleo"></div>
+    <input id="oleoInput">
+
+    <button id="btnAcao" class="btn-enviar btn-saida" onclick="processarEnvio()">🚀 INICIAR TRAJETO</button>
 </div>
 
 <script>
     const URL_GAS = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const HOJE = new Date().toLocaleDateString('pt-BR');
-    
-    // Configuração Conforme solicitado
-    const frotaFixa = {
-        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50", t: "DATA" }, 
-        "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02", t: "KM" },
-        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75", t: "DATA" }, 
-        "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48", t: "KM" },
-        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04", t: "DATA" }, 
-        "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37", t: "KM" },
-        "TJUR 13": { v: "CAMINHONETE", p: "QVD4I38", t: "KM" }
-    };
+    let DB = { ocupados: {}, proximoID: "ID 1", ultimosOleos: {}, frota: {} };
 
-    let DB = { ocupados: {}, proximoID: "ID 1", ultimosOleos: {} };
+    window.onload = () => sincronizar();
+
+    function sincronizar() {
+        const id = 'jp_' + Date.now();
+        window[id] = (r) => {
+            DB = r;
+            document.getElementById('statusSync').innerText = "✅ Online";
+            renderizarGrid();
+            popularTags();
+            delete window[id];
+        };
+        const s = document.createElement('script');
+        s.src = `${URL_GAS}?acao=statusGeral&data=${HOJE}&callback=${id}`;
+        document.body.appendChild(s);
+    }
+
+    function renderizarGrid() {
+        const grid = document.getElementById('frotaGrid');
+        grid.innerHTML = "";
+        Object.keys(DB.frota).forEach(tag => {
+            const ocupado = DB.ocupados[tag];
+            grid.innerHTML += `<div class="v-tag ${ocupado ? 'v-trajeto' : 'v-livre'}">${tag}<br><span style="font-size:7px">${ocupado ? 'EM USO' : 'LIVRE'}</span></div>`;
+        });
+    }
+
+    function popularTags() {
+        const sel = document.getElementById('tagSel');
+        sel.innerHTML = '<option value="">-- SELECIONE --</option>';
+        Object.keys(DB.frota).forEach(tag => sel.innerHTML += `<option value="${tag}">${tag}</option>`);
+    }
+
+    function atualizarInterface() {
+        const tag = document.getElementById('tagSel').value;
+        if (!tag) return;
+        const info = DB.frota[tag];
+        const ocupado = DB.ocupados[tag];
+        const btn = document.getElementById('btnAcao');
+        
+        document.getElementById('v_nome').value = info.v;
+        document.getElementById('v_placa').value = info.p;
+        document.getElementById('idOp').value = ocupado ? ocupado.id : DB.proximoID;
+        document.getElementById('oleoInput').type = info.tipo === "DATA" ? "date" : "number";
+        document.getElementById('oleoInput').value = DB.ultimosOleos[tag] || "";
+
+        if(ocupado) {
+            btn.innerText = "🏁 FINALIZAR TRAJETO";
+            btn.className = "btn-enviar btn-retorno";
+            document.getElementById('lblKm').innerText = "KM / Horas Final";
+        } else {
+            btn.innerText = "🚀 INICIAR TRAJETO";
+            btn.className = "btn-enviar btn-saida";
+            document.getElementById('lblKm').innerText = "KM / Horas Inicial";
+        }
+    }
+
+    function processarEnvio() {
+        const tag = document.getElementById('tagSel').value;
+        const nome = document.getElementById('nomeMot').value;
+        const km = document.getElementById('kmInput').value;
+        if(!tag || !nome || !km) return alert("Erro: Preencha Nome, Tag e KM!");
+
+        const ocupado = DB.ocupados[tag];
+        const acao = ocupado ? "finalizar" : "registrar";
+        const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+        
+        let params = `acao=${acao}&tag=${tag}&nome=${nome}&data=${HOJE}&id=${document.getElementById('idOp').value}`;
+        params += ocupado ? `&kmf=${km}&horaF=${hora}` : `&kmi=${km}&horaI=${hora}&oleo=${document.getElementById('oleoInput').value}`;
+
+        const s = document.createElement('script');
+        s.src = `${URL_GAS}?${params}&callback=confirmar`;
+        document.body.appendChild(s);
+
+        let whats = acao === "registrar" ? `*SAÍDA* 🚀\n👤 ${nome}\n🚗 ${tag}\n📟 KM: ${km}\n⏰ ${hora}` : `*RETORNO* 🏁\n👤 ${nome}\n🚗 ${tag}\n📟 KM: ${km}\n⏰ ${hora}`;
+        
+        setTimeout(() => {
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(whats)}`);
+            location.reload();
+        }, 1200);
+    }
+    function confirmar(r) { console.log(r); }
+</script>
+</body>
+</html>
