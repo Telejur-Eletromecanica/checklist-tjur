@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v11.6</title>
+    <title>SISTEMA TELEJUR v11.7</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #9e9e9e; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -96,10 +96,7 @@
         });
     }
 
-    async function sync() { 
-        const res = await call({acao: 'statusGeral'}); 
-        if(res) { frota = res; validarAcesso(); } 
-    }
+    async function sync() { const res = await call({acao: 'statusGeral'}); if(res) { frota = res; validarAcesso(); } }
 
     function validarAcesso() {
         const mot = document.getElementById('nomeMot').value.toUpperCase().trim();
@@ -122,8 +119,7 @@
     }
 
     async function carregarDadosVei() {
-        const tag = document.getElementById('tag').value; 
-        if(!tag) return;
+        const tag = document.getElementById('tag').value; if(!tag) return;
         const res = await call({acao: 'buscarDadosMotorista', tag: tag});
         if(res){
             document.getElementById('veiculoInfo').value = `${res.veiculo || "N/A"} | ${res.placa || "N/A"}`;
@@ -164,6 +160,11 @@
             validadeSelo: document.getElementById('validadeSelo').value, tipoOleo: document.getElementById('tipoOleo').value
         };
         if(!d.tag || !d.nome || !d.validadeSelo) return alert("Preencha Motorista, TAG e Validade!");
+        
+        // Chamada para contar trajetos do motorista hoje
+        const contagem = await call({acao: 'contarTrajetos', nome: d.nome});
+        d.trajetoNum = contagem.total + 1;
+
         const res = await call(d);
         if(res && res.error) return alert(res.error);
         localStorage.setItem("tjur_trip", JSON.stringify(d));
@@ -173,8 +174,11 @@
     function enviarWhatsInicial() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
         const agora = new Date();
+        const sufixo = d.trajetoNum === 1 ? "PRIMEIRO" : d.trajetoNum === 2 ? "SEGUNDO" : d.trajetoNum === 3 ? "TERCEIRO" : d.trajetoNum + "º";
+        
         let resta = skyTags.includes(d.tag) ? Math.ceil((new Date(d.oleo) - agora) / 86400000) + " dias" : (Number(d.oleo) - Number(d.kmi)) + " KM";
-        const msg = `🚀 *SAÍDA REGISTRADA*\n--------------------------------\n📅 *Data:* ${agora.toLocaleDateString('pt-BR')}\n🏷️ *Tag:* ${d.tag}\n👤 *Nome:* ${d.nome.toUpperCase()}\n📍 *Trajeto:* Ativo\n--------------------------------\n🛣️ *KM:* ${d.kmi}\n🎨 *Selo:* ${d.corSelo}\n🛠️ *Troca em:* ${resta}`;
+        
+        const msg = `🚀 *SAÍDA REGISTRADA*\n--------------------------------\n📅 *Data:* ${agora.toLocaleDateString('pt-BR')}\n🏷️ *Tag:* ${d.tag}\n👤 *Nome:* ${d.nome.toUpperCase()}\n📍 *Trajeto:* ${sufixo} TRAJETO\n--------------------------------\n🛣️ *KM:* ${d.kmi}\n🕒 *Hora:* ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}\n🎨 *Selo:* ${d.corSelo}\n🛠️ *Próx. Troca:* ${d.oleo}\n⏳ *Resta:* ${resta}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     }
 
@@ -183,10 +187,15 @@
         const kf = document.getElementById('kmf').value;
         const obs = document.getElementById('obs').value || "NENHUMA";
         const agora = new Date();
+        const sufixo = t.trajetoNum === 1 ? "PRIMEIRO" : t.trajetoNum === 2 ? "SEGUNDO" : t.trajetoNum === 3 ? "TERCEIRO" : t.trajetoNum + "º";
+
         if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final inválido!");
-        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: obs.toUpperCase() });
+        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: obs.toUpperCase(), trajetoNum: t.trajetoNum });
+        
         let restaFinal = skyTags.includes(t.tag) ? Math.ceil((new Date(t.oleo) - agora) / 86400000) + " dias" : (Number(t.oleo) - Number(kf)) + " KM";
-        const msg = `✅ *CHECKLIST CONCLUÍDO*\n--------------------------------\n📅 *Data:* ${agora.toLocaleDateString('pt-BR')}\n🏷️ *Tag:* ${t.tag}\n👤 *Nome:* ${t.nome.toUpperCase()}\n📍 *Trajeto:* Concluído\n--------------------------------\n🛣️ *KM:* ${kf}\n🎨 *Selo:* ${t.corSelo}\n📝 *Obs:* ${obs.toUpperCase()}\n🛠️ *Resta Troca:* ${restaFinal}`;
+        
+        const msg = `✅ *CHECKLIST CONCLUÍDO*\n--------------------------------\n📅 *Data:* ${agora.toLocaleDateString('pt-BR')}\n🏷️ *Tag:* ${t.tag}\n👤 *Nome:* ${t.nome.toUpperCase()}\n📍 *Trajeto:* ${sufixo} CONCLUÍDO\n--------------------------------\n🛣️ *KM:* ${kf}\n🕒 *Hora:* ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}\n🎨 *Selo:* ${t.corSelo}\n🛠️ *Próx. Troca:* ${t.oleo}\n📝 *Obs:* ${obs.toUpperCase()}\n⏳ *Resta:* ${restaFinal}`;
+        
         localStorage.removeItem("tjur_trip");
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
         setTimeout(() => location.reload(), 1200);
