@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v11.8</title>
+    <title>SISTEMA TELEJUR v12.0</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #9e9e9e; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -46,7 +46,7 @@
         <select id="tag" onchange="carregarDadosVei()"></select>
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
         <div class="section-box">
-            <b style="font-size:11px; color:var(--primary)">DADOS DE SAÍDA</b>
+            <b style="font-size:11px; color:var(--primary)">SAÍDA</b>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                 <div><label>Selo</label><select id="corSelo"><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select></div>
                 <div><label>Validade Selo</label><input type="date" id="validadeSelo"></div>
@@ -109,7 +109,9 @@
         sel.innerHTML = '<option value="">-- SELECIONE --</option>';
         todasTags.forEach(t => {
             const opt = document.createElement('option'); opt.value = t;
-            if (skyTags.includes(t) && !ehAutorizado && mot !== "") { opt.text = `🔒 ${t}`; opt.disabled = true; } 
+            const o = frota.ocupados[t];
+            if (o) { opt.text = `🚫 ${t} (OCUPADO)`; opt.disabled = true; }
+            else if (skyTags.includes(t) && !ehAutorizado && mot !== "") { opt.text = `🔒 ${t} (RESTRITO)`; opt.disabled = true; } 
             else { opt.text = t; } sel.add(opt);
         });
     }
@@ -156,8 +158,11 @@
             validadeSelo: document.getElementById('validadeSelo').value, tipoOleo: document.getElementById('tipoOleo').value
         };
         if(!d.tag || !d.nome || !d.validadeSelo) return alert("Preencha Motorista, TAG e Validade!");
-        const contagem = await call({acao: 'contarTrajetos', nome: d.nome});
-        d.trajetoNum = parseInt(contagem.total) + 1;
+        
+        // Gera ID do Condutor baseado no uso do veículo hoje
+        const contagem = await call({acao: 'gerarIdCondutor', tag: d.tag});
+        d.idCondutor = contagem.idCondutor;
+
         const res = await call(d);
         if(res && res.error) return alert(res.error);
         localStorage.setItem("tjur_trip", JSON.stringify(d));
@@ -167,9 +172,9 @@
     function enviarWhatsInicial() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
         const agora = new Date();
-        const nOrd = d.trajetoNum + "º";
+        const idAmigavel = "CONDUTOR " + d.idCondutor;
         let resta = skyTags.includes(d.tag) ? Math.ceil((new Date(d.oleo) - agora) / 86400000) + " dias" : (Number(d.oleo) - Number(d.kmi)) + " KM";
-        const msg = `🚀 *SAÍDA REGISTRADA*\n--------------------------------\n📅 *Data:* ${agora.toLocaleDateString('pt-BR')}\n🏷️ *Tag:* ${d.tag}\n👤 *Nome:* ${d.nome.toUpperCase()}\n📍 *Trajeto:* ${nOrd} TRAJETO\n--------------------------------\n🛣️ *KM:* ${d.kmi}\n🕒 *Hora:* ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}\n🎨 *Selo:* ${d.corSelo}\n🛠️ *Próx. Troca:* ${d.oleo}\n⏳ *Resta:* ${resta}`;
+        const msg = `🚀 *SAÍDA REGISTRADA*\n--------------------------------\n📅 *Data:* ${agora.toLocaleDateString('pt-BR')}\n🏷️ *Tag:* ${d.tag}\n👤 *Nome:* ${d.nome.toUpperCase()}\n🆔 *Cargo:* ${idAmigavel}\n--------------------------------\n🛣️ *KM:* ${d.kmi}\n🎨 *Selo:* ${d.corSelo}\n🛠️ *Próx. Troca:* ${d.oleo}\n⏳ *Resta:* ${resta}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     }
 
@@ -178,17 +183,17 @@
         const kf = document.getElementById('kmf').value;
         const obs = document.getElementById('obs').value || "NENHUMA";
         const agora = new Date();
-        const nOrd = t.trajetoNum + "º";
+        const idAmigavel = "CONDUTOR " + t.idCondutor;
         if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final inválido!");
         await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: obs.toUpperCase() });
         let restaFinal = skyTags.includes(t.tag) ? Math.ceil((new Date(t.oleo) - agora) / 86400000) + " dias" : (Number(t.oleo) - Number(kf)) + " KM";
-        const msg = `✅ *CHECKLIST CONCLUÍDO*\n--------------------------------\n📅 *Data:* ${agora.toLocaleDateString('pt-BR')}\n🏷️ *Tag:* ${t.tag}\n👤 *Nome:* ${t.nome.toUpperCase()}\n📍 *Trajeto:* ${nOrd} CONCLUÍDO\n--------------------------------\n🛣️ *KM:* ${kf}\n🕒 *Hora:* ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}\n🎨 *Selo:* ${t.corSelo}\n🛠️ *Próx. Troca:* ${t.oleo}\n📝 *Obs:* ${obs.toUpperCase()}\n⏳ *Resta:* ${restaFinal}`;
+        const msg = `✅ *CHECKLIST CONCLUÍDO*\n--------------------------------\n📅 *Data:* ${agora.toLocaleDateString('pt-BR')}\n🏷️ *Tag:* ${t.tag}\n👤 *Nome:* ${t.nome.toUpperCase()}\n🆔 *Cargo:* ${idAmigavel}\n--------------------------------\n🛣️ *KM:* ${kf}\n🎨 *Selo:* ${t.corSelo}\n📝 *Obs:* ${obs.toUpperCase()}\n⏳ *Resta:* ${restaFinal}`;
         localStorage.removeItem("tjur_trip");
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
         setTimeout(() => location.reload(), 1200);
     }
 
-    window.onload = () => { sync(); const s = localStorage.getItem("tjur_trip"); if(s) { const d = JSON.parse(s); document.getElementById('formEntrada').style.display = 'none'; document.getElementById('telaAtiva').style.display = 'block'; document.getElementById('infoViagem').innerHTML = `<b>TRAJETO EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("tjur_trip"); if(s) { const d = JSON.parse(s); document.getElementById('formEntrada').style.display = 'none'; document.getElementById('telaAtiva').style.display = 'block'; document.getElementById('infoViagem').innerHTML = `<b>TRAJETO EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}<br>🆔 CONDUTOR ${d.idCondutor}`; } };
 </script>
 </body>
 </html>
