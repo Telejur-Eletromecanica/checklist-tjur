@@ -24,37 +24,36 @@
 
 <div class="card">
     <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.3</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Sincronizando frotas...</p>
+    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Verificando restrições...</p>
     
     <div id="painel" class="grid-status"></div>
-    <div id="loader">⚙️ PROCESSANDO... AGUARDE</div>
+    <div id="loader">⚙️ PROCESSANDO...</div>
 
     <div id="formEntrada">
         <label>Motorista</label>
-        <select id="nomeMot" onchange="buscarDados()">
+        <select id="nomeMot" onchange="validarAcesso()">
             <option value="">-- SELECIONE --</option>
             <option>ADRIANO NASCIMENTO</option>
             <option>FRANCIVALDO COSTA</option>
-            <option>FRANCINILDO TEXEIRA</option>
             <option>REGINALDO</option>
             <option>WALTER GONÇALVES</option>
             <option>LAFAITE BATISTA</option>
         </select>
 
         <label>Veículo (TAG)</label>
-        <select id="tag" onchange="buscarDados()">
+        <select id="tag" onchange="validarAcesso()">
             <option value="">-- SELECIONE --</option>
-            <option value="TJUR 04">TJUR 04</option>
+            <option value="TJUR 04">TJUR 04 (MUNCK)</option>
             <option value="TJUR 06">TJUR 06</option>
-            <option value="TJUR 07">TJUR 07</option>
+            <option value="TJUR 07">TJUR 07 (MUNCK)</option>
             <option value="TJUR 08">TJUR 08</option>
-            <option value="TJUR 09">TJUR 09</option>
+            <option value="TJUR 09">TJUR 09 (MUNCK)</option>
             <option value="TJUR 10">TJUR 10</option>
             <option value="TJUR 13">TJUR 13</option>
         </select>
         
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
-
+        
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
             <div><label>Cor Selo</label><select id="corSelo"><option>VERDE</option><option>VERMELHO</option><option>AZUL</option><option>AMARELO</option></select></div>
             <div><label>Validade Selo</label><input type="date" id="validadeSelo"></div>
@@ -62,146 +61,104 @@
 
         <label>KM Inicial</label>
         <input type="number" id="kmi">
-
         <label>Próx. troca óleo (KM)</label>
         <input type="number" id="proxOleo">
-
         <label>Tipo de Óleo</label>
-        <select id="tipoOleo">
-            <option>15W40</option>
-            <option>5W30</option>
-            <option>10W40</option>
-            <option>OUTRO</option>
-        </select>
+        <select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option><option>OUTRO</option></select>
 
-        <button onclick="salvarSaida()" class="btn btn-azul">🚀 REGISTRAR SAÍDA</button>
+        <button id="btnSalvar" onclick="salvarSaida()" class="btn btn-azul">🚀 REGISTRAR SAÍDA</button>
     </div>
 
     <div id="telaAtiva" style="display:none">
         <div id="infoViagem" style="background:#f8f9fa; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px"></div>
-        
         <label style="color:var(--danger)">KM FINAL (CHEGADA)</label>
         <input type="number" id="kmf">
-        
         <label>Observações</label>
-        <textarea id="obs" placeholder="Ex: Pneu furado, barulho..."></textarea>
-
-        <button onclick="finalizar()" class="btn" style="background:var(--danger); color:white">🏁 FINALIZAR E SALVAR</button>
-        <button onclick="enviarWhats()" class="btn" style="background:#25D366; color:white">📲 NOTIFICAR WHATSAPP</button>
+        <textarea id="obs" placeholder="Alguma avaria?"></textarea>
+        <button onclick="finalizar()" class="btn" style="background:var(--danger); color:white">🏁 CONCLUIR CHECKLIST</button>
+        <button onclick="enviarWhats()" class="btn" style="background:#25D366; color:white">📲 WHATSAPP</button>
     </div>
 </div>
 
 <script>
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
 
-    function bip() {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const g = ctx.createGain();
-        osc.connect(g); g.connect(ctx.destination);
-        osc.frequency.value = 880; g.gain.value = 0.1;
-        osc.start(); osc.stop(ctx.currentTime + 0.15);
-    }
-
-    async function call(params) {
+    async function call(p) {
         document.getElementById('loader').style.display = 'block';
-        return new Promise(resolve => {
-            const callbackName = 'cb_' + Math.round(Math.random() * 1000000);
-            window[callbackName] = (data) => {
-                delete window[callbackName];
-                document.getElementById('loader').style.display = 'none';
-                resolve(data);
-            };
-            const script = document.createElement('script');
-            script.src = `${URL}?${new URLSearchParams(params)}&callback=${callbackName}&_=${Date.now()}`;
-            document.body.appendChild(script);
+        return new Promise(r => {
+            const n = 'cb_'+Math.round(Math.random()*1e6);
+            window[n] = (d) => { delete window[n]; document.getElementById('loader').style.display='none'; r(d); };
+            const s = document.createElement('script');
+            s.src = `${URL}?${new URLSearchParams(p)}&callback=${n}&_=${Date.now()}`;
+            document.body.appendChild(s);
         });
     }
 
     async function sync() {
         const res = await call({acao: 'statusGeral'});
-        const painel = document.getElementById('painel');
-        painel.innerHTML = '';
-        const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-        
-        tags.forEach(t => {
-            const ocup = res.ocupados[t];
-            const classe = ocup ? 'ocupado' : 'livre';
-            const statusTxt = ocup ? ocup.nome.split(' ')[0] : 'LIVRE';
-            painel.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
+        const p = document.getElementById('painel'); p.innerHTML = '';
+        ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"].forEach(t => {
+            const o = res.ocupados[t];
+            p.innerHTML += `<div class="v-box ${o ? 'ocupado' : 'livre'}">${t}<br>${o ? o.nome.split(' ')[0] : 'LIVRE'}</div>`;
         });
-        document.getElementById('txtSync').innerText = "Atualizado: " + new Date().toLocaleTimeString();
+        document.getElementById('txtSync').innerText = "Sinc: " + new Date().toLocaleTimeString();
     }
 
-    async function buscarDados() {
+    async function validarAcesso() {
         const tag = document.getElementById('tag').value;
-        if(!tag) return;
-        const res = await call({acao: 'buscarDadosMotorista', tag: tag});
-        document.getElementById('veiculoInfo').value = `${res.veiculo} | ${res.placa}`;
-        document.getElementById('kmi').value = res.kmi;
-        document.getElementById('proxOleo').value = res.oleo;
-        window.veiAtual = res.veiculo;
-        window.plaAtual = res.placa;
+        const mot = document.getElementById('nomeMot').value;
+        const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
+        const autorizados = ["REGINALDO", "WALTER GONÇALVES", "LAFAITE BATISTA"];
+        const btn = document.getElementById('btnSalvar');
+
+        if (skyTags.includes(tag) && !autorizados.includes(mot)) {
+            alert("⚠️ BLOQUEIO: Uso restrito a REGINALDO, WALTER ou LAFAITE.");
+            document.getElementById('tag').value = "";
+            document.getElementById('veiculoInfo').value = "ACESSO NEGADO";
+            btn.disabled = true; btn.style.opacity = "0.3";
+            return;
+        }
+        btn.disabled = false; btn.style.opacity = "1";
+        
+        if(tag) {
+            const res = await call({acao: 'buscarDadosMotorista', tag: tag});
+            document.getElementById('veiculoInfo').value = `${res.veiculo} | ${res.placa}`;
+            document.getElementById('kmi').value = res.kmi;
+            document.getElementById('proxOleo').value = res.oleo;
+            window.v = res.veiculo; window.p = res.placa;
+        }
     }
 
     async function salvarSaida() {
         const d = {
-            acao: 'registrar',
-            tag: document.getElementById('tag').value,
-            nome: document.getElementById('nomeMot').value,
-            id: "ID-" + Math.floor(100 + Math.random() * 900),
-            kmi: document.getElementById('kmi').value,
-            oleo: document.getElementById('proxOleo').value,
-            corSelo: document.getElementById('corSelo').value,
-            validadeSelo: document.getElementById('validadeSelo').value,
-            tipoOleo: document.getElementById('tipoOleo').value,
-            veiculo: window.veiAtual,
-            placa: window.plaAtual
+            acao: 'registrar', tag: document.getElementById('tag').value, nome: document.getElementById('nomeMot').value,
+            id: "ID-" + Math.floor(100 + Math.random() * 900), kmi: document.getElementById('kmi').value,
+            oleo: document.getElementById('proxOleo').value, corSelo: document.getElementById('corSelo').value,
+            validadeSelo: document.getElementById('validadeSelo').value, tipoOleo: document.getElementById('tipoOleo').value,
+            veiculo: window.v, placa: window.p
         };
-
-        if(!d.tag || !d.nome || !d.kmi) return alert("Preencha os campos obrigatórios!");
-        
         const res = await call(d);
+        if(res.error) return alert(res.error);
         localStorage.setItem("tjur_trip", JSON.stringify(d));
         location.reload();
     }
 
     async function finalizar() {
-        const trip = JSON.parse(localStorage.getItem("tjur_trip"));
-        const kmf = document.getElementById('kmf').value;
-        if(!kmf || Number(kmf) <= Number(trip.kmi)) return alert("KM Final inválido!");
-
-        const res = await call({
-            acao: 'finalizar',
-            tag: trip.tag,
-            kmf: kmf,
-            obs: document.getElementById('obs').value
-        });
-
-        if(res.res === "fim") {
-            bip();
-            localStorage.removeItem("tjur_trip");
-            alert("Checklist Concluído!");
-            location.reload();
-        }
+        const t = JSON.parse(localStorage.getItem("tjur_trip"));
+        const kf = document.getElementById('kmf').value;
+        if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final inválido!");
+        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: document.getElementById('obs').value });
+        localStorage.removeItem("tjur_trip");
+        alert("Checklist Concluído!"); location.reload();
     }
 
     function enviarWhats() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
-        const m = `🚀 *SAÍDA REGISTRADA*\n📅 Data: ${new Date().toLocaleDateString()}\n👤 Mot: ${d.nome}\n🚗 Tag: ${d.tag}\n🔢 KM: ${d.kmi}`;
+        const m = `🚀 *SAÍDA REGISTRADA*\n👤 Mot: ${d.nome}\n🚗 Tag: ${d.tag}\n🚛 Vei: ${d.veiculo}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
     }
 
-    window.onload = () => {
-        sync();
-        const salva = localStorage.getItem("tjur_trip");
-        if(salva) {
-            const d = JSON.parse(salva);
-            document.getElementById('formEntrada').style.display = 'none';
-            document.getElementById('telaAtiva').style.display = 'block';
-            document.getElementById('infoViagem').innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`;
-        }
-    };
+    window.onload = () => { sync(); const s = localStorage.getItem("tjur_trip"); if(s) { const d = JSON.parse(s); document.getElementById('formEntrada').style.display = 'none'; document.getElementById('telaAtiva').style.display = 'block'; document.getElementById('infoViagem').innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
 </script>
 </body>
 </html>
