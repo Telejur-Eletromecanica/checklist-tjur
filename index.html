@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.3</title>
+    <title>TELEJUR v10.4 - CONTROLE DE FROTA</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -23,11 +23,11 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.3</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Verificando restrições...</p>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.4</h2>
+    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Sincronizando frotas...</p>
     
     <div id="painel" class="grid-status"></div>
-    <div id="loader">⚙️ PROCESSANDO...</div>
+    <div id="loader">⚙️ PROCESSANDO... AGUARDE</div>
 
     <div id="formEntrada">
         <label>Motorista</label>
@@ -43,17 +43,17 @@
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="validarAcesso()">
             <option value="">-- SELECIONE --</option>
-            <option value="TJUR 04">TJUR 04 (MUNCK)</option>
+            <option value="TJUR 04">TJUR 04 (SKY MUNCK)</option>
             <option value="TJUR 06">TJUR 06</option>
-            <option value="TJUR 07">TJUR 07 (MUNCK)</option>
+            <option value="TJUR 07">TJUR 07 (SKY MUNCK)</option>
             <option value="TJUR 08">TJUR 08</option>
-            <option value="TJUR 09">TJUR 09 (MUNCK)</option>
+            <option value="TJUR 09">TJUR 09 (SKY MUNCK)</option>
             <option value="TJUR 10">TJUR 10</option>
             <option value="TJUR 13">TJUR 13</option>
         </select>
         
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
-        
+
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
             <div><label>Cor Selo</label><select id="corSelo"><option>VERDE</option><option>VERMELHO</option><option>AZUL</option><option>AMARELO</option></select></div>
             <div><label>Validade Selo</label><input type="date" id="validadeSelo"></div>
@@ -97,7 +97,8 @@
     async function sync() {
         const res = await call({acao: 'statusGeral'});
         const p = document.getElementById('painel'); p.innerHTML = '';
-        ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"].forEach(t => {
+        const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
+        tags.forEach(t => {
             const o = res.ocupados[t];
             p.innerHTML += `<div class="v-box ${o ? 'ocupado' : 'livre'}">${t}<br>${o ? o.nome.split(' ')[0] : 'LIVRE'}</div>`;
         });
@@ -106,18 +107,23 @@
 
     async function validarAcesso() {
         const tag = document.getElementById('tag').value;
-        const mot = document.getElementById('nomeMot').value;
-        const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
-        const autorizados = ["REGINALDO", "WALTER GONÇALVES", "LAFAITE BATISTA"];
+        const mot = document.getElementById('nomeMot').value.toUpperCase().trim();
         const btn = document.getElementById('btnSalvar');
 
-        if (skyTags.includes(tag) && !autorizados.includes(mot)) {
-            alert("⚠️ BLOQUEIO: Uso restrito a REGINALDO, WALTER ou LAFAITE.");
-            document.getElementById('tag').value = "";
-            document.getElementById('veiculoInfo').value = "ACESSO NEGADO";
-            btn.disabled = true; btn.style.opacity = "0.3";
-            return;
+        const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
+        const autorizados = ["REGINALDO", "WALTER GONÇALVES", "LAFAITE BATISTA"];
+
+        // TRAVA DE SEGURANÇA MUNCK
+        if (skyTags.includes(tag)) {
+            if (!autorizados.includes(mot)) {
+                alert("❌ ACESSO BLOQUEADO!\nAs TAGS 04, 07 e 09 (SKY MUNCK) são de uso exclusivo de REGINALDO, WALTER e LAFAITE.");
+                document.getElementById('tag').value = "";
+                document.getElementById('veiculoInfo').value = "ACESSO NEGADO";
+                btn.disabled = true; btn.style.opacity = "0.3";
+                return;
+            }
         }
+
         btn.disabled = false; btn.style.opacity = "1";
         
         if(tag) {
@@ -130,15 +136,21 @@
     }
 
     async function salvarSaida() {
+        const tag = document.getElementById('tag').value;
+        const mot = document.getElementById('nomeMot').value;
+        if(!tag || !mot) return alert("Selecione Motorista e TAG!");
+
         const d = {
-            acao: 'registrar', tag: document.getElementById('tag').value, nome: document.getElementById('nomeMot').value,
+            acao: 'registrar', tag: tag, nome: mot,
             id: "ID-" + Math.floor(100 + Math.random() * 900), kmi: document.getElementById('kmi').value,
             oleo: document.getElementById('proxOleo').value, corSelo: document.getElementById('corSelo').value,
             validadeSelo: document.getElementById('validadeSelo').value, tipoOleo: document.getElementById('tipoOleo').value,
             veiculo: window.v, placa: window.p
         };
+        
         const res = await call(d);
         if(res.error) return alert(res.error);
+        
         localStorage.setItem("tjur_trip", JSON.stringify(d));
         location.reload();
     }
@@ -146,19 +158,30 @@
     async function finalizar() {
         const t = JSON.parse(localStorage.getItem("tjur_trip"));
         const kf = document.getElementById('kmf').value;
-        if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final inválido!");
+        if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final deve ser maior que o Inicial!");
+        
         await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: document.getElementById('obs').value });
         localStorage.removeItem("tjur_trip");
-        alert("Checklist Concluído!"); location.reload();
+        alert("Checklist Concluído com Sucesso!"); 
+        location.reload();
     }
 
     function enviarWhats() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
-        const m = `🚀 *SAÍDA REGISTRADA*\n👤 Mot: ${d.nome}\n🚗 Tag: ${d.tag}\n🚛 Vei: ${d.veiculo}`;
+        const m = `🚀 *SAÍDA DE VEÍCULO*\n👤 Motorista: ${d.nome}\n🚗 TAG: ${d.tag}\n🚛 Veículo: ${d.veiculo}\n🔢 KM Inicial: ${d.kmi}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
     }
 
-    window.onload = () => { sync(); const s = localStorage.getItem("tjur_trip"); if(s) { const d = JSON.parse(s); document.getElementById('formEntrada').style.display = 'none'; document.getElementById('telaAtiva').style.display = 'block'; document.getElementById('infoViagem').innerHTML = `<b>CHECKLIST ATIVO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
+    window.onload = () => { 
+        sync(); 
+        const s = localStorage.getItem("tjur_trip"); 
+        if(s) { 
+            const d = JSON.parse(s); 
+            document.getElementById('formEntrada').style.display = 'none'; 
+            document.getElementById('telaAtiva').style.display = 'block'; 
+            document.getElementById('infoViagem').innerHTML = `<b>CHECKLIST EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; 
+        } 
+    };
 </script>
 </body>
 </html>
