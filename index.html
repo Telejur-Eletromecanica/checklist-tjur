@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.7</title>
+    <title>TELEJUR v10.8</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #9e9e9e; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -28,7 +28,7 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.7</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.8</h2>
     <div id="painel" class="grid-status" style="margin-top:15px"></div>
     <div id="loader">⚙️ PROCESSANDO...</div>
 
@@ -48,8 +48,7 @@
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
 
         <div class="section-box">
-            <b style="font-size:12px; color:var(--primary)">🛫 SAÍDA</b>
-            <input type="text" id="trajetoI" placeholder="Para onde você vai?">
+            <b style="font-size:12px; color:var(--primary)">🛫 REGISTRO DE SAÍDA</b>
             
             <label id="lblOleo">Próxima Troca Óleo</label>
             <div id="containerOleo"><input type="number" id="proxOleo"></div>
@@ -69,8 +68,7 @@
         <button onclick="enviarWhatsInicial()" class="btn btn-whats-in">📲 ENVIAR SAÍDA (WHATSAPP)</button>
 
         <div class="section-box" style="border-color:var(--danger); margin-top:25px">
-            <b style="font-size:12px; color:var(--danger)">🏁 CHEGADA / FINALIZAR</b>
-            <input type="text" id="trajetoF" placeholder="Local de Chegada">
+            <b style="font-size:12px; color:var(--danger)">🏁 REGISTRO DE CHEGADA</b>
             <label>KM FINAL</label>
             <input type="number" id="kmf">
             <label>Observações</label>
@@ -163,10 +161,9 @@
         const d = {
             acao: 'registrar', tag: document.getElementById('tag').value, nome: document.getElementById('nomeMot').value,
             kmi: document.getElementById('kmi').value, oleo: document.getElementById('proxOleo').value,
-            trajetoI: document.getElementById('trajetoI').value, veiculo: window.v, placa: window.p,
-            tipoOleo: document.getElementById('tipoOleo').value
+            veiculo: window.v, placa: window.p, tipoOleo: document.getElementById('tipoOleo').value
         };
-        if(!d.tag || !d.nome || !d.trajetoI) return alert("Preencha Motorista, TAG e Destino!");
+        if(!d.tag || !d.nome) return alert("Selecione Motorista e TAG!");
         await call(d);
         localStorage.setItem("tjur_trip", JSON.stringify(d));
         location.reload();
@@ -176,20 +173,20 @@
         const t = JSON.parse(localStorage.getItem("tjur_trip"));
         const kf = document.getElementById('kmf').value;
         if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final inválido!");
-        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: document.getElementById('obs').value, trajetoF: document.getElementById('trajetoF').value });
+        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: document.getElementById('obs').value });
         localStorage.removeItem("tjur_trip");
-        alert("Finalizado com sucesso!"); location.reload();
+        alert("Finalizado!"); location.reload();
     }
 
     function enviarWhatsInicial() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
-        const m = `🟢 *SAÍDA TELEJUR*\n👤 *Mot:* ${d.nome}\n🚗 *Vei:* ${d.tag}\n🔢 *KM:* ${d.kmi}\n📍 *Destino:* ${d.trajetoI}`;
+        const m = `🟢 *SAÍDA TELEJUR*\n👤 *Mot:* ${d.nome}\n🚗 *Vei:* ${d.tag}\n🔢 *KM:* ${d.kmi}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
     }
 
     function enviarWhatsFinal() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
-        const m = `🔴 *CHEGADA TELEJUR*\n👤 *Mot:* ${d.nome}\n🚗 *Vei:* ${d.tag}\n🏁 *KM Final:* ${document.getElementById('kmf').value}\n📍 *Origem:* ${d.trajetoI}\n🏁 *Chegada:* ${document.getElementById('trajetoF').value}`;
+        const m = `🔴 *CHEGADA TELEJUR*\n👤 *Mot:* ${d.nome}\n🚗 *Vei:* ${d.tag}\n🏁 *KM Inicial:* ${d.kmi}\n🏁 *KM Final:* ${document.getElementById('kmf').value}\n📝 *Obs:* ${document.getElementById('obs').value}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
     }
 
@@ -200,7 +197,7 @@
             const d = JSON.parse(s);
             document.getElementById('formEntrada').style.display = 'none';
             document.getElementById('telaAtiva').style.display = 'block';
-            document.getElementById('infoViagem').innerHTML = `<b>VIAGEM EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}<br>📍 Destino: ${d.trajetoI}`;
+            document.getElementById('infoViagem').innerHTML = `<b>VIAGEM EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`;
         }
     };
 </script>
