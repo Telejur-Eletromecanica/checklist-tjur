@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.8</title>
+    <title>TELEJUR v10.9</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #9e9e9e; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -15,10 +15,11 @@
         .bloqueado { background: #f5f5f5; color: var(--disabled); border-color: #ccc; border-style: dashed; opacity: 0.6; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; outline: none; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
         .btn-azul { background: var(--primary); color: white; }
-        .btn-whats-in { background: #128C7E; color: white; }
-        .btn-whats-fi { background: #25D366; color: white; }
+        .btn-whats { background: #128C7E; color: white; }
+        .btn-finalizar { background: var(--danger); color: white; }
         .section-box { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-top: 15px; }
         .readonly { background: #f1f1f1 !important; color: #444 !important; font-weight: bold; }
         #loader { display:none; text-align:center; font-size:12px; color:var(--primary); font-weight:bold; margin:10px 0; }
@@ -28,7 +29,7 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.8</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.9</h2>
     <div id="painel" class="grid-status" style="margin-top:15px"></div>
     <div id="loader">⚙️ PROCESSANDO...</div>
 
@@ -48,7 +49,7 @@
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
 
         <div class="section-box">
-            <b style="font-size:12px; color:var(--primary)">🛫 REGISTRO DE SAÍDA</b>
+            <b style="font-size:12px; color:var(--primary)">🛫 INICIAR TRAJETO</b>
             
             <label id="lblOleo">Próxima Troca Óleo</label>
             <div id="containerOleo"><input type="number" id="proxOleo"></div>
@@ -58,24 +59,23 @@
                 <div><label>KM Inicial</label><input type="number" id="kmi"></div>
                 <div><label>Tipo Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
             </div>
-            <button id="btnSalvar" onclick="salvarSaida()" class="btn btn-azul">🚀 REGISTRAR SAÍDA</button>
+            <button id="btnSalvar" onclick="salvarSaida()" class="btn btn-azul">💾 SALVAR TRAJETO</button>
         </div>
     </div>
 
     <div id="telaAtiva" style="display:none">
         <div id="infoViagem" style="background:#e3f2fd; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px"></div>
         
-        <button onclick="enviarWhatsInicial()" class="btn btn-whats-in">📲 ENVIAR SAÍDA (WHATSAPP)</button>
+        <button onclick="enviarWhatsInicial()" class="btn btn-whats">📲 ENVIAR NO WHATSAPP (SAÍDA)</button>
 
         <div class="section-box" style="border-color:var(--danger); margin-top:25px">
-            <b style="font-size:12px; color:var(--danger)">🏁 REGISTRO DE CHEGADA</b>
+            <b style="font-size:12px; color:var(--danger)">🏁 FINALIZAR TRAJETO</b>
             <label>KM FINAL</label>
             <input type="number" id="kmf">
             <label>Observações</label>
             <textarea id="obs" placeholder="Alguma avaria ou detalhe?"></textarea>
 
-            <button onclick="finalizar()" class="btn" style="background:var(--danger); color:white">🏁 FINALIZAR TUDO</button>
-            <button onclick="enviarWhatsFinal()" class="btn btn-whats-fi" style="margin-top:5px">📲 ENVIAR CHEGADA (WHATSAPP)</button>
+            <button onclick="finalizarETransmitir()" class="btn btn-finalizar">🏁 FINALIZAR E ENVIAR WHATSAPP</button>
         </div>
     </div>
 </div>
@@ -169,24 +169,30 @@
         location.reload();
     }
 
-    async function finalizar() {
+    // NOVA FUNÇÃO: SALVA E JÁ ABRE O WHATSAPP
+    async function finalizarETransmitir() {
         const t = JSON.parse(localStorage.getItem("tjur_trip"));
         const kf = document.getElementById('kmf').value;
+        const obs = document.getElementById('obs').value;
+
         if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final inválido!");
-        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: document.getElementById('obs').value });
+
+        // 1. Salva na Planilha
+        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: obs });
+        
+        // 2. Monta e envia WhatsApp
+        const m = `🔴 *CHEGADA TELEJUR*\n👤 *Mot:* ${t.nome}\n🚗 *Vei:* ${t.tag}\n🔢 *KM Inicial:* ${t.kmi}\n🏁 *KM Final:* ${kf}\n📝 *Obs:* ${obs}`;
+        
+        // 3. Limpa memória e recarrega após um pequeno delay para o link do WhatsApp funcionar
         localStorage.removeItem("tjur_trip");
-        alert("Finalizado!"); location.reload();
+        window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
+        
+        setTimeout(() => { location.reload(); }, 1000);
     }
 
     function enviarWhatsInicial() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
         const m = `🟢 *SAÍDA TELEJUR*\n👤 *Mot:* ${d.nome}\n🚗 *Vei:* ${d.tag}\n🔢 *KM:* ${d.kmi}`;
-        window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
-    }
-
-    function enviarWhatsFinal() {
-        const d = JSON.parse(localStorage.getItem("tjur_trip"));
-        const m = `🔴 *CHEGADA TELEJUR*\n👤 *Mot:* ${d.nome}\n🚗 *Vei:* ${d.tag}\n🏁 *KM Inicial:* ${d.kmi}\n🏁 *KM Final:* ${document.getElementById('kmf').value}\n📝 *Obs:* ${document.getElementById('obs').value}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
     }
 
@@ -197,7 +203,7 @@
             const d = JSON.parse(s);
             document.getElementById('formEntrada').style.display = 'none';
             document.getElementById('telaAtiva').style.display = 'block';
-            document.getElementById('infoViagem').innerHTML = `<b>VIAGEM EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`;
+            document.getElementById('infoViagem').innerHTML = `<b>TRAJETO EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}<br>🔢 Saída: ${d.kmi} KM`;
         }
     };
 </script>
