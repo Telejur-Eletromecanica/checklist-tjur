@@ -3,36 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.4 - CONTROLE DE FROTA</title>
+    <title>TELEJUR v10.5 - CONTROLE DE FROTA</title>
     <style>
-        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; }
-        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
+        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #9e9e9e; }
+        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; user-select: none; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .grid-status { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 15px; }
-        .v-box { padding: 8px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; }
+        .v-box { padding: 8px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; transition: 0.3s; }
         .livre { background: #e8f5e9; color: var(--success); border-color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
+        .bloqueado { background: #f5f5f5; color: var(--disabled); border-color: #ccc; border-style: dashed; opacity: 0.6; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; outline: none; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 5px rgba(26,35,126,0.2); }
         .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
         .btn-azul { background: var(--primary); color: white; }
         .readonly { background: #f1f1f1 !important; color: #444 !important; font-weight: bold; }
         #loader { display:none; text-align:center; font-size:12px; color:var(--primary); font-weight:bold; margin:10px 0; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .loading-text { animation: pulse 1s infinite; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.4</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;">Sincronizando frotas...</p>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.5</h2>
+    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;" class="loading-text">Sincronizando frotas...</p>
     
     <div id="painel" class="grid-status"></div>
     <div id="loader">⚙️ PROCESSANDO... AGUARDE</div>
 
     <div id="formEntrada">
         <label>Motorista</label>
-        <select id="nomeMot" onchange="validarAcesso()">
-            <option value="">-- SELECIONE --</option>
+        <select id="nomeMot" onchange="atualizarInterfaceRestricao()">
+            <option value="">-- SELECIONE SEU NOME --</option>
             <option>ADRIANO NASCIMENTO</option>
             <option>FRANCIVALDO COSTA</option>
             <option>REGINALDO</option>
@@ -41,16 +46,9 @@
         </select>
 
         <label>Veículo (TAG)</label>
-        <select id="tag" onchange="validarAcesso()">
-            <option value="">-- SELECIONE --</option>
-            <option value="TJUR 04">TJUR 04 (SKY MUNCK)</option>
-            <option value="TJUR 06">TJUR 06</option>
-            <option value="TJUR 07">TJUR 07 (SKY MUNCK)</option>
-            <option value="TJUR 08">TJUR 08</option>
-            <option value="TJUR 09">TJUR 09 (SKY MUNCK)</option>
-            <option value="TJUR 10">TJUR 10</option>
-            <option value="TJUR 13">TJUR 13</option>
-        </select>
+        <select id="tag" onchange="buscarDadosVeiculo()">
+            <option value="">-- SELECIONE O CARRO --</option>
+            </select>
         
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
 
@@ -83,6 +81,14 @@
 <script>
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
 
+    // Configurações de Restrição
+    const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
+    const autorizadosSky = ["REGINALDO", "WALTER GONÇALVES", "LAFAITE BATISTA"];
+    const todasTags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
+
+    // Dados globais da frota (carregados no sync)
+    let dadosFrotaGlobal = { ocupados: {} };
+
     async function call(p) {
         document.getElementById('loader').style.display = 'block';
         return new Promise(r => {
@@ -94,51 +100,117 @@
         });
     }
 
+    // 1. Sincronização Inicial (Carrega dados e monta a interface base)
     async function sync() {
         const res = await call({acao: 'statusGeral'});
-        const p = document.getElementById('painel'); p.innerHTML = '';
-        const tags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-        tags.forEach(t => {
-            const o = res.ocupados[t];
-            p.innerHTML += `<div class="v-box ${o ? 'ocupado' : 'livre'}">${t}<br>${o ? o.nome.split(' ')[0] : 'LIVRE'}</div>`;
-        });
-        document.getElementById('txtSync').innerText = "Sinc: " + new Date().toLocaleTimeString();
+        if(res) { dadosFrotaGlobal = res; }
+        
+        // Se já houver um motorista selecionado, atualiza a interface com as restrições dele
+        const motAtual = document.getElementById('nomeMot').value.toUpperCase().trim();
+        if(motAtual) {
+            atualizarInterfaceRestricao();
+        } else {
+            // Se não, mostra o painel padrão (Livre/Ocupado)
+            montarPainelFrota(false);
+            montarListaTags(false);
+        }
+        
+        document.getElementById('txtSync').innerText = "Atualizado: " + new Date().toLocaleTimeString();
+        document.getElementById('txtSync').classList.remove('loading-text');
     }
 
-    async function validarAcesso() {
-        const tag = document.getElementById('tag').value;
+    // 2. Função Principal de Restrição Visual (Chamada ao mudar o motorista)
+    function atualizarInterfaceRestricao() {
         const mot = document.getElementById('nomeMot').value.toUpperCase().trim();
-        const btn = document.getElementById('btnSalvar');
-
-        const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
-        const autorizados = ["REGINALDO", "WALTER GONÇALVES", "LAFAITE BATISTA"];
-
-        // TRAVA DE SEGURANÇA MUNCK
-        if (skyTags.includes(tag)) {
-            if (!autorizados.includes(mot)) {
-                alert("❌ ACESSO BLOQUEADO!\nAs TAGS 04, 07 e 09 (SKY MUNCK) são de uso exclusivo de REGINALDO, WALTER e LAFAITE.");
-                document.getElementById('tag').value = "";
-                document.getElementById('veiculoInfo').value = "ACESSO NEGADO";
-                btn.disabled = true; btn.style.opacity = "0.3";
-                return;
-            }
+        if(!mot) {
+            // Se deselecionar o nome, volta ao estado padrão
+            sync();
+            return;
         }
 
-        btn.disabled = false; btn.style.opacity = "1";
+        const ehAutorizado = autorizadosSky.includes(mot);
         
-        if(tag) {
-            const res = await call({acao: 'buscarDadosMotorista', tag: tag});
+        // Atualiza os dois componentes visuais
+        montarPainelFrota(ehAutorizado);
+        montarListaTags(ehAutorizado);
+    }
+
+    // 3. Monta o Painel de Quadradinhos (Com lógica de bloqueio cinza)
+    function montarPainelFrota(ehAutorizado) {
+        const p = document.getElementById('painel');
+        p.innerHTML = '';
+        
+        todasTags.forEach(t => {
+            const o = dadosFrotaGlobal.ocupados[t];
+            let classe = o ? 'ocupado' : 'livre';
+            let statusTxt = o ? o.nome.split(' ')[0] : 'LIVRE';
+
+            // Lógica de Bloqueio Cinza (Se for TAG SKY e motorista NÃO autorizado)
+            if (skyTags.includes(t) && !ehAutorizado) {
+                classe = 'bloqueado';
+                statusTxt = 'RESTRITO';
+            }
+
+            p.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
+        });
+    }
+
+    // 4. Monta a Lista de Seleção (Com lógica do Cadeado 🔒)
+    function montarListaTags(ehAutorizado) {
+        const s = document.getElementById('tag');
+        const valorAntigo = s.value; // Guarda a seleção atual
+        s.innerHTML = '<option value="">-- SELECIONE O CARRO --</option>';
+
+        todasTags.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+
+            // Lógica do Cadeado no Select
+            if (skyTags.includes(t) && !ehAutorizado) {
+                opt.text = `🔒 ${t} (BLOQUEADO)`;
+                opt.disabled = true; // Impede a seleção
+                opt.style.color = '#999';
+            } else {
+                opt.text = t;
+                opt.disabled = false;
+            }
+
+            s.add(opt);
+        });
+
+        // Tenta manter a seleção antiga se ela ainda estiver disponível
+        if(valorAntigo && !s.querySelector(`option[value="${valorAntigo}"]`).disabled) {
+            s.value = valorAntigo;
+        } else {
+            // Se a seleção antiga foi bloqueada, limpa os detalhes do veículo
+            document.getElementById('veiculoInfo').value = '';
+            document.getElementById('kmi').value = '';
+        }
+    }
+
+    // 5. Busca dados ao selecionar o veículo (Mantido o preenchimento automático)
+    async function buscarDadosVeiculo() {
+        const tag = document.getElementById('tag').value;
+        if(!tag) return;
+
+        const res = await call({acao: 'buscarDadosMotorista', tag: tag});
+        if(res) {
             document.getElementById('veiculoInfo').value = `${res.veiculo} | ${res.placa}`;
             document.getElementById('kmi').value = res.kmi;
-            document.getElementById('proxOleo').value = res.oleo;
+            // Preenche o próximo óleo sugerindo +10.000 KM
+            document.getElementById('proxOleo').value = Number(res.kmi) + 10000;
+            
+            // Guarda dados temporários para o WhatsApp
             window.v = res.veiculo; window.p = res.placa;
         }
     }
 
+    // --- Outras funções mantidas (Registrar, Finalizar, WhatsApp) ---
+
     async function salvarSaida() {
         const tag = document.getElementById('tag').value;
         const mot = document.getElementById('nomeMot').value;
-        if(!tag || !mot) return alert("Selecione Motorista e TAG!");
+        if(!tag || !mot || !document.getElementById('kmi').value) return alert("Selecione Motorista, TAG e digite o KM Inicial!");
 
         const d = {
             acao: 'registrar', tag: tag, nome: mot,
@@ -149,7 +221,7 @@
         };
         
         const res = await call(d);
-        if(res.error) return alert(res.error);
+        if(res && res.error) return alert(res.error); // Trava de segurança do servidor
         
         localStorage.setItem("tjur_trip", JSON.stringify(d));
         location.reload();
@@ -168,12 +240,15 @@
 
     function enviarWhats() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
+        if(!d) return;
         const m = `🚀 *SAÍDA DE VEÍCULO*\n👤 Motorista: ${d.nome}\n🚗 TAG: ${d.tag}\n🚛 Veículo: ${d.veiculo}\n🔢 KM Inicial: ${d.kmi}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
     }
 
+    // Carregamento Inicial
     window.onload = () => { 
         sync(); 
+        // Verificação de checklist ativo (Memória)
         const s = localStorage.getItem("tjur_trip"); 
         if(s) { 
             const d = JSON.parse(s); 
@@ -182,6 +257,9 @@
             document.getElementById('infoViagem').innerHTML = `<b>CHECKLIST EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; 
         } 
     };
+
+    // Atualização automática do painel a cada 30 segundos
+    setInterval(sync, 30000);
 </script>
 </body>
 </html>
