@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v11.1</title>
+    <title>TELEJUR v11.2</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #9e9e9e; }
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
@@ -28,7 +28,7 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0; font-size: 18px;">SISTEMA TELEJUR v11.1</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0; font-size: 18px;">SISTEMA TELEJUR v11.2</h2>
     <div id="painel" class="grid-status" style="margin-top:15px"></div>
     <div id="loader">PROCESSANDO...</div>
 
@@ -207,9 +207,20 @@
     function enviarWhatsInicial() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
         const agora = new Date();
+        
+        // CÁLCULO DO RESTANTE PARA TROCA
+        let restaTroca = "";
+        if (skyTags.includes(d.tag)) {
+            const dias = Math.ceil((new Date(d.oleo) - agora) / (1000 * 60 * 60 * 24));
+            restaTroca = dias > 0 ? dias + " dias" : "VENCIDO";
+        } else {
+            const falta = Number(d.oleo) - Number(d.kmi);
+            restaTroca = falta > 0 ? falta + " KM" : "TROCAR AGORA";
+        }
+
         const msg = `SAIDA REGISTRADA\n--------------------------------\n` +
             `Data: ${agora.toLocaleDateString('pt-BR')}\nTag: ${d.tag}\nNome: ${d.nome.toUpperCase()}\nVeiculo: ${d.veiculo}\nPlaca: ${d.placa}\n--------------------------------\n` +
-            `KM Inicial: ${d.kmi}\nHora Inicio: ${agora.getHours()}:${agora.getMinutes().toString().padStart(2, '0')}\nSelo: ${d.corSelo}\nValidade Selo: ${d.validadeSelo}\nTipo de Oleo: ${d.tipoOleo}\nProxima Troca: ${d.oleo}`;
+            `KM Inicial: ${d.kmi}\nHora Inicio: ${agora.getHours()}:${agora.getMinutes().toString().padStart(2, '0')}\nSelo: ${d.corSelo}\nValidade Selo: ${d.validadeSelo}\nTipo de Oleo: ${d.tipoOleo}\nProxima Troca: ${d.oleo}\nResta para Troca: ${restaTroca}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     }
 
@@ -219,10 +230,14 @@
         const obs = document.getElementById('obs').value || "NENHUMA";
         const agora = new Date();
         if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final invalido!");
+        
         await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: obs.toUpperCase() });
+        
+        const kmRodado = Number(kf) - Number(t.kmi);
         const msg = `CHECKLIST CONCLUIDO\n--------------------------------\n` +
             `Data: ${agora.toLocaleDateString('pt-BR')}\nTag: ${t.tag}\nNome: ${t.nome.toUpperCase()}\nVeiculo: ${t.veiculo}\nPlaca: ${t.placa}\n--------------------------------\n` +
-            `KM Inicial: ${t.kmi}\nKM Final: ${kf}\nSelo: ${t.corSelo}\nObs: ${obs.toUpperCase()}`;
+            `KM Inicial: ${t.kmi}\nKM Final: ${kf}\nKM Percorrido: ${kmRodado}\nSelo: ${t.corSelo}\nObs: ${obs.toUpperCase()}`;
+        
         localStorage.removeItem("tjur_trip");
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
         setTimeout(() => { location.reload(); }, 1200);
