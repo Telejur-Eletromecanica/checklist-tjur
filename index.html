@@ -3,41 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v10.5 - CONTROLE DE FROTA</title>
+    <title>TELEJUR v10.6</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --disabled: #9e9e9e; }
-        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; user-select: none; }
+        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .card { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .grid-status { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 15px; }
-        .v-box { padding: 8px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; transition: 0.3s; }
+        .v-box { padding: 8px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; }
         .livre { background: #e8f5e9; color: var(--success); border-color: var(--success); }
         .ocupado { background: #ffebee; color: var(--danger); border-color: var(--danger); }
         .bloqueado { background: #f5f5f5; color: var(--disabled); border-color: #ccc; border-style: dashed; opacity: 0.6; }
         label { font-weight: bold; font-size: 11px; color: #555; display: block; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.2s; }
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 5px rgba(26,35,126,0.2); }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; outline: none; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-azul { background: var(--primary); color: white; }
+        .btn-whats { background: #25D366; color: white; width: 100%; }
+        .section-box { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-top: 15px; }
         .readonly { background: #f1f1f1 !important; color: #444 !important; font-weight: bold; }
         #loader { display:none; text-align:center; font-size:12px; color:var(--primary); font-weight:bold; margin:10px 0; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .loading-text { animation: pulse 1s infinite; }
+        .alerta-oleo { font-size: 11px; font-weight: bold; color: var(--danger); margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.5</h2>
-    <p id="txtSync" style="text-align:center; font-size:10px; color:#888; margin-bottom:10px;" class="loading-text">Sincronizando frotas...</p>
-    
-    <div id="painel" class="grid-status"></div>
-    <div id="loader">⚙️ PROCESSANDO... AGUARDE</div>
+    <h2 style="text-align:center; color:var(--primary); margin:0;">TELEJUR v10.6</h2>
+    <div id="painel" class="grid-status" style="margin-top:15px"></div>
+    <div id="loader">⚙️ PROCESSANDO...</div>
 
     <div id="formEntrada">
         <label>Motorista</label>
         <select id="nomeMot" onchange="atualizarInterfaceRestricao()">
-            <option value="">-- SELECIONE SEU NOME --</option>
+            <option value="">-- SELECIONE --</option>
             <option>ADRIANO NASCIMENTO</option>
             <option>FRANCIVALDO COSTA</option>
             <option>REGINALDO</option>
@@ -46,47 +43,55 @@
         </select>
 
         <label>Veículo (TAG)</label>
-        <select id="tag" onchange="buscarDadosVeiculo()">
-            <option value="">-- SELECIONE O CARRO --</option>
-            </select>
+        <select id="tag" onchange="buscarDadosVeiculo()"></select>
         
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-            <div><label>Cor Selo</label><select id="corSelo"><option>VERDE</option><option>VERMELHO</option><option>AZUL</option><option>AMARELO</option></select></div>
-            <div><label>Validade Selo</label><input type="date" id="validadeSelo"></div>
+        <div class="section-box">
+            <b style="font-size:12px; color:var(--primary)">📍 TRAJETO INICIAL</b>
+            <input type="text" id="trajetoI" placeholder="Origem / Destino Inicial">
+            
+            <label id="lblOleo">Próxima Troca Óleo</label>
+            <div id="containerOleo">
+                <input type="number" id="proxOleo" placeholder="KM da troca">
+            </div>
+            <div id="calculoOleo" class="alerta-oleo"></div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                <div><label>KM Inicial</label><input type="number" id="kmi"></div>
+                <div><label>Tipo Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
+            </div>
+            
+            <button id="btnSalvar" onclick="salvarSaida()" class="btn btn-azul" style="width:100%">🚀 REGISTRAR SAÍDA</button>
         </div>
-
-        <label>KM Inicial</label>
-        <input type="number" id="kmi">
-        <label>Próx. troca óleo (KM)</label>
-        <input type="number" id="proxOleo">
-        <label>Tipo de Óleo</label>
-        <select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option><option>OUTRO</option></select>
-
-        <button id="btnSalvar" onclick="salvarSaida()" class="btn btn-azul">🚀 REGISTRAR SAÍDA</button>
     </div>
 
     <div id="telaAtiva" style="display:none">
-        <div id="infoViagem" style="background:#f8f9fa; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px"></div>
-        <label style="color:var(--danger)">KM FINAL (CHEGADA)</label>
-        <input type="number" id="kmf">
-        <label>Observações</label>
-        <textarea id="obs" placeholder="Alguma avaria?"></textarea>
-        <button onclick="finalizar()" class="btn" style="background:var(--danger); color:white">🏁 CONCLUIR CHECKLIST</button>
-        <button onclick="enviarWhats()" class="btn" style="background:#25D366; color:white">📲 WHATSAPP</button>
+        <div id="infoViagem" style="background:#e3f2fd; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px"></div>
+        
+        <button onclick="enviarWhatsInicial()" class="btn btn-whats">📲 ENVIAR TRAJETO INICIAL (WA)</button>
+
+        <div class="section-box" style="border-color:var(--danger)">
+            <b style="font-size:12px; color:var(--danger)">🏁 TRAJETO FINAL / CHEGADA</b>
+            <input type="text" id="trajetoF" placeholder="Local de Chegada">
+            
+            <label>KM FINAL</label>
+            <input type="number" id="kmf">
+            
+            <label>Observações</label>
+            <textarea id="obs" placeholder="Relate avarias ou novidades..."></textarea>
+
+            <button onclick="finalizar()" class="btn" style="background:var(--danger); color:white; width:100%">🏁 FINALIZAR TUDO</button>
+            <button onclick="enviarWhatsFinal()" class="btn btn-whats" style="margin-top:5px">📲 ENVIAR TRAJETO FINAL (WA)</button>
+        </div>
     </div>
 </div>
 
 <script>
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
-
-    // Configurações de Restrição
     const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
     const autorizadosSky = ["REGINALDO", "WALTER GONÇALVES", "LAFAITE BATISTA"];
     const todasTags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
-
-    // Dados globais da frota (carregados no sync)
     let dadosFrotaGlobal = { ocupados: {} };
 
     async function call(p) {
@@ -100,129 +105,90 @@
         });
     }
 
-    // 1. Sincronização Inicial (Carrega dados e monta a interface base)
     async function sync() {
         const res = await call({acao: 'statusGeral'});
-        if(res) { dadosFrotaGlobal = res; }
-        
-        // Se já houver um motorista selecionado, atualiza a interface com as restrições dele
-        const motAtual = document.getElementById('nomeMot').value.toUpperCase().trim();
-        if(motAtual) {
-            atualizarInterfaceRestricao();
-        } else {
-            // Se não, mostra o painel padrão (Livre/Ocupado)
-            montarPainelFrota(false);
-            montarListaTags(false);
-        }
-        
-        document.getElementById('txtSync').innerText = "Atualizado: " + new Date().toLocaleTimeString();
-        document.getElementById('txtSync').classList.remove('loading-text');
+        if(res) dadosFrotaGlobal = res;
+        atualizarInterfaceRestricao();
     }
 
-    // 2. Função Principal de Restrição Visual (Chamada ao mudar o motorista)
     function atualizarInterfaceRestricao() {
         const mot = document.getElementById('nomeMot').value.toUpperCase().trim();
-        if(!mot) {
-            // Se deselecionar o nome, volta ao estado padrão
-            sync();
-            return;
-        }
-
         const ehAutorizado = autorizadosSky.includes(mot);
         
-        // Atualiza os dois componentes visuais
-        montarPainelFrota(ehAutorizado);
-        montarListaTags(ehAutorizado);
-    }
-
-    // 3. Monta o Painel de Quadradinhos (Com lógica de bloqueio cinza)
-    function montarPainelFrota(ehAutorizado) {
-        const p = document.getElementById('painel');
-        p.innerHTML = '';
-        
+        // Painel
+        const p = document.getElementById('painel'); p.innerHTML = '';
         todasTags.forEach(t => {
             const o = dadosFrotaGlobal.ocupados[t];
-            let classe = o ? 'ocupado' : 'livre';
-            let statusTxt = o ? o.nome.split(' ')[0] : 'LIVRE';
-
-            // Lógica de Bloqueio Cinza (Se for TAG SKY e motorista NÃO autorizado)
-            if (skyTags.includes(t) && !ehAutorizado) {
-                classe = 'bloqueado';
-                statusTxt = 'RESTRITO';
-            }
-
-            p.innerHTML += `<div class="v-box ${classe}">${t}<br>${statusTxt}</div>`;
+            let c = o ? 'ocupado' : 'livre';
+            let s = o ? o.nome.split(' ')[0] : 'LIVRE';
+            if (skyTags.includes(t) && !ehAutorizado && mot !== "") { c = 'bloqueado'; s = 'RESTRITO'; }
+            p.innerHTML += `<div class="v-box ${c}">${t}<br>${s}</div>`;
         });
-    }
 
-    // 4. Monta a Lista de Seleção (Com lógica do Cadeado 🔒)
-    function montarListaTags(ehAutorizado) {
-        const s = document.getElementById('tag');
-        const valorAntigo = s.value; // Guarda a seleção atual
-        s.innerHTML = '<option value="">-- SELECIONE O CARRO --</option>';
-
+        // Select Tags
+        const sel = document.getElementById('tag');
+        const v = sel.value;
+        sel.innerHTML = '<option value="">-- SELECIONE --</option>';
         todasTags.forEach(t => {
             const opt = document.createElement('option');
             opt.value = t;
-
-            // Lógica do Cadeado no Select
-            if (skyTags.includes(t) && !ehAutorizado) {
-                opt.text = `🔒 ${t} (BLOQUEADO)`;
-                opt.disabled = true; // Impede a seleção
-                opt.style.color = '#999';
-            } else {
-                opt.text = t;
-                opt.disabled = false;
-            }
-
-            s.add(opt);
+            if (skyTags.includes(t) && !ehAutorizado && mot !== "") {
+                opt.text = `🔒 ${t} (BLOQUEADO)`; opt.disabled = true;
+            } else { opt.text = t; }
+            sel.add(opt);
         });
-
-        // Tenta manter a seleção antiga se ela ainda estiver disponível
-        if(valorAntigo && !s.querySelector(`option[value="${valorAntigo}"]`).disabled) {
-            s.value = valorAntigo;
-        } else {
-            // Se a seleção antiga foi bloqueada, limpa os detalhes do veículo
-            document.getElementById('veiculoInfo').value = '';
-            document.getElementById('kmi').value = '';
-        }
+        sel.value = v;
     }
 
-    // 5. Busca dados ao selecionar o veículo (Mantido o preenchimento automático)
     async function buscarDadosVeiculo() {
         const tag = document.getElementById('tag').value;
         if(!tag) return;
-
         const res = await call({acao: 'buscarDadosMotorista', tag: tag});
-        if(res) {
-            document.getElementById('veiculoInfo').value = `${res.veiculo} | ${res.placa}`;
-            document.getElementById('kmi').value = res.kmi;
-            // Preenche o próximo óleo sugerindo +10.000 KM
-            document.getElementById('proxOleo').value = Number(res.kmi) + 10000;
-            
-            // Guarda dados temporários para o WhatsApp
-            window.v = res.veiculo; window.p = res.placa;
+        document.getElementById('veiculoInfo').value = `${res.veiculo} | ${res.placa}`;
+        document.getElementById('kmi').value = res.kmi;
+        
+        const cont = document.getElementById('containerOleo');
+        const calc = document.getElementById('calculoOleo');
+        
+        if(skyTags.includes(tag)) {
+            cont.innerHTML = `<input type="date" id="proxOleo" onchange="calcularDiferencaOleo()">`;
+            document.getElementById('lblOleo').innerText = "Vencimento Óleo (Data)";
+        } else {
+            cont.innerHTML = `<input type="number" id="proxOleo" onchange="calcularDiferencaOleo()">`;
+            document.getElementById('proxOleo').value = Number(res.kmi) + 5000;
+            document.getElementById('lblOleo').innerText = "Próxima Troca (KM)";
+        }
+        window.v = res.veiculo; window.p = res.placa;
+        calcularDiferencaOleo();
+    }
+
+    function calcularDiferencaOleo() {
+        const tag = document.getElementById('tag').value;
+        const val = document.getElementById('proxOleo').value;
+        const calc = document.getElementById('calculoOleo');
+        if(!val) return;
+
+        if(skyTags.includes(tag)) {
+            const hoje = new Date();
+            const venc = new Date(val);
+            const dias = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
+            calc.innerText = dias > 0 ? `Faltam ${dias} dias para a troca.` : `⚠️ ÓLEO VENCIDO HÁ ${Math.abs(dias)} DIAS!`;
+        } else {
+            const kmi = document.getElementById('kmi').value;
+            const falta = Number(val) - Number(kmi);
+            calc.innerText = falta > 0 ? `Faltam ${falta} KM para a troca.` : `⚠️ TROCAR IMEDIATAMENTE!`;
         }
     }
 
-    // --- Outras funções mantidas (Registrar, Finalizar, WhatsApp) ---
-
     async function salvarSaida() {
-        const tag = document.getElementById('tag').value;
-        const mot = document.getElementById('nomeMot').value;
-        if(!tag || !mot || !document.getElementById('kmi').value) return alert("Selecione Motorista, TAG e digite o KM Inicial!");
-
         const d = {
-            acao: 'registrar', tag: tag, nome: mot,
-            id: "ID-" + Math.floor(100 + Math.random() * 900), kmi: document.getElementById('kmi').value,
-            oleo: document.getElementById('proxOleo').value, corSelo: document.getElementById('corSelo').value,
-            validadeSelo: document.getElementById('validadeSelo').value, tipoOleo: document.getElementById('tipoOleo').value,
-            veiculo: window.v, placa: window.p
+            acao: 'registrar', tag: document.getElementById('tag').value, nome: document.getElementById('nomeMot').value,
+            kmi: document.getElementById('kmi').value, oleo: document.getElementById('proxOleo').value,
+            trajetoI: document.getElementById('trajetoI').value, veiculo: window.v, placa: window.p,
+            tipoOleo: document.getElementById('tipoOleo').value, id: "ID-"+Math.floor(Math.random()*999)
         };
-        
-        const res = await call(d);
-        if(res && res.error) return alert(res.error); // Trava de segurança do servidor
-        
+        if(!d.tag || !d.nome || !d.trajetoI) return alert("Preencha Motorista, TAG e Trajeto Inicial!");
+        await call(d);
         localStorage.setItem("tjur_trip", JSON.stringify(d));
         location.reload();
     }
@@ -230,36 +196,36 @@
     async function finalizar() {
         const t = JSON.parse(localStorage.getItem("tjur_trip"));
         const kf = document.getElementById('kmf').value;
-        if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final deve ser maior que o Inicial!");
-        
-        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: document.getElementById('obs').value });
+        if(!kf) return alert("Digite o KM Final!");
+        await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: document.getElementById('obs').value, trajetoF: document.getElementById('trajetoF').value });
         localStorage.removeItem("tjur_trip");
-        alert("Checklist Concluído com Sucesso!"); 
-        location.reload();
+        alert("Finalizado!"); location.reload();
     }
 
-    function enviarWhats() {
+    function enviarWhatsInicial() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
-        if(!d) return;
-        const m = `🚀 *SAÍDA DE VEÍCULO*\n👤 Motorista: ${d.nome}\n🚗 TAG: ${d.tag}\n🚛 Veículo: ${d.veiculo}\n🔢 KM Inicial: ${d.kmi}`;
+        const m = `🟢 *INÍCIO DE TRAJETO*\n👤 *Mot:* ${d.nome}\n🚗 *Vei:* ${d.tag} (${d.veiculo})\n🔢 *KM:* ${d.kmi}\n📍 *Trajeto:* ${d.trajetoI}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
     }
 
-    // Carregamento Inicial
+    function enviarWhatsFinal() {
+        const d = JSON.parse(localStorage.getItem("tjur_trip"));
+        const kf = document.getElementById('kmf').value;
+        const tf = document.getElementById('trajetoF').value;
+        const m = `🔴 *FINAL DE TRAJETO*\n👤 *Mot:* ${d.nome}\n🚗 *Vei:* ${d.tag}\n🔢 *KM Inicial:* ${d.kmi}\n🏁 *KM Final:* ${kf}\n📍 *Início:* ${d.trajetoI}\n🏁 *Chegada:* ${tf}\n📝 *Obs:* ${document.getElementById('obs').value}`;
+        window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
+    }
+
     window.onload = () => { 
         sync(); 
-        // Verificação de checklist ativo (Memória)
         const s = localStorage.getItem("tjur_trip"); 
-        if(s) { 
-            const d = JSON.parse(s); 
-            document.getElementById('formEntrada').style.display = 'none'; 
-            document.getElementById('telaAtiva').style.display = 'block'; 
-            document.getElementById('infoViagem').innerHTML = `<b>CHECKLIST EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; 
-        } 
+        if(s) {
+            const d = JSON.parse(s);
+            document.getElementById('formEntrada').style.display = 'none';
+            document.getElementById('telaAtiva').style.display = 'block';
+            document.getElementById('infoViagem').innerHTML = `<b>VIAGEM EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}<br>📍 Origem: ${d.trajetoI}`;
+        }
     };
-
-    // Atualização automática do painel a cada 30 segundos
-    setInterval(sync, 30000);
 </script>
 </body>
 </html>
