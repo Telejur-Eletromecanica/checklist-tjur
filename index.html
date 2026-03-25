@@ -3,78 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TELEJUR PRO</title>
+    <title>TELEJUR PRO v15.0</title>
     <style>
-        :root { --p: #1a237e; --s: #2e7d32; --d: #c62828; }
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 15px; }
-        .card { max-width: 420px; margin: auto; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        :root { --p: #1a237e; --s: #2e7d32; --d: #c62828; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .card { max-width: 420px; margin: auto; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 20px; }
-        .v { padding: 8px 2px; border-radius: 6px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; }
+        .v { padding: 8px 2px; border-radius: 8px; text-align: center; font-size: 10px; font-weight: bold; border: 1px solid #ddd; transition: 0.3s; }
         .v-livre { background: #e8f5e9; color: var(--s); border-color: var(--s); }
         .v-ocupado { background: #ffebee; color: var(--d); border-color: var(--d); }
         .v-lock { background: #eee; color: #999; }
         label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-top: 15px; text-transform: uppercase; }
-        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; color: white; }
-        #loader { display: none; text-align: center; color: var(--p); font-weight: bold; margin: 10px 0; }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; outline: none; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        #loader { display: none; text-align: center; color: var(--p); font-weight: bold; margin: 10px 0; font-size: 12px; }
+        .status-gps { background: #f8f9fa; padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 15px; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--p); margin:0 0 15px 0;">TELEJUR v15.0</h2>
+    <h2 style="text-align:center; color:var(--p); margin:0 0 5px 0;">TELEJUR v15.0</h2>
+    <p style="text-align:center; font-size:12px; color:#666; margin-bottom:15px;">Gestão de Frota e Checklist</p>
     
     <div id="painel" class="grid"></div>
-    <div id="loader">⚙️ SINCRONIZANDO...</div>
+    <div id="loader">⚙️ SINCRONIZANDO COM PLANILHA...</div>
 
     <div id="form">
         <label>Selecione seu Nome</label>
         <select id="mot" onchange="sync()">
             <option value="">-- QUEM É VOCÊ? --</option>
-            <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-            <option>REGINALDO</option><option>LAFAITE BATISTA</option><option>WALTER GONÇALVES</option>
+            <option>ADRIANO NASCIMENTO</option>
+            <option>FRANCIVALDO COSTA</option>
+            <option>REGINALDO</option>
+            <option>LAFAITE BATISTA</option>
+            <option>WALTER GONÇALVES</option>
         </select>
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="loadCar()"><option value="">-- QUAL CARRO? --</option></select>
 
         <div id="setup" style="display:none">
+            <div class="status-gps">
+                <b id="txt-local" style="font-size:14px; color:var(--p)">⌛ Localizando...</b><br>
+                <small id="txt-gps-link" style="color:#999; font-size:10px"></small>
+            </div>
+
             <label>KM Inicial</label>
             <input type="number" id="kmi">
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                 <div><label>Cor Selo</label>
                 <select id="cSelo"><option>VERDE</option><option>VERMELHO</option><option>AZUL</option><option>AMARELO</option></select></div>
-                <div><label>Validade</label><input type="date" id="cVal"></div>
+                <div><label>Validade Selo</label><input type="date" id="cVal"></div>
             </div>
 
-            <label id="lblOleo">Próxima Troca</label>
+            <label id="lblOleo">Próxima Troca de Óleo</label>
             <div id="boxOleo"></div>
 
-            <button id="btnMain" onclick="start()" class="btn" style="background:var(--p)">REGISTRAR SAÍDA</button>
+            <button id="btnMain" onclick="start()" class="btn" style="background:var(--p)">🚀 REGISTRAR SAÍDA</button>
         </div>
     </div>
 
     <div id="active" style="display:none; text-align:center">
-        <div id="infoAtiva" style="padding:20px; background:#e3f2fd; border-radius:15px; border:2px solid var(--p); margin-bottom:15px"></div>
-        <button onclick="whatsapp()" class="btn" style="background:#25D366">ENVIAR WHATSAPP</button>
-        <button onclick="showEnd()" class="btn" style="background:#333">FINALIZAR TRAJETO</button>
+        <div id="infoAtiva" style="padding:20px; background:#e3f2fd; border-radius:20px; border:2px solid var(--p); margin-bottom:15px"></div>
+        <button onclick="whatsapp()" class="btn" style="background:#25D366">📲 ENVIAR NO WHATSAPP</button>
+        <button onclick="showEnd()" class="btn" style="background:#333">🏁 FINALIZAR TRAJETO</button>
     </div>
 
     <div id="endForm" style="display:none">
         <label style="color:var(--d)">KM FINAL (CHEGADA)</label>
         <input type="number" id="kmf">
-        <label>Observação</label>
-        <textarea id="obs"></textarea>
-        <button onclick="finish()" class="btn" style="background:var(--d)">CONCLUIR NA PLANILHA</button>
+        <label>Observações do Veículo</label>
+        <textarea id="obs" rows="3" placeholder="Ex: Barulho na suspensão, pneu careca..."></textarea>
+        <button onclick="finish()" class="btn" style="background:var(--d)">✅ CONCLUIR NA PLANILHA</button>
     </div>
 </div>
 
 <script>
-    const API = "SUA_URL_AQUI"; // COLOQUE A URL DO SCRIPT AQUI
+    // --- CONFIGURAÇÃO ---
+    const API = "SUA_URL_DO_GOOGLE_SCRIPT"; 
     const TAGS = ["TJUR 04","TJUR 06","TJUR 07","TJUR 08","TJUR 09","TJUR 10","TJUR 13"];
-    let state = {};
+    const LOCAIS = { porto: { lat: -2.1677, lon: -56.1017 }, beneficiamento: { lat: -2.5116, lon: -56.1678 } };
+    
+    let state = { lat: 0, lon: 0, link: "", localNome: "FORA DA PLANTA" };
 
+    // --- FUNÇÕES DE GPS ---
+    function iniciarGps() {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.watchPosition((pos) => {
+            state.lat = pos.coords.latitude;
+            state.lon = pos.coords.longitude;
+            state.link = `https://www.google.com/maps/place/2%C2%B030'42.1%22S+56%C2%B010'04.5%22W/@-2.5116944,-56.1679167,749m/data=!3m2!1e3!4b1!4m4!3m3!8m2!3d-2.5116944!4d-56.1679167?entry=ttu&g_ep=EgoyMDI2MDMyMi4wIKXMDSoASAFQAw%3D%3D${state.lat},${state.lon}`;
+            
+            const distP = calcularDist(state.lat, state.lon, LOCAIS.porto.lat, LOCAIS.porto.lon);
+            const distB = calcularDist(state.lat, state.lon, LOCAIS.beneficiamento.lat, LOCAIS.beneficiamento.lon);
+            
+            const txt = document.getElementById('txt-local');
+            if (distP < 1500) { state.localNome = "ALCOA PORTO"; txt.innerText = "✅ ALCOA PORTO"; }
+            else if (distB < 2500) { state.localNome = "ALCOA BENEFICIAMENTO"; txt.innerText = "✅ ALCOA BENEF."; }
+            else { state.localNome = "FORA DA PLANTA"; txt.innerText = "🛑 FORA DA PLANTA"; }
+            
+            document.getElementById('txt-gps-link').innerText = "Sinal de GPS OK";
+        }, null, { enableHighAccuracy: true });
+    }
+
+    function calcularDist(la1, lo1, la2, lo2) {
+        const R = 6371e3;
+        const a = Math.sin(((la2-la1)*Math.PI/180)/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(((lo2-lo1)*Math.PI/180)/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // --- COMUNICAÇÃO API ---
     async function call(p) {
         document.getElementById('loader').style.display='block';
         return new Promise(r => {
@@ -113,8 +154,9 @@
     async function loadCar() {
         const t = document.getElementById('tag').value;
         if(!t) return;
+        iniciarGps();
         const d = await call({acao:'getCarDetails', tag:t});
-        state.car = d.info; state.tag = t;
+        state.carInfo = d.info; state.tag = t;
         document.getElementById('setup').style.display='block';
         document.getElementById('kmi').value = d.kmi;
         document.getElementById('boxOleo').innerHTML = `<input type="${d.info.t==='data'?'date':'number'}" id="oleoV" value="${d.oleo}">`;
@@ -122,15 +164,16 @@
     }
 
     async function start() {
+        const mot = document.getElementById('mot').value;
         const d = {
-            acao:'registrar', tag: state.tag, nome: document.getElementById('mot').value,
+            acao:'registrar', tag: state.tag, nome: mot,
             kmi: document.getElementById('kmi').value, oleo: document.getElementById('oleoV').value,
             cSelo: document.getElementById('cSelo').value, vSelo: document.getElementById('cVal').value,
-            placa: state.car.p, veiculo: state.car.v, tOleo: state.car.t
+            placa: state.carInfo.p, local: state.localNome, link: state.link
         };
         const r = await call(d);
         if(r.status === 'OK') {
-            localStorage.setItem('tjur_v15', JSON.stringify({...d, id: r.id, traj: r.traj}));
+            localStorage.setItem('tjur_v15', JSON.stringify({...d, id: r.id}));
             location.reload();
         }
     }
@@ -144,7 +187,7 @@
         const s = JSON.parse(localStorage.getItem('tjur_v15'));
         const r = await call({
             acao:'finalizar', tag: s.tag, kmf: document.getElementById('kmf').value,
-            horaF: new Date().toLocaleTimeString(), obs: document.getElementById('obs').value
+            obs: document.getElementById('obs').value
         });
         if(r.status === 'FIM') {
             localStorage.removeItem('tjur_v15');
@@ -154,8 +197,8 @@
 
     function whatsapp() {
         const s = JSON.parse(localStorage.getItem('tjur_v15'));
-        const m = `🚀 *INÍCIO DE TRAJETO*\n\nTAG: ${s.tag}\nMOT: ${s.nome}\nID: ${s.id}\nTRAJETO: ${s.traj}\nKM: ${s.kmi}`;
-        window.location.href = `https://wa.me/?text=${encodeURIComponent(m)}`;
+        const m = `🚀 *TRAJETO INICIADO*\n\n*VEÍCULO:* ${s.tag}\n*MOTORISTA:* ${s.nome}\n*LOCAL:* ${s.local}\n*KM:* ${s.kmi}\n*MAPA:* ${s.link}`;
+        window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(m)}`;
     }
 
     window.onload = () => {
@@ -164,9 +207,7 @@
             const d = JSON.parse(s);
             document.getElementById('form').style.display='none';
             document.getElementById('active').style.display='block';
-            document.getElementById('infoAtiva').innerHTML = `<b>${d.tag}</b><br>${d.nome}<br><small>${d.traj}</small>`;
-        } else {
-            // Se não houver sessão, o painel limpa para evitar confusão
+            document.getElementById('infoAtiva').innerHTML = `<b>VIAGEM EM CURSO</b><br><h1 style="margin:5px 0">${d.tag}</h1>${d.nome}`;
         }
     };
 </script>
