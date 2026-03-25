@@ -2,25 +2,164 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TELEJUR - Sistema Frota</title>
 
 <style>
-body { background:#0d1117; color:white; font-family:Arial; padding:10px; }
-.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
-.card { background:#161b22; padding:10px; border-radius:10px; border-left:5px solid #2ecc71; }
+body {
+    font-family: Arial;
+    background:#0d1117;
+    color:white;
+    margin:0;
+}
+
+.topbar {
+    display:flex;
+    justify-content:space-around;
+    background:#161b22;
+    padding:10px;
+}
+
+button {
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#58a6ff;
+    color:white;
+}
+
+.page { display:none; padding:10px; }
+.active { display:block; }
+
+.grid {
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+ gap:10px;
+}
+
+.card {
+ background:#161b22;
+ padding:10px;
+ border-radius:10px;
+ border-left:5px solid #2ecc71;
+}
+
 .ocupado { border-left-color:red; }
+
+input, select {
+ width:100%;
+ padding:8px;
+ margin-top:5px;
+ margin-bottom:10px;
+ border-radius:8px;
+ border:none;
+}
+
 </style>
 </head>
 
 <body>
 
-<h2>🚗 DASHBOARD</h2>
+<div class="topbar">
+  <button onclick="show('checklist')">📋 Checklist</button>
+  <button onclick="show('dashboard')">📊 Dashboard</button>
+  <button onclick="show('uso')">🚗 Em Uso</button>
+</div>
+
+<!-- CHECKLIST -->
+<div id="checklist" class="page active">
+
+<h2>📋 Checklist</h2>
+
+<input id="nome" placeholder="Nome">
+<input id="id" placeholder="ID">
+<select id="tag">
+<option value="">Selecione Veículo</option>
+<option>TJUR 04</option>
+<option>TJUR 06</option>
+<option>TJUR 07</option>
+<option>TJUR 08</option>
+<option>TJUR 09</option>
+<option>TJUR 10</option>
+<option>TJUR 13</option>
+</select>
+
+<input id="km" placeholder="KM Inicial">
+
+<button onclick="registrar()">🚀 Iniciar</button>
+<button onclick="finalizar()">✅ Finalizar</button>
+
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="page">
+<h2>📊 Dashboard</h2>
 <div class="grid" id="cards"></div>
+</div>
+
+<!-- EM USO -->
+<div id="uso" class="page">
+<h2>🚗 Veículos em Uso</h2>
+<div id="lista"></div>
+</div>
 
 <script>
-const URL="COLE_SUA_URL_AQUI";
 
-function load(){
+const URL = "COLE_SUA_URL_AQUI";
+
+// 🔁 Troca de telas
+function show(p){
+ document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));
+ document.getElementById(p).classList.add("active");
+}
+
+// 🚀 REGISTRAR
+function registrar(){
+
+ let s=document.createElement('script');
+
+ let data=new Date().toLocaleDateString('pt-BR');
+ let hora=new Date().toLocaleTimeString('pt-BR');
+
+ let params = new URLSearchParams({
+  acao:"registrar",
+  data:data,
+  tag:tag.value,
+  id:id.value,
+  nome:nome.value,
+  kmi:km.value,
+  horaI:hora
+ });
+
+ s.src=`${URL}?callback=cb&${params}`;
+ document.body.appendChild(s);
+
+ window.cb=()=>alert("Iniciado!");
+}
+
+// ✅ FINALIZAR
+function finalizar(){
+
+ let s=document.createElement('script');
+
+ let hora=new Date().toLocaleTimeString('pt-BR');
+
+ let params = new URLSearchParams({
+  acao:"finalizar",
+  tag:tag.value,
+  kmf:km.value,
+  horaF:hora
+ });
+
+ s.src=`${URL}?callback=cb&${params}`;
+ document.body.appendChild(s);
+
+ window.cb=()=>alert("Finalizado!");
+}
+
+// 📊 DASHBOARD
+function loadDash(){
+
  let s=document.createElement('script');
 
  window.cb=(res)=>{
@@ -38,7 +177,7 @@ function load(){
    if(o){
     classe="ocupado";
     status="🔴 EM USO";
-    extra=`👤 ${o.nome}<br>🕒 ${o.hora}<br>📏 KM ${o.kmi}`;
+    extra=`👤 ${o.nome}<br>🕒 ${o.hora}<br>📏 ${o.kmi}`;
    }
 
    div.innerHTML+=`
@@ -46,8 +185,7 @@ function load(){
      <b>${tag}</b><br>
      ${f.v}<br>
      ${f.p}<hr>
-     ${status}<br>
-     ${extra}
+     ${status}<br>${extra}
     </div>
    `;
   });
@@ -59,8 +197,46 @@ function load(){
  document.body.appendChild(s);
 }
 
-setInterval(load,8000);
-load();
+// 🚗 EM USO
+function loadUso(){
+
+ let s=document.createElement('script');
+
+ window.cb=(res)=>{
+  let div=document.getElementById("lista");
+  div.innerHTML="";
+
+  Object.keys(res.ocupados).forEach(tag=>{
+   let o=res.ocupados[tag];
+   let f=res.frota[tag];
+
+   div.innerHTML+=`
+    <div class="card ocupado">
+     <b>${tag}</b><br>
+     🚚 ${f.v} (${f.p})<br>
+     👤 ${o.nome}<br>
+     🕒 ${o.hora}<br>
+     📏 ${o.kmi}
+    </div>
+   `;
+  });
+
+  document.body.removeChild(s);
+ };
+
+ s.src=`${URL}?acao=statusGeral&callback=cb&_=${Date.now()}`;
+ document.body.appendChild(s);
+}
+
+// 🔁 AUTO UPDATE
+setInterval(()=>{
+ loadDash();
+ loadUso();
+},8000);
+
+loadDash();
+loadUso();
+
 </script>
 
 </body>
