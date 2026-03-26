@@ -26,12 +26,10 @@
     </style>
 </head>
 <body>
-
 <div class="card">
     <h2 style="text-align:center; color:var(--primary); margin:0; font-size: 18px;">SISTEMA TELEJUR</h2>
     <div id="painel" class="grid-status" style="margin-top:15px"></div>
-    <div id="loader">CONECTANDO AO GOOGLE...</div>
-
+    <div id="loader">CONECTANDO...</div>
     <div id="formEntrada">
         <label>Motorista</label>
         <select id="nomeMot" onchange="validarAcesso()">
@@ -45,7 +43,6 @@
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="carregarDadosVei()"></select>
         <input type="text" id="veiculoInfo" class="readonly" readonly placeholder="Dados do Veículo">
-        
         <div class="section-box">
             <b style="font-size:11px; color:var(--primary)">DADOS DE SAÍDA</b>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
@@ -62,7 +59,6 @@
             <button onclick="salvarSaida()" class="btn btn-azul">💾 SALVAR NA PLANILHA</button>
         </div>
     </div>
-
     <div id="telaAtiva" style="display:none">
         <div id="infoViagem" style="background:#e3f2fd; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px"></div>
         <button onclick="enviarWhatsInicial()" class="btn btn-whats">📲 ENVIAR WHATSAPP (SAÍDA)</button>
@@ -76,9 +72,7 @@
 </div>
 
 <script>
-    // URL DO SEU APP WEB (GOOGLE SCRIPT) - LINHA 91
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
-    
     const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
     const autorizadosSky = ["REGINALDO", "WALTER GONÇALVES", "LAFAITE BATISTA"];
     const todasTags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
@@ -99,17 +93,13 @@
 
     function validarAcesso() {
         const mot = document.getElementById('nomeMot').value.toUpperCase().trim();
-        if(!mot) {
-            document.getElementById('painel').innerHTML = '<div style="grid-column: 1/-1; text-align:center; font-size:11px; color:#666">Selecione o motorista para ver veículos</div>';
-            return;
-        }
-        const ehAutorizado = autorizadosSky.includes(mot);
         const p = document.getElementById('painel'); p.innerHTML = '';
         const sel = document.getElementById('tag'); sel.innerHTML = '<option value="">-- SELECIONE --</option>';
+        if(!mot) { p.innerHTML = '<div style="grid-column: 1/-1; text-align:center; font-size:11px; color:#666">Selecione o motorista</div>'; return; }
+        const ehAutorizado = autorizadosSky.includes(mot);
         todasTags.forEach(t => {
             const o = frota.ocupados[t];
-            let c = o ? 'ocupado' : 'livre';
-            let s = o ? o.nome.split(' ')[0] : 'LIVRE';
+            let c = o ? 'ocupado' : 'livre', s = o ? o.nome.split(' ')[0] : 'LIVRE';
             if (skyTags.includes(t) && !ehAutorizado) { c = 'bloqueado'; s = 'RESTRITO'; }
             p.innerHTML += `<div class="v-box ${c}">${t}<br>${s}</div>`;
             const opt = document.createElement('option'); opt.value = t;
@@ -128,12 +118,10 @@
             const cont = document.getElementById('containerOleo');
             if(skyTags.includes(tag)) {
                 cont.innerHTML = `<input type="date" id="proxOleo" onchange="calcOleo()">`;
-                document.getElementById('lblOleo').innerText = "Vencimento Óleo (Data)";
                 document.getElementById('proxOleo').value = res.oleo ? new Date(res.oleo).toISOString().split('T')[0] : "";
             } else {
                 cont.innerHTML = `<input type="number" id="proxOleo" onchange="calcOleo()">`;
                 document.getElementById('proxOleo').value = res.oleo || (Number(res.kmi) + 5000);
-                document.getElementById('lblOleo').innerText = "Próxima Troca (KM)";
             }
             window.v = res.veiculo; window.p = res.placa; calcOleo();
         }
@@ -153,55 +141,33 @@
     }
 
     async function salvarSaida() {
-        const mot = document.getElementById('nomeMot').value;
-        const tag = document.getElementById('tag').value;
-        const selo = document.getElementById('validadeSelo').value;
+        const mot = document.getElementById('nomeMot').value, tag = document.getElementById('tag').value, selo = document.getElementById('validadeSelo').value;
         if(!tag || !mot || !selo) return alert("⚠️ Preencha tudo!");
-        
-        // CORREÇÃO AQUI: "nome" em vez de "name" para bater com o Google Script
         const c = await call({acao: 'gerarDadosContagem', tag: tag, nome: mot});
-        const d = {
-            acao: 'registrar', tag: tag, nome: mot, kmi: document.getElementById('kmi').value, 
-            oleo: document.getElementById('proxOleo').value, veiculo: window.v, placa: window.p, 
-            corSelo: document.getElementById('corSelo').value, validadeSelo: selo, 
-            tipoOleo: document.getElementById('tipoOleo').value,
-            idCondutor: c.idCondutor, trajetoNum: c.trajetoNum
-        };
-        
+        const d = { acao: 'registrar', tag: tag, nome: mot, kmi: document.getElementById('kmi').value, oleo: document.getElementById('proxOleo').value, veiculo: window.v, placa: window.p, corSelo: document.getElementById('corSelo').value, validadeSelo: selo, tipoOleo: document.getElementById('tipoOleo').value, idCondutor: c.idCondutor, trajetoNum: c.trajetoNum };
         const res = await call(d);
-        if(res && res.status === "OK") {
-            localStorage.setItem("tjur_trip", JSON.stringify(d));
-            alert("✅ REGISTRO SALVO!");
-            location.reload();
-        } else {
-            alert("❌ Erro ao gravar. Verifique se as abas 'Registros' e 'Status' existem na planilha.");
-        }
+        if(res && res.status === "OK") { localStorage.setItem("tjur_trip", JSON.stringify(d)); alert("✅ REGISTRO SALVO!"); location.reload(); }
     }
 
     function enviarWhatsInicial() {
         const d = JSON.parse(localStorage.getItem("tjur_trip"));
-        const idFull = `CONDUTOR ${d.idCondutor} | ${d.trajetoNum}º TRAJETO`;
-        const msg = `🚀 *SAÍDA REGISTRADA*\n--------------------------------\n🏷️ *Tag:* ${d.tag}\n👤 *Nome:* ${d.nome.toUpperCase()}\n🆔 *ID:* ${idFull}\n--------------------------------\n🛣️ *KM:* ${d.kmi}\n🎨 *Selo:* ${d.corSelo}`;
+        const msg = `🚀 *SAÍDA REGISTRADA*\n--------------------------------\n🏷️ *Tag:* ${d.tag}\n👤 *Nome:* ${d.nome.toUpperCase()}\n🆔 ID: CONDUTOR ${d.idCondutor} | ${d.trajetoNum}º TRAJETO\n🛣️ *KM:* ${d.kmi}`;
         window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     }
 
     async function finalizarETransmitir() {
-        const t = JSON.parse(localStorage.getItem("tjur_trip"));
-        const kf = document.getElementById('kmf').value;
-        const obs = document.getElementById('obs').value || "NENHUMA";
+        const t = JSON.parse(localStorage.getItem("tjur_trip")), kf = document.getElementById('kmf').value;
         if(!kf || Number(kf) <= Number(t.kmi)) return alert("KM Final inválido!");
-        
-        const res = await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: obs.toUpperCase() });
+        const res = await call({ acao: 'finalizar', tag: t.tag, kmf: kf, obs: document.getElementById('obs').value.toUpperCase() });
         if(res.status === "OK") {
-            const idFull = `CONDUTOR ${t.idCondutor} | ${t.trajetoNum}º TRAJETO`;
-            const msg = `✅ *CHECKLIST CONCLUÍDO*\n--------------------------------\n🏷️ *Tag:* ${t.tag}\n👤 *Nome:* ${t.nome.toUpperCase()}\n🆔 *ID:* ${idFull}\n--------------------------------\n🛣️ *KM:* ${kf}\n📝 *Obs:* ${obs.toUpperCase()}`;
+            const msg = `✅ *CHECKLIST CONCLUÍDO*\n--------------------------------\n🏷️ *Tag:* ${t.tag}\n👤 *Nome:* ${t.nome.toUpperCase()}\n🛣️ *KM:* ${kf}`;
             localStorage.removeItem("tjur_trip");
             window.location.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
             setTimeout(() => location.reload(), 1500);
         }
     }
 
-    window.onload = () => { sync(); const s = localStorage.getItem("tjur_trip"); if(s) { const d = JSON.parse(s); document.getElementById('formEntrada').style.display = 'none'; document.getElementById('telaAtiva').style.display = 'block'; document.getElementById('infoViagem').innerHTML = `<b>TRAJETO EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}<br>🆔 CONDUTOR ${d.idCondutor} | ${d.trajetoNum}º TRAJETO`; } };
+    window.onload = () => { sync(); const s = localStorage.getItem("tjur_trip"); if(s) { const d = JSON.parse(s); document.getElementById('formEntrada').style.display = 'none'; document.getElementById('telaAtiva').style.display = 'block'; document.getElementById('infoViagem').innerHTML = `<b>TRAJETO EM CURSO</b><br>🚗 ${d.tag}<br>👤 ${d.nome}`; } };
 </script>
 </body>
 </html>
