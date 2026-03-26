@@ -99,6 +99,10 @@
 
     function validarAcesso() {
         const mot = document.getElementById('nomeMot').value.toUpperCase().trim();
+        if(!mot) {
+            document.getElementById('painel').innerHTML = '<div style="grid-column: 1/-1; text-align:center; font-size:11px; color:#666">Selecione o motorista para ver veículos</div>';
+            return;
+        }
         const ehAutorizado = autorizadosSky.includes(mot);
         const p = document.getElementById('painel'); p.innerHTML = '';
         const sel = document.getElementById('tag'); sel.innerHTML = '<option value="">-- SELECIONE --</option>';
@@ -106,11 +110,11 @@
             const o = frota.ocupados[t];
             let c = o ? 'ocupado' : 'livre';
             let s = o ? o.nome.split(' ')[0] : 'LIVRE';
-            if (skyTags.includes(t) && !ehAutorizado && mot !== "") { c = 'bloqueado'; s = 'RESTRITO'; }
+            if (skyTags.includes(t) && !ehAutorizado) { c = 'bloqueado'; s = 'RESTRITO'; }
             p.innerHTML += `<div class="v-box ${c}">${t}<br>${s}</div>`;
             const opt = document.createElement('option'); opt.value = t;
-            if (o) { opt.text = `🚫 ${t}`; opt.disabled = true; }
-            else if (skyTags.includes(t) && !ehAutorizado && mot !== "") { opt.text = `🔒 ${t}`; opt.disabled = true; } 
+            if (o) { opt.text = `🚫 ${t} (${s})`; opt.disabled = true; }
+            else if (skyTags.includes(t) && !ehAutorizado) { opt.text = `🔒 ${t} (RESTRITO)`; opt.disabled = true; } 
             else { opt.text = t; } sel.add(opt);
         });
     }
@@ -154,7 +158,8 @@
         const selo = document.getElementById('validadeSelo').value;
         if(!tag || !mot || !selo) return alert("⚠️ Preencha tudo!");
         
-        const c = await call({acao: 'gerarDadosContagem', tag: tag, name: mot});
+        // CORREÇÃO AQUI: "nome" em vez de "name" para bater com o Google Script
+        const c = await call({acao: 'gerarDadosContagem', tag: tag, nome: mot});
         const d = {
             acao: 'registrar', tag: tag, nome: mot, kmi: document.getElementById('kmi').value, 
             oleo: document.getElementById('proxOleo').value, veiculo: window.v, placa: window.p, 
