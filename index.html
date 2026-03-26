@@ -30,7 +30,7 @@
 <div class="card">
     <h2 style="text-align:center; color:var(--primary); margin:0; font-size: 18px;">SISTEMA TELEJUR</h2>
     <div id="painel" class="grid-status" style="margin-top:15px"></div>
-    <div id="loader">CONECTANDO AO GOOGLE...</div>
+    <div id="loader">PROCESSANDO...</div>
 
     <div id="formEntrada">
         <label>Motorista</label>
@@ -76,7 +76,9 @@
 </div>
 
 <script>
+    // URL obtida da sua imagem de implantação
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
+    
     const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
     const autorizadosSky = ["REGINALDO", "WALTER GONÇALVES", "LAFAITE BATISTA"];
     const todasTags = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
@@ -167,7 +169,7 @@
             alert("✅ REGISTRO SALVO!");
             location.reload();
         } else {
-            alert("❌ Erro ao salvar na planilha. Verifique o Google Scripts.");
+            alert("❌ Erro ao gravar. Verifique se as abas 'Registros' e 'Status' existem na planilha.");
         }
     }
 
