@@ -76,7 +76,7 @@
 </div>
 
 <script>
-    // URL DO SEU APP WEB (GOOGLE SCRIPT) JÁ COM O SEU ID
+    // URL DO SEU APP WEB (GOOGLE SCRIPT) - LINHA 91
     const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
     
     const skyTags = ["TJUR 04", "TJUR 07", "TJUR 09"];
@@ -154,7 +154,7 @@
         const selo = document.getElementById('validadeSelo').value;
         if(!tag || !mot || !selo) return alert("⚠️ Preencha tudo!");
         
-        const c = await call({acao: 'gerarDadosContagem', tag: tag, nome: mot});
+        const c = await call({acao: 'gerarDadosContagem', tag: tag, name: mot});
         const d = {
             acao: 'registrar', tag: tag, nome: mot, kmi: document.getElementById('kmi').value, 
             oleo: document.getElementById('proxOleo').value, veiculo: window.v, placa: window.p, 
