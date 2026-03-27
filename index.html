@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.3</title>
+    <title>SISTEMA TELEJUR v13.4</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -51,34 +51,24 @@
         <label>Condutor</label>
         <select id="condutor">
             <option value="">-- SELECIONE --</option>
-            <option>Condutor 1</option>
-            <option>Condutor 2</option>
-            <option>Condutor 3</option>
-            <option>Condutor 4</option>
-            <option>Condutor 5</option>
-            <option>Condutor 6</option>
-            <option>Condutor 7</option>
-            <option>Condutor 8</option>
-            <option>Condutor 9</option>
-            <option>Condutor 10</option>
+            <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option><option>Condutor 4</option><option>Condutor 5</option>
+            <option>Condutor 6</option><option>Condutor 7</option><option>Condutor 8</option><option>Condutor 9</option><option>Condutor 10</option>
         </select>
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="autoPreencher()">
             <option value="">-- SELECIONE --</option>
-            <option>TJUR 04</option>
-            <option>TJUR 06</option>
-            <option>TJUR 07</option>
-            <option>TJUR 08</option>
-            <option>TJUR 09</option>
-            <option>TJUR 10</option>
-            <option>TJUR 13</option>
+            <option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option>
+            <option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
         </select>
 
         <div class="grid-2">
             <div><label>Veículo</label><input type="text" id="veiculoNome" readonly></div>
             <div><label>Placa</label><input type="text" id="placa" readonly></div>
         </div>
+
+        <label>Observações (Saída)</label>
+        <textarea id="obsSaida" placeholder="Ex: Setor de direção, pneus com desgaste, cone quebrado..."></textarea>
 
         <div class="section-titulo">DADOS TÉCNICOS (SAÍDA)</div>
 
@@ -115,8 +105,8 @@
         <label>Resta para a troca (KM)</label>
         <input type="text" id="restaTroca" readonly placeholder="Calculado automaticamente">
 
-        <label>Observação / Checklist Mecânico</label>
-        <textarea id="obs" placeholder="Ex: Avaliação mecânica, pneus com desgaste, cone quebrado..."></textarea>
+        <label>Observação / Checklist Final</label>
+        <textarea id="obsFinal" placeholder="Alguma ocorrência durante o trajeto?"></textarea>
 
         <button onclick="finalizarChegada()" class="btn btn-finalizar">🏁 FINALIZAR E TRANSMITIR</button>
     </div>
@@ -124,12 +114,9 @@
 
 <script>
     const frota = {
-        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50" },
-        "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02" },
-        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75" },
-        "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48" },
-        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04" },
-        "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37" },
+        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50" }, "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02" },
+        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75" }, "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48" },
+        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04" }, "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37" },
         "TJUR 13": { v: "CAMINHONETE HILUX", p: "QVD4I38" }
     };
 
@@ -157,6 +144,7 @@
             tag: document.getElementById('tag').value,
             condutor: document.getElementById('condutor').value,
             nome: document.getElementById('nomeMot').value,
+            obs: document.getElementById('obsSaida').value,
             kmi: document.getElementById('kmi').value,
             horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
             proxOleo: document.getElementById('proxOleo').value,
@@ -187,7 +175,7 @@
         const kmf = document.getElementById('kmf').value;
         const d = JSON.parse(localStorage.getItem("tjur_sessao"));
         if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("⚠️ KM Final inválido!");
-        alert(`✅ CHECKLIST CONCLUÍDO!\n\nMotorista: ${d.nome}\n${d.condutor}`);
+        alert(`✅ CHECKLIST CONCLUÍDO!\n\nMotorista: ${d.nome}\nObs: ${d.obs}`);
         localStorage.removeItem("tjur_sessao");
         location.reload();
     }
