@@ -3,50 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.5</title>
+    <title>SISTEMA TELEJUR v13.6</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
+        /* Painel de Tags */
         .grid-frota { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 20px; }
         .v-box { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; background: #fff; color: #444; }
-        .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); }
+        .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); border-width: 2px; }
 
         label { display: block; font-weight: bold; font-size: 10px; color: #555; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; outline: none; background: #fff; }
         input[readonly] { background: #f1f1f1; color: #666; font-weight: bold; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
         .btn-azul { background: var(--primary); color: white; }
         .btn-finalizar { background: var(--danger); color: white; }
         
         .section-titulo { background: #e8eaf6; padding: 8px; border-radius: 5px; color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
-        .destaque-campo { border: 2px solid var(--primary) !important; background: #fffde7 !important; }
+
+        /* Estilo do Resumo de Saída na Chegada */
+        .resumo-saida { background: #fffde7; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-bottom: 15px; font-size: 13px; line-height: 1.5; }
+        .resumo-saida b { color: var(--primary); font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>SISTEMA TELEJUR</h2>
+    <h2 id="tituloPagina">TRAJETO INICIAL</h2>
 
     <div id="painelFrota" class="grid-frota"></div>
 
-    <div id="formSaida">
+    <div id="secaoInicial">
         <label>Data</label>
         <input type="text" id="dataAtual" readonly>
 
         <label>Nome do Motorista</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
-            <option>FRANCIVALDO COSTA</option>
-            <option>ADRIANO NASCIMENTO</option>
-            <option>REGINALDO</option>
-            <option>WALTER GONÇALVES</option>
-            <option>LAFAITE BATISTA</option>
+            <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
         </select>
 
         <label>Condutor</label>
@@ -68,13 +68,13 @@
             <div><label>Placa</label><input type="text" id="placa" readonly></div>
         </div>
 
-        <label>Observações (Saída)</label>
-        <textarea id="obsSaida" placeholder="Ex: Setor de direção, pneus com desgaste..."></textarea>
+        <label>Observações de Saída</label>
+        <textarea id="obsSaida" placeholder="Ex: Riscos na lataria, pneus baixos..."></textarea>
 
-        <div class="section-titulo">DADOS TÉCNICOS (SAÍDA)</div>
+        <div class="section-titulo">DADOS TÉCNICOS</div>
 
         <div class="grid-2">
-            <div><label>KM Inicial</label><input type="number" id="kmi" placeholder="Ex: 164296"></div>
+            <div><label>KM Inicial</label><input type="number" id="kmi" placeholder="164296"></div>
             <div><label>Número Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
 
@@ -82,7 +82,7 @@
             <div><label>Tipo de Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
             <div id="boxTrocaOleo">
                 <label id="labelTrocaOleo">Próx. Troca Óleo</label>
-                <input type="number" id="proxOleo" placeholder="KM">
+                <input type="number" id="proxOleo">
             </div>
         </div>
 
@@ -91,15 +91,12 @@
             <div><label>Validade Selo</label><input type="date" id="valSelo"></div>
         </div>
 
-        <button onclick="salvarSaida()" class="btn btn-azul">💾 REGISTRAR SAÍDA</button>
+        <button onclick="salvarSaida()" class="btn btn-azul">🚀 INICIAR TRAJETO</button>
     </div>
 
-    <div id="telaAtiva" class="hidden">
-        <div style="background:#fff9c4; padding:15px; border-radius:10px; border-left:5px solid #fbc02d; margin-bottom: 15px;">
-            <b>TRAJETO EM CURSO: <span id="resumoTag"></span></b><br>
-            <small>Motorista: <span id="resumoMot"></span> (<span id="resumoCond"></span>)</small><br>
-            <small>Início: <span id="horaInic"></span></small>
-        </div>
+    <div id="secaoFinal" class="hidden">
+        <div class="resumo-saida" id="displayResumo">
+            </div>
 
         <div class="grid-2">
             <div><label>Hora Fim</label><input type="text" id="horaFim" readonly></div>
@@ -107,73 +104,34 @@
         </div>
         
         <label id="labelResta">Resta para a troca</label>
-        <input type="text" id="restaTroca" readonly placeholder="...">
+        <input type="text" id="restaTroca" readonly style="color: var(--danger);">
 
-        <label>Observação / Checklist Final</label>
-        <textarea id="obsFinal" placeholder="Alguma ocorrência durante o trajeto?"></textarea>
+        <label>Observações de Chegada</label>
+        <textarea id="obsFinal" placeholder="Alguma ocorrência durante a viagem?"></textarea>
 
-        <button onclick="finalizarChegada()" class="btn btn-finalizar">🏁 FINALIZAR E TRANSMITIR</button>
+        <button onclick="finalizarChegada()" class="btn btn-finalizar">🏁 FINALIZAR TRAJETO</button>
     </div>
 </div>
 
 <script>
     const frota = {
-        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50", tipoTroca: "DATA" },
-        "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02", tipoTroca: "KM" },
-        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75", tipoTroca: "DATA" },
-        "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48", tipoTroca: "KM" },
-        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04", tipoTroca: "DATA" },
-        "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37", tipoTroca: "KM" },
-        "TJUR 13": { v: "CAMINHONETE HILUX", p: "QVD4I38", tipoTroca: "KM" }
+        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50", t: "DATA" }, "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02", t: "KM" },
+        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75", t: "DATA" }, "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48", t: "KM" },
+        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04", t: "DATA" }, "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37", t: "KM" },
+        "TJUR 13": { v: "CAMINHONETE HILUX", p: "QVD4I38", t: "KM" }
     };
 
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         const inputOleo = document.getElementById('proxOleo');
         const labelOleo = document.getElementById('labelTrocaOleo');
-
         if(tag && frota[tag]) {
             document.getElementById('veiculoNome').value = frota[tag].v;
             document.getElementById('placa').value = frota[tag].p;
-            
-            // Lógica Inteligente para Troca de Óleo
-            if(frota[tag].tipoTroca === "DATA") {
-                inputOleo.type = "date";
-                labelOleo.innerText = "Próx. Troca (DATA)";
-                inputOleo.classList.add('destaque-campo');
-            } else {
-                inputOleo.type = "number";
-                labelOleo.innerText = "Próx. Troca (KM)";
-                inputOleo.placeholder = "Ex: 169257";
-                inputOleo.classList.remove('destaque-campo');
-            }
+            inputOleo.type = (frota[tag].t === "DATA") ? "date" : "number";
+            labelOleo.innerText = "Próx. Troca (" + frota[tag].t + ")";
             renderFrota(tag);
         }
-    }
-
-    function calcularResta() {
-        const kmf = document.getElementById('kmf').value;
-        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
-        const labelResta = document.getElementById('labelResta');
-        const inputResta = document.getElementById('restaTroca');
-
-        if(d.tipoTroca === "DATA") {
-            labelResta.innerText = "Troca de óleo agendada para:";
-            inputResta.value = d.proxOleo.split('-').reverse().join('/'); // Formata data
-        } else if(kmf && d.proxOleo) {
-            const conta = Number(d.proxOleo) - Number(kmf);
-            labelResta.innerText = "Resta para a troca (KM):";
-            inputResta.value = conta + " KM";
-        }
-    }
-
-    function renderFrota(tagAtiva = null) {
-        const painel = document.getElementById('painelFrota');
-        painel.innerHTML = '';
-        Object.keys(frota).forEach(t => {
-            const activeClass = (t === tagAtiva) ? 'active' : '';
-            painel.innerHTML += `<div class="v-box ${activeClass}">${t}</div>`;
-        });
     }
 
     function salvarSaida() {
@@ -183,47 +141,74 @@
             tag: tagVal,
             condutor: document.getElementById('condutor').value,
             nome: document.getElementById('nomeMot').value,
-            obs: document.getElementById('obsSaida').value,
+            obsS: document.getElementById('obsSaida').value,
             kmi: document.getElementById('kmi').value,
             horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
             proxOleo: document.getElementById('proxOleo').value,
-            tipoTroca: frota[tagVal].tipoTroca, // Guarda se é data ou km
-            numTrajeto: document.getElementById('numTrajeto').value,
+            tipoTroca: frota[tagVal].t,
+            numT: document.getElementById('numTrajeto').value,
             placa: document.getElementById('placa').value,
             veiculo: document.getElementById('veiculoNome').value,
-            valSelo: document.getElementById('valSelo').value,
-            corSelo: document.getElementById('corSelo').value,
-            tipoOleo: document.getElementById('tipoOleo').value
+            valS: document.getElementById('valSelo').value,
+            corS: document.getElementById('corSelo').value,
+            tipoO: document.getElementById('tipoOleo').value
         };
 
-        if(!d.nome || !d.tag || !d.kmi || !d.condutor || !d.proxOleo) return alert("⚠️ Preencha todos os campos, inclusive a Troca de Óleo!");
-        
-        localStorage.setItem("tjur_sessao", JSON.stringify(d));
+        if(!d.nome || !d.tag || !d.kmi || !d.condutor || !d.proxOleo) return alert("⚠️ Preencha todos os campos obrigatórios!");
+        localStorage.setItem("tjur_cache", JSON.stringify(d));
         location.reload();
+    }
+
+    function calcularResta() {
+        const kmf = document.getElementById('kmf').value;
+        const d = JSON.parse(localStorage.getItem("tjur_cache"));
+        const inputResta = document.getElementById('restaTroca');
+        if(d.tipoTroca === "KM" && kmf) {
+            inputResta.value = (Number(d.proxOleo) - Number(kmf)) + " KM";
+        }
+    }
+
+    function renderFrota(tagAtiva = null) {
+        const painel = document.getElementById('painelFrota');
+        painel.innerHTML = '';
+        Object.keys(frota).forEach(t => {
+            painel.innerHTML += `<div class="v-box ${t === tagAtiva ? 'active' : ''}">${t}</div>`;
+        });
     }
 
     function finalizarChegada() {
         const kmf = document.getElementById('kmf').value;
-        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
-        if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("⚠️ KM Final inválido!");
-        alert(`✅ CHECKLIST CONCLUÍDO!\n\nVeículo: ${d.tag}\nMotorista: ${d.nome}`);
-        localStorage.removeItem("tjur_sessao");
+        const d = JSON.parse(localStorage.getItem("tjur_cache"));
+        if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("⚠️ KM Final deve ser maior que o Inicial!");
+        alert("✅ TRAJETO FINALIZADO COM SUCESSO!");
+        localStorage.removeItem("tjur_cache");
         location.reload();
     }
 
     window.onload = () => {
         document.getElementById('dataAtual').value = new Date().toLocaleDateString('pt-BR');
-        const salvo = localStorage.getItem("tjur_sessao");
+        const salvo = localStorage.getItem("tjur_cache");
+        
         if(salvo) {
             const d = JSON.parse(salvo);
-            document.getElementById('formSaida').classList.add('hidden');
-            document.getElementById('telaAtiva').classList.remove('hidden');
-            document.getElementById('resumoTag').innerText = d.tag;
-            document.getElementById('resumoMot').innerText = d.nome;
-            document.getElementById('resumoCond').innerText = d.condutor;
-            document.getElementById('horaInic').innerText = d.horaInic;
+            document.getElementById('tituloPagina').innerText = "TRAJETO FINAL";
+            document.getElementById('secaoInicial').classList.add('hidden');
+            document.getElementById('secaoFinal').classList.remove('hidden');
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            calcularResta(); // Para já mostrar a info na chegada
+            
+            // Monta o resumo das informações salvas
+            document.getElementById('displayResumo').innerHTML = `
+                <b>Resumo do Trajeto Inicial:</b>
+                🚗 ${d.tag} | 🆔 ${d.placa} | 👤 ${d.condutor}<br>
+                🛣️ KM Inicial: ${d.kmi} | 🕒 Início: ${d.horaInic}<br>
+                🛠️ Óleo: ${d.tipoTroca === "DATA" ? d.proxOleo.split('-').reverse().join('/') : d.proxOleo + " KM"}<br>
+                📝 Obs Saída: ${d.obsS || "Nenhuma"}
+            `;
+            
+            if(d.tipoTroca === "DATA") {
+                document.getElementById('labelResta').innerText = "Próxima troca em:";
+                document.getElementById('restaTroca').value = d.proxOleo.split('-').reverse().join('/');
+            }
             renderFrota(d.tag);
         } else {
             renderFrota();
