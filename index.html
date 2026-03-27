@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.1</title>
+    <title>SISTEMA TELEJUR v13.3</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -35,12 +35,10 @@
     <div id="painelFrota" class="grid-frota"></div>
 
     <div id="formSaida">
-        <div class="grid-2">
-            <div><label>Data</label><input type="text" id="dataAtual" readonly></div>
-            <div><label>ID</label><input type="text" id="idViagem" readonly></div>
-        </div>
+        <label>Data</label>
+        <input type="text" id="dataAtual" readonly>
 
-        <label>Motorista (Nome)</label>
+        <label>Nome do Motorista</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
             <option>FRANCIVALDO COSTA</option>
@@ -51,8 +49,19 @@
         </select>
 
         <label>Condutor</label>
-        <select id="idCondutor">
-            </select>
+        <select id="condutor">
+            <option value="">-- SELECIONE --</option>
+            <option>Condutor 1</option>
+            <option>Condutor 2</option>
+            <option>Condutor 3</option>
+            <option>Condutor 4</option>
+            <option>Condutor 5</option>
+            <option>Condutor 6</option>
+            <option>Condutor 7</option>
+            <option>Condutor 8</option>
+            <option>Condutor 9</option>
+            <option>Condutor 10</option>
+        </select>
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="autoPreencher()">
@@ -133,17 +142,6 @@
         });
     }
 
-    function popularCondutores() {
-        const sel = document.getElementById('idCondutor');
-        sel.innerHTML = '<option value="">-- SELECIONE --</option>';
-        for(let i=1; i<=10; i++) {
-            let opt = document.createElement('option');
-            opt.value = "Condutor " + i;
-            opt.text = "Condutor " + i;
-            sel.add(opt);
-        }
-    }
-
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         if(tag && frota[tag]) {
@@ -157,9 +155,8 @@
         const d = {
             data: document.getElementById('dataAtual').value,
             tag: document.getElementById('tag').value,
-            id: document.getElementById('idViagem').value,
+            condutor: document.getElementById('condutor').value,
             nome: document.getElementById('nomeMot').value,
-            condutor: document.getElementById('idCondutor').value,
             kmi: document.getElementById('kmi').value,
             horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
             proxOleo: document.getElementById('proxOleo').value,
@@ -188,22 +185,15 @@
 
     function finalizarChegada() {
         const kmf = document.getElementById('kmf').value;
-        const obs = document.getElementById('obs').value;
         const d = JSON.parse(localStorage.getItem("tjur_sessao"));
-        
         if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("⚠️ KM Final inválido!");
-        
-        alert(`✅ CHECKLIST CONCLUÍDO!\n\nVeículo: ${d.tag}\nMotorista: ${d.nome}\n${d.condutor}`);
-        
+        alert(`✅ CHECKLIST CONCLUÍDO!\n\nMotorista: ${d.nome}\n${d.condutor}`);
         localStorage.removeItem("tjur_sessao");
         location.reload();
     }
 
     window.onload = () => {
-        popularCondutores();
         document.getElementById('dataAtual').value = new Date().toLocaleDateString('pt-BR');
-        document.getElementById('idViagem').value = "ID-" + Math.floor(1000 + Math.random() * 9000);
-        
         const salvo = localStorage.getItem("tjur_sessao");
         if(salvo) {
             const d = JSON.parse(salvo);
