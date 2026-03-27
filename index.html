@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v14.5</title>
+    <title>SISTEMA TELEJUR v14.6</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -136,7 +136,7 @@
             const hoje = new Date();
             hoje.setHours(0,0,0,0);
             const dataLimite = new Date(d_saida.proxOleo + 'T00:00:00');
-            const diffTempo = dataLimite - hoje;
+            const diffTempo = dataLimite - hojep;
             const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
             if(diffDias > 0) return `FALTAM ${diffDias} DIAS (Limite: ${dataLimite.toLocaleDateString('pt-BR')})`;
             if(diffDias === 0) return `VENCE HOJE!`;
@@ -166,9 +166,9 @@
             
             let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A`;
             msg += `*Data:* ${data.data}%0A%0A`;
-            msg += `*Veículo:* ${data.veiculo}%0A*TAG:* ${data.tag}%0A*Placa:* ${data.placa}%0A*Nome:* ${data.nome}%0A%0A`;
-            msg += `*KM Inicial:* ${data.kmi}%0A*KM Final:* ${statusPonto}%0A*Hora Inicial:* ${data.horaInic}%0A*Hora Final:* ${statusPonto}%0A%0A`;
-            msg += `*Status Troca:* ${statusPonto}%0A*Obs Chegada:* ${statusPonto}`;
+            msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${data.veiculo}%0A*TAG:* ${data.tag}%0A*Placa:* ${data.placa}%0A*Nome:* ${data.nome}%0A*ID:* ${data.condutor}%0A%0A`;
+            msg += `*--- TRAJETO ---*%0A*KM Inicial:* ${data.kmi}%0A*KM Final:* ${statusPonto}%0A*Hora Inicial:* ${data.horaInic}%0A*Hora Final:* ${statusPonto}%0A%0A`;
+            msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${data.tipoO}%0A*Status Troca:* ${statusPonto}%0A*Obs Chegada:* ${statusPonto}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             location.reload();
