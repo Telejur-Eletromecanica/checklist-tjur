@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.4</title>
+    <title>SISTEMA TELEJUR v13.5</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -25,6 +25,7 @@
         
         .section-titulo { background: #e8eaf6; padding: 8px; border-radius: 5px; color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
+        .destaque-campo { border: 2px solid var(--primary) !important; background: #fffde7 !important; }
     </style>
 </head>
 <body>
@@ -68,7 +69,7 @@
         </div>
 
         <label>Observações (Saída)</label>
-        <textarea id="obsSaida" placeholder="Ex: Setor de direção, pneus com desgaste, cone quebrado..."></textarea>
+        <textarea id="obsSaida" placeholder="Ex: Setor de direção, pneus com desgaste..."></textarea>
 
         <div class="section-titulo">DADOS TÉCNICOS (SAÍDA)</div>
 
@@ -79,7 +80,10 @@
 
         <div class="grid-2">
             <div><label>Tipo de Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
-            <div><label>Próx. Troca Óleo</label><input type="number" id="proxOleo" placeholder="Ex: 169257"></div>
+            <div id="boxTrocaOleo">
+                <label id="labelTrocaOleo">Próx. Troca Óleo</label>
+                <input type="number" id="proxOleo" placeholder="KM">
+            </div>
         </div>
 
         <div class="grid-2">
@@ -102,8 +106,8 @@
             <div><label>KM Final</label><input type="number" id="kmf" oninput="calcularResta()"></div>
         </div>
         
-        <label>Resta para a troca (KM)</label>
-        <input type="text" id="restaTroca" readonly placeholder="Calculado automaticamente">
+        <label id="labelResta">Resta para a troca</label>
+        <input type="text" id="restaTroca" readonly placeholder="...">
 
         <label>Observação / Checklist Final</label>
         <textarea id="obsFinal" placeholder="Alguma ocorrência durante o trajeto?"></textarea>
@@ -114,11 +118,54 @@
 
 <script>
     const frota = {
-        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50" }, "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02" },
-        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75" }, "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48" },
-        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04" }, "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37" },
-        "TJUR 13": { v: "CAMINHONETE HILUX", p: "QVD4I38" }
+        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50", tipoTroca: "DATA" },
+        "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02", tipoTroca: "KM" },
+        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75", tipoTroca: "DATA" },
+        "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48", tipoTroca: "KM" },
+        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04", tipoTroca: "DATA" },
+        "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37", tipoTroca: "KM" },
+        "TJUR 13": { v: "CAMINHONETE HILUX", p: "QVD4I38", tipoTroca: "KM" }
     };
+
+    function autoPreencher() {
+        const tag = document.getElementById('tag').value;
+        const inputOleo = document.getElementById('proxOleo');
+        const labelOleo = document.getElementById('labelTrocaOleo');
+
+        if(tag && frota[tag]) {
+            document.getElementById('veiculoNome').value = frota[tag].v;
+            document.getElementById('placa').value = frota[tag].p;
+            
+            // Lógica Inteligente para Troca de Óleo
+            if(frota[tag].tipoTroca === "DATA") {
+                inputOleo.type = "date";
+                labelOleo.innerText = "Próx. Troca (DATA)";
+                inputOleo.classList.add('destaque-campo');
+            } else {
+                inputOleo.type = "number";
+                labelOleo.innerText = "Próx. Troca (KM)";
+                inputOleo.placeholder = "Ex: 169257";
+                inputOleo.classList.remove('destaque-campo');
+            }
+            renderFrota(tag);
+        }
+    }
+
+    function calcularResta() {
+        const kmf = document.getElementById('kmf').value;
+        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
+        const labelResta = document.getElementById('labelResta');
+        const inputResta = document.getElementById('restaTroca');
+
+        if(d.tipoTroca === "DATA") {
+            labelResta.innerText = "Troca de óleo agendada para:";
+            inputResta.value = d.proxOleo.split('-').reverse().join('/'); // Formata data
+        } else if(kmf && d.proxOleo) {
+            const conta = Number(d.proxOleo) - Number(kmf);
+            labelResta.innerText = "Resta para a troca (KM):";
+            inputResta.value = conta + " KM";
+        }
+    }
 
     function renderFrota(tagAtiva = null) {
         const painel = document.getElementById('painelFrota');
@@ -129,25 +176,18 @@
         });
     }
 
-    function autoPreencher() {
-        const tag = document.getElementById('tag').value;
-        if(tag && frota[tag]) {
-            document.getElementById('veiculoNome').value = frota[tag].v;
-            document.getElementById('placa').value = frota[tag].p;
-            renderFrota(tag);
-        }
-    }
-
     function salvarSaida() {
+        const tagVal = document.getElementById('tag').value;
         const d = {
             data: document.getElementById('dataAtual').value,
-            tag: document.getElementById('tag').value,
+            tag: tagVal,
             condutor: document.getElementById('condutor').value,
             nome: document.getElementById('nomeMot').value,
             obs: document.getElementById('obsSaida').value,
             kmi: document.getElementById('kmi').value,
             horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
             proxOleo: document.getElementById('proxOleo').value,
+            tipoTroca: frota[tagVal].tipoTroca, // Guarda se é data ou km
             numTrajeto: document.getElementById('numTrajeto').value,
             placa: document.getElementById('placa').value,
             veiculo: document.getElementById('veiculoNome').value,
@@ -156,26 +196,17 @@
             tipoOleo: document.getElementById('tipoOleo').value
         };
 
-        if(!d.nome || !d.tag || !d.kmi || !d.condutor) return alert("⚠️ Preencha Motorista, Condutor, Tag e KM!");
+        if(!d.nome || !d.tag || !d.kmi || !d.condutor || !d.proxOleo) return alert("⚠️ Preencha todos os campos, inclusive a Troca de Óleo!");
         
         localStorage.setItem("tjur_sessao", JSON.stringify(d));
         location.reload();
-    }
-
-    function calcularResta() {
-        const kmf = document.getElementById('kmf').value;
-        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
-        if(kmf && d.proxOleo) {
-            const conta = Number(d.proxOleo) - Number(kmf);
-            document.getElementById('restaTroca').value = conta + " KM";
-        }
     }
 
     function finalizarChegada() {
         const kmf = document.getElementById('kmf').value;
         const d = JSON.parse(localStorage.getItem("tjur_sessao"));
         if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("⚠️ KM Final inválido!");
-        alert(`✅ CHECKLIST CONCLUÍDO!\n\nMotorista: ${d.nome}\nObs: ${d.obs}`);
+        alert(`✅ CHECKLIST CONCLUÍDO!\n\nVeículo: ${d.tag}\nMotorista: ${d.nome}`);
         localStorage.removeItem("tjur_sessao");
         location.reload();
     }
@@ -192,6 +223,7 @@
             document.getElementById('resumoCond').innerText = d.condutor;
             document.getElementById('horaInic').innerText = d.horaInic;
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            calcularResta(); // Para já mostrar a info na chegada
             renderFrota(d.tag);
         } else {
             renderFrota();
