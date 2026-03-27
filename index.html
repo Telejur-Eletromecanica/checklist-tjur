@@ -10,6 +10,10 @@
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
+        .grid-frota { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 20px; }
+        .v-box { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; background: #fff; color: #444; }
+        .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); }
+
         label { display: block; font-weight: bold; font-size: 10px; color: #555; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; outline: none; background: #fff; }
         input[readonly] { background: #f1f1f1; color: #666; font-weight: bold; }
@@ -26,7 +30,9 @@
 <body>
 
 <div class="card">
-    <h2>SISTEMA TELEJUR - CHECKLIST</h2>
+    <h2>SISTEMA TELEJUR</h2>
+
+    <div id="painelFrota" class="grid-frota"></div>
 
     <div id="formSaida">
         <div class="grid-2">
@@ -61,16 +67,16 @@
             <div><label>Placa</label><input type="text" id="placa" readonly></div>
         </div>
 
-        <div class="section-titulo">INFORMAÇÕES TÉCNICAS</div>
+        <div class="section-titulo">DADOS TÉCNICOS (SAÍDA)</div>
 
         <div class="grid-2">
-            <div><label>KM Inicial</label><input type="number" id="kmi" placeholder="164296"></div>
+            <div><label>KM Inicial</label><input type="number" id="kmi" placeholder="Ex: 164296"></div>
             <div><label>Número Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
 
         <div class="grid-2">
-            <div><label>Tipo de Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option></select></div>
-            <div><label>Próx. Troca Óleo</label><input type="number" id="proxOleo" placeholder="169257"></div>
+            <div><label>Tipo de Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
+            <div><label>Próx. Troca Óleo</label><input type="number" id="proxOleo" placeholder="Ex: 169257"></div>
         </div>
 
         <div class="grid-2">
@@ -82,19 +88,22 @@
     </div>
 
     <div id="telaAtiva" class="hidden">
-        <div style="background:#fff9c4; padding:15px; border-radius:10px; border-left:5px solid #fbc02d;">
+        <div style="background:#fff9c4; padding:15px; border-radius:10px; border-left:5px solid #fbc02d; margin-bottom: 15px;">
             <b>TRAJETO EM CURSO: <span id="resumoTag"></span></b><br>
-            <small>Iniciado às: <span id="horaInic"></span></small>
+            <small>Motorista: <span id="resumoMot"></span></small><br>
+            <small>Início: <span id="horaInic"></span></small>
         </div>
 
-        <label>KM Final</label>
-        <input type="number" id="kmf" placeholder="Digite o KM na chegada">
-
-        <label>Observação / Checklist</label>
-        <textarea id="obs" placeholder="Ex: Cone quebrado, pneus com desgaste..."></textarea>
+        <div class="grid-2">
+            <div><label>Hora Fim</label><input type="text" id="horaFim" readonly></div>
+            <div><label>KM Final</label><input type="number" id="kmf" oninput="calcularResta()"></div>
+        </div>
         
-        <label>Resta para a troca (Cálculo)</label>
-        <input type="text" id="restaTroca" readonly>
+        <label>Resta para a troca (KM)</label>
+        <input type="text" id="restaTroca" readonly placeholder="Calculado automaticamente">
+
+        <label>Observação / Checklist Mecânico</label>
+        <textarea id="obs" placeholder="Ex: Avaliação mecânica, pneus com desgaste, cone quebrado..."></textarea>
 
         <button onclick="finalizarChegada()" class="btn btn-finalizar">🏁 FINALIZAR E TRANSMITIR</button>
     </div>
@@ -111,11 +120,21 @@
         "TJUR 13": { v: "CAMINHONETE HILUX", p: "QVD4I38" }
     };
 
+    function renderFrota(tagAtiva = null) {
+        const painel = document.getElementById('painelFrota');
+        painel.innerHTML = '';
+        Object.keys(frota).forEach(t => {
+            const activeClass = (t === tagAtiva) ? 'active' : '';
+            painel.innerHTML += `<div class="v-box ${activeClass}">${t}</div>`;
+        });
+    }
+
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         if(tag && frota[tag]) {
             document.getElementById('veiculoNome').value = frota[tag].v;
             document.getElementById('placa').value = frota[tag].p;
+            renderFrota(tag);
         }
     }
 
@@ -127,9 +146,8 @@
             nome: document.getElementById('nomeMot').value,
             kmi: document.getElementById('kmi').value,
             horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-            status: "EM ANDAMENTO",
             proxOleo: document.getElementById('proxOleo').value,
-            trajeto: document.getElementById('numTrajeto').value,
+            numTrajeto: document.getElementById('numTrajeto').value,
             placa: document.getElementById('placa').value,
             veiculo: document.getElementById('veiculoNome').value,
             valSelo: document.getElementById('valSelo').value,
@@ -137,37 +155,50 @@
             tipoOleo: document.getElementById('tipoOleo').value
         };
 
-        if(!d.nome || !d.tag || !d.kmi) return alert("Preencha os campos obrigatórios!");
+        if(!d.nome || !d.tag || !d.kmi) return alert("⚠️ Preencha Motorista, Tag e KM!");
         
-        localStorage.setItem("tjur_check", JSON.stringify(d));
+        localStorage.setItem("tjur_sessao", JSON.stringify(d));
         location.reload();
+    }
+
+    function calcularResta() {
+        const kmf = document.getElementById('kmf').value;
+        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
+        if(kmf && d.proxOleo) {
+            const conta = Number(d.proxOleo) - Number(kmf);
+            document.getElementById('restaTroca').value = conta + " KM";
+        }
     }
 
     function finalizarChegada() {
         const kmf = document.getElementById('kmf').value;
-        const d = JSON.parse(localStorage.getItem("tjur_check"));
+        const obs = document.getElementById('obs').value;
+        const d = JSON.parse(localStorage.getItem("tjur_sessao"));
         
-        if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("KM Final inválido!");
+        if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("⚠️ KM Final inválido!");
         
-        const resta = Number(d.proxOleo) - Number(kmf);
-        alert(`Sucesso!\nKM Final: ${kmf}\nResta para troca: ${resta} KM`);
+        alert(`✅ CHECKLIST CONCLUÍDO!\n\nVeículo: ${d.tag}\nMotorista: ${d.nome}\nObs: ${obs || 'Nenhuma'}`);
         
-        localStorage.removeItem("tjur_check");
+        localStorage.removeItem("tjur_sessao");
         location.reload();
     }
 
     window.onload = () => {
-        // Preenche campos automáticos de saída
         document.getElementById('dataAtual').value = new Date().toLocaleDateString('pt-BR');
         document.getElementById('idViagem').value = "ID-" + Math.floor(1000 + Math.random() * 9000);
         
-        const salvo = localStorage.getItem("tjur_check");
+        const salvo = localStorage.getItem("tjur_sessao");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('formSaida').classList.add('hidden');
             document.getElementById('telaAtiva').classList.remove('hidden');
             document.getElementById('resumoTag').innerText = d.tag;
+            document.getElementById('resumoMot').innerText = d.nome;
             document.getElementById('horaInic').innerText = d.horaInic;
+            document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            renderFrota(d.tag);
+        } else {
+            renderFrota();
         }
     };
 </script>
