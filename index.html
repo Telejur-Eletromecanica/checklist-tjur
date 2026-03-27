@@ -3,28 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v15.0</title>
+    <title>SISTEMA TELEJUR v16.5</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        
         .grid-frota { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 20px; }
         .v-box { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; background: #fff; color: #444; }
         .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); border-width: 2px; }
-
         label { display: block; font-weight: bold; font-size: 10px; color: #555; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; outline: none; background: #fff; }
         input[readonly] { background: #f1f1f1; color: #666; font-weight: bold; }
-        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-whats { background: var(--success); color: white; }
-        
         .section-titulo { background: #e8eaf6; padding: 8px; border-radius: 5px; color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
-        .resumo-saida { background: #fffde7; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-bottom: 15px; font-size: 13px; line-height: 1.5; }
+        .resumo-saida { background: #fffde7; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-bottom: 15px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -46,7 +42,6 @@
         <select id="condutor">
             <option value="">-- SELECIONE O ID --</option>
             <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option><option>Condutor 4</option><option>Condutor 5</option>
-            <option>Condutor 6</option><option>Condutor 7</option><option>Condutor 8</option><option>Condutor 9</option><option>Condutor 10</option>
         </select>
 
         <label>Veículo (TAG)</label>
@@ -66,7 +61,7 @@
 
         <div class="section-titulo">DADOS TÉCNICOS</div>
         <div class="grid-2">
-            <div><label>KM Inicial</label><input type="text" inputmode="numeric" id="kmi" placeholder="164.296"></div>
+            <div><label>KM Inicial</label><input type="text" inputmode="numeric" id="kmi" placeholder="Carregando..."></div>
             <div><label>Nº Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
 
@@ -75,153 +70,98 @@
             <div><label id="labelTrocaOleo">Próxima Troca</label><input type="text" id="proxOleo"></div>
         </div>
 
-        <button onclick="enviarWhatsApp('SAIDA')" class="btn btn-whats">📲 INICIAR E ENVIAR WHATSAPP</button>
+        <button onclick="processarEnvio('SAIDA')" class="btn btn-whats" id="btnAcao">📲 INICIAR E ENVIAR</button>
     </div>
 
     <div id="secaoFinal" class="hidden">
         <div class="resumo-saida" id="displayResumo"></div>
-
         <div class="grid-2">
             <div><label>Hora Final</label><input type="text" id="horaFim" readonly></div>
-            <div><label>KM Final</label><input type="text" inputmode="numeric" id="kmf" placeholder="164.500" oninput="calcularResta()"></div>
+            <div><label>KM Final</label><input type="text" inputmode="numeric" id="kmf" oninput="calcularResta()"></div>
         </div>
-        
-        <label id="labelResta">STATUS DA TROCA DE ÓLEO</label>
-        <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold;">
-
+        <label>STATUS MANUTENÇÃO</label>
+        <input type="text" id="restaTroca" readonly style="color: var(--danger);">
         <label>OBSERVAÇÃO DE CHEGADA</label>
-        <textarea id="obsFinal" placeholder="Alguma ocorrência durante a viagem?"></textarea>
-
-        <button onclick="enviarWhatsApp('CHEGADA')" class="btn btn-whats">🏁 FINALIZAR E ENVIAR WHATSAPP</button>
+        <textarea id="obsFinal"></textarea>
+        <button onclick="processarEnvio('CHEGADA')" class="btn btn-whats" id="btnAcaoFim">🏁 FINALIZAR E ENVIAR</button>
     </div>
 </div>
 
 <script>
-    const frota = {
-        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50", t: "DATA" }, "TJUR 06": { v: "SAVEIRO", p: "QUJ3E02", t: "KM" },
-        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75", t: "DATA" }, "TJUR 08": { v: "HILUX", p: "QVE5H48", t: "KM" },
-        "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04", t: "DATA" }, "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37", t: "KM" },
-        "TJUR 13": { v: "HILUX", p: "QVD4I38", t: "KM" }
-    };
+    const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const frotaFixo = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
 
-    // Função melhorada para limpar qualquer caractere não numérico
-    function limparNum(val) { 
-        if(!val) return 0;
-        return Number(val.toString().replace(/\D/g, "")); 
-    }
+    function limparNum(val) { return Number(val.toString().replace(/\D/g, "")); }
 
-    function formatarProx(val, tipo) {
-        if (tipo === 'DATA' && val.includes('-')) return val.split('-').reverse().join('/');
-        return val + (tipo === 'KM' ? ' KM' : '');
-    }
-
-    function autoPreencher() {
+    async function autoPreencher() {
         const tag = document.getElementById('tag').value;
-        const inputOleo = document.getElementById('proxOleo');
-        const labelOleo = document.getElementById('labelTrocaOleo');
-        if(tag && frota[tag]) {
-            document.getElementById('veiculoNome').value = frota[tag].v;
-            document.getElementById('placa').value = frota[tag].p;
-            if(frota[tag].t === "DATA") {
-                inputOleo.type = "date";
-                labelOleo.innerText = "Data Limite da Troca";
-            } else {
-                inputOleo.type = "text";
-                inputOleo.inputMode = "numeric";
-                labelOleo.innerText = "Próxima Troca (KM)";
-            }
-            renderFrota(tag);
-        }
-    }
-
-    function calcularStatusTroca(d_saida, kmFinalStr = null) {
-        if(d_saida.tipoTroca === "KM") {
-            const numProx = limparNum(d_saida.proxOleo);
-            if(!kmFinalStr) return d_saida.proxOleo + " KM";
-            
-            const numKmf = limparNum(kmFinalStr);
-            const diff = numProx - numKmf;
-            
-            if (diff > 0) return `FALTAM ${diff.toLocaleString('pt-BR')} KM`;
-            if (diff === 0) return `TROCAR AGORA!`;
-            return `⚠️ EXCEDIDO EM ${Math.abs(diff).toLocaleString('pt-BR')} KM`;
-        } else {
-            if(!d_saida.proxOleo) return "...";
-            const hoje = new Date();
-            hoje.setHours(0,0,0,0);
-            
-            // Corrige leitura da data para evitar erro de fuso-horário
-            const partesData = d_saida.proxOleo.split('-');
-            const dataLimite = new Date(partesData[0], partesData[1] - 1, partesData[2]);
-            
-            const diffTempo = dataLimite - hoje;
-            const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-            
-            if(diffDias > 0) return `FALTAM ${diffDias} DIAS`;
-            if(diffDias === 0) return `VENCE HOJE!`;
-            return `⚠️ VENCIDO HÁ ${Math.abs(diffDias)} DIAS`;
-        }
-    }
-
-    function enviarWhatsApp(tipo) {
-        const dataHoje = new Date().toLocaleDateString('pt-BR');
-        const statusPonto = "...";
+        if(!tag) return;
+        renderFrota(tag);
+        document.getElementById('kmi').value = "Buscando...";
         
-        if(tipo === 'SAIDA') {
-            const tagVal = document.getElementById('tag').value;
-            const data = {
-                data: dataHoje, tag: tagVal, condutor: document.getElementById('condutor').value,
-                nome: document.getElementById('nomeMot').value, obsS: document.getElementById('obsSaida').value || "Nenhuma",
-                kmi: document.getElementById('kmi').value, horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                proxOleo: document.getElementById('proxOleo').value, tipoTroca: frota[tagVal]?.t || "KM",
-                placa: document.getElementById('placa').value, veiculo: document.getElementById('veiculoNome').value,
-                tipoO: document.getElementById('tipoOleo').value, numT: document.getElementById('numTrajeto').value
-            };
-
-            if(!data.nome || !data.tag || !data.kmi || !data.proxOleo) return alert("⚠️ Preencha tudo!");
-            localStorage.setItem("tjur_cache", JSON.stringify(data));
+        try {
+            const resp = await fetch(`${URL_API}?acao=buscarDadosVei&tag=${tag}`);
+            const data = await resp.json();
+            document.getElementById('veiculoNome').value = data.veiculo || "";
+            document.getElementById('placa').value = data.placa || "";
+            document.getElementById('kmi').value = data.kmi || "";
             
-            let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A`;
-            msg += `*Data:* ${data.data}%0A%0A`;
-            msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${data.veiculo}%0A*TAG:* ${data.tag}%0A*Placa:* ${data.placa}%0A*Nome:* ${data.nome}%0A*ID:* ${data.condutor}%0A%0A`;
-            msg += `*--- TRAJETO ---*%0A*KM Inicial:* ${data.kmi}%0A*KM Final:* ${statusPonto}%0A*Hora Inicial:* ${data.horaInic}%0A*Hora Final:* ${statusPonto}%0A%0A`;
-            msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${data.tipoO}%0A*Próxima Troca:* ${formatarProx(data.proxOleo, data.tipoTroca)}%0A*Status Troca:* ${statusPonto}%0A*Obs Saída:* ${data.obsS}`;
-            
-            window.open(`https://wa.me/?text=${msg}`, '_blank');
-            setTimeout(() => location.reload(), 500);
-        } else {
-            const d_saida = JSON.parse(localStorage.getItem("tjur_cache")) || {};
-            const valKmf = document.getElementById('kmf').value;
-            const obsC = document.getElementById('obsFinal').value || "Nenhuma";
-            const status = calcularStatusTroca(d_saida, valKmf);
-            const horaF = document.getElementById('horaFim').value;
-
-            if(!valKmf || limparNum(valKmf) <= limparNum(d_saida.kmi)) return alert("⚠️ KM Final inválido!");
-
-            let msg = `*🏁 RELATÓRIO COMPLETO - TELEJUR*%0A`;
-            msg += `*Data:* ${dataHoje}%0A%0A`;
-            msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${d_saida.veiculo}%0A*TAG:* ${d_saida.tag}%0A*Placa:* ${d_saida.placa}%0A*Nome:* ${d_saida.nome}%0A*ID:* ${d_saida.condutor}%0A%0A`;
-            msg += `*--- TRAJETO ---*%0A*KM Inicial:* ${d_saida.kmi}%0A*KM Final:* ${valKmf}%0A*Hora Inicial:* ${d_saida.horaInic}%0A*Hora Final:* ${horaF}%0A%0A`;
-            msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${d_saida.tipoO}%0A*Próxima Troca:* ${formatarProx(d_saida.proxOleo, d_saida.tipoTroca)}%0A*Status Troca:* ${status}%0A*Obs Saída:* ${d_saida.obsS || "Nenhuma"}%0A*Obs Chegada:* ${obsC}`;
-
-            window.open(`https://wa.me/?text=${msg}`, '_blank');
-            localStorage.removeItem("tjur_cache");
-            setTimeout(() => location.reload(), 500);
-        }
+            const inputOleo = document.getElementById('proxOleo');
+            inputOleo.type = data.veiculo?.includes("MUNCK") ? "date" : "text";
+        } catch (e) { alert("Erro ao conectar com a planilha!"); }
     }
 
-    function calcularResta() {
-        const valKmf = document.getElementById('kmf').value;
-        const d = JSON.parse(localStorage.getItem("tjur_cache"));
-        if(d) document.getElementById('restaTroca').value = calcularStatusTroca(d, valKmf);
+    async function processarEnvio(tipo) {
+        const btn = tipo === 'SAIDA' ? document.getElementById('btnAcao') : document.getElementById('btnAcaoFim');
+        btn.disabled = true; btn.innerText = "⏳ SALVANDO...";
+
+        const dataHoje = new Date().toLocaleDateString('pt-BR');
+        let payload = {};
+
+        if(tipo === 'SAIDA') {
+            payload = {
+                tipo: 'SAIDA', data: dataHoje, tag: document.getElementById('tag').value,
+                nome: document.getElementById('nomeMot').value, condutor: document.getElementById('condutor').value,
+                veiculo: document.getElementById('veiculoNome').value, placa: document.getElementById('placa').value,
+                kmi: document.getElementById('kmi').value, obsS: document.getElementById('obsSaida').value || "Nenhuma",
+                horaInic: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+                proxOleo: document.getElementById('proxOleo').value, tipoO: document.getElementById('tipoOleo').value,
+                numT: document.getElementById('numTrajeto').value
+            };
+            if(!payload.nome || !payload.tag || !payload.kmi) return alert("Preencha os campos!");
+            localStorage.setItem("tjur_cache", JSON.stringify(payload));
+        } else {
+            const dS = JSON.parse(localStorage.getItem("tjur_cache"));
+            payload = { 
+                ...dS, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value,
+                horaFim: document.getElementById('horaFim').value, obsC: document.getElementById('obsFinal').value || "Nenhuma",
+                statusManutencao: document.getElementById('restaTroca').value
+            };
+        }
+
+        try {
+            await fetch(URL_API, { method: 'POST', body: JSON.stringify(payload) });
+            
+            // Monta mensagem WhatsApp
+            let msg = `*${tipo === 'SAIDA' ? '🟢 INÍCIO' : '🏁 FIM'} - TELEJUR*%0A*TAG:* ${payload.tag}%0A*Motorista:* ${payload.nome}%0A*KM:* ${tipo === 'SAIDA' ? payload.kmi : payload.kmf}%0A*Obs:* ${tipo === 'SAIDA' ? payload.obsS : payload.obsC}`;
+            
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+            if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
+            location.reload();
+        } catch (e) { alert("Erro ao salvar!"); btn.disabled = false; }
     }
 
     function renderFrota(tagAtiva = null) {
         const painel = document.getElementById('painelFrota');
-        painel.innerHTML = '';
-        Object.keys(frota).forEach(t => {
-            painel.innerHTML += `<div class="v-box ${t === tagAtiva ? 'active' : ''}">${t}</div>`;
-        });
+        painel.innerHTML = frotaFixo.map(t => `<div class="v-box ${t === tagAtiva ? 'active' : ''}">${t}</div>`).join('');
+    }
+
+    function calcularResta() {
+        const d = JSON.parse(localStorage.getItem("tjur_cache"));
+        const kmf = limparNum(document.getElementById('kmf').value);
+        const prox = limparNum(d.proxOleo);
+        const diff = prox - kmf;
+        document.getElementById('restaTroca').value = diff > 0 ? `Faltam ${diff} KM` : `Excedido em ${Math.abs(diff)} KM`;
     }
 
     window.onload = () => {
@@ -229,12 +169,10 @@
         const salvo = localStorage.getItem("tjur_cache");
         if(salvo) {
             const d = JSON.parse(salvo);
-            document.getElementById('tituloPagina').innerText = "🏁 TRAJETO FINAL";
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
-            document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('displayResumo').innerHTML = `<b>Saída:</b> 🚗 ${d.tag} | 👤 ${d.nome} | 🛣️ KM: ${d.kmi}`;
-            calcularResta();
+            document.getElementById('displayResumo').innerHTML = `🚗 ${d.tag} | 🛣️ KM: ${d.kmi}`;
+            document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             renderFrota(d.tag);
         } else { renderFrota(); }
     };
