@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v14.3</title>
+    <title>SISTEMA TELEJUR v14.4</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -34,7 +34,7 @@
     <div id="painelFrota" class="grid-frota"></div>
 
     <div id="secaoInicial">
-        <label>Data</label><input type="text" id="dataAtual" readonly>
+        <label>Data Atual</label><input type="text" id="dataAtual" readonly>
         
         <label>NOME</label>
         <select id="nomeMot">
@@ -146,11 +146,13 @@
 
     function enviarWhatsApp(tipo) {
         const d_saida = JSON.parse(localStorage.getItem("tjur_cache")) || {};
+        const dataHoje = new Date().toLocaleDateString('pt-BR');
+        const statusNaoFinalizado = "Trajeto não finalizado";
         
         if(tipo === 'SAIDA') {
             const tagVal = document.getElementById('tag').value;
             const data = {
-                data: document.getElementById('dataAtual').value,
+                data: dataHoje,
                 tag: tagVal, condutor: document.getElementById('condutor').value,
                 nome: document.getElementById('nomeMot').value, obsS: document.getElementById('obsSaida').value,
                 kmi: document.getElementById('kmi').value, horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
@@ -162,8 +164,11 @@
             if(!data.nome || !data.tag || !data.kmi || !data.proxOleo) return alert("⚠️ Preencha tudo!");
             localStorage.setItem("tjur_cache", JSON.stringify(data));
             
-            let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A%0A`;
-            msg += `*Veículo:* ${data.tag}%0A*Placa:* ${data.placa}%0A*Nome:* ${data.nome}%0A*KM Inicial:* ${data.kmi}%0A*Hora Inicial:* ${data.horaInic}%0A*Prox. Troca:* ${data.tipoTroca === 'DATA' ? data.proxOleo.split('-').reverse().join('/') : data.proxOleo}`;
+            let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A`;
+            msg += `*Data:* ${data.data}%0A%0A`;
+            msg += `*Veículo:* ${data.veiculo}%0A*TAG:* ${data.tag}%0A*Placa:* ${data.placa}%0A*Nome:* ${data.nome}%0A%0A`;
+            msg += `*KM Inicial:* ${data.kmi}%0A*KM Final:* ${statusNaoFinalizado}%0A*Hora Inicial:* ${data.horaInic}%0A*Hora Final:* ${statusNaoFinalizado}%0A%0A`;
+            msg += `*Status Troca:* ${statusNaoFinalizado}%0A*Obs Chegada:* ${statusNaoFinalizado}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             location.reload();
@@ -174,7 +179,8 @@
 
             if(!valKmf || limparNum(valKmf) <= limparNum(d_saida.kmi)) return alert("⚠️ KM Final inválido!");
 
-            let msg = `*🏁 RELATÓRIO COMPLETO - TELEJUR*%0A%0A`;
+            let msg = `*🏁 RELATÓRIO COMPLETO - TELEJUR*%0A`;
+            msg += `*Data:* ${dataHoje}%0A%0A`;
             msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${d_saida.veiculo}%0A*TAG:* ${d_saida.tag}%0A*Placa:* ${d_saida.placa}%0A*Nome:* ${d_saida.nome}%0A*ID:* ${d_saida.condutor}%0A%0A`;
             msg += `*--- TRAJETO ---*%0A*KM Inicial:* ${d_saida.kmi}%0A*KM Final:* ${valKmf}%0A*Hora Inicial:* ${d_saida.horaInic}%0A*Hora Final:* ${horaF}%0A%0A`;
             msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${d_saida.tipoO}%0A*Status Troca:* ${status}%0A*Obs Chegada:* ${document.getElementById('obsFinal').value || "Nenhuma"}`;
@@ -201,17 +207,15 @@
     }
 
     window.onload = () => {
-        document.getElementById('dataAtual').value = new Date().toLocaleDateString('pt-BR');
+        const dataH = new Date().toLocaleDateString('pt-BR');
+        document.getElementById('dataAtual').value = dataH;
         const salvo = localStorage.getItem("tjur_cache");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('tituloPagina').innerText = "🏁 TRAJETO FINAL";
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
-            
-            // CORREÇÃO: Preenche a Hora Final visualmente no sistema
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            
             document.getElementById('displayResumo').innerHTML = `<b>Resumo Saída:</b> 🚗 ${d.tag} | 👤 ${d.nome}<br>🛣️ KM: ${d.kmi} | 🕒 ${d.horaInic}`;
             calcularResta();
             renderFrota(d.tag);
