@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.7</title>
+    <title>SISTEMA TELEJUR v13.8</title>
     <style>
-        :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --bg: #f0f4f8; }
+        :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
@@ -19,40 +19,37 @@
         input[readonly] { background: #f1f1f1; color: #666; font-weight: bold; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
-        .btn-azul { background: var(--primary); color: white; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-whats { background: var(--success); color: white; }
         .btn-finalizar { background: var(--danger); color: white; }
         
         .section-titulo { background: #e8eaf6; padding: 8px; border-radius: 5px; color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
-
         .resumo-saida { background: #fffde7; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-bottom: 15px; font-size: 13px; line-height: 1.5; }
-        .resumo-saida b { color: var(--primary); font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 id="tituloPagina">TRAJETO INICIAL</h2>
+    <h2 id="tituloPagina">🚀 TRAJETO INICIAL</h2>
 
     <div id="painelFrota" class="grid-frota"></div>
 
     <div id="secaoInicial">
-        <label>Data</label>
-        <input type="text" id="dataAtual" readonly>
-
-        <label>Nome do Motorista</label>
-        <select id="nomeMot">
-            <option value="">-- SELECIONE --</option>
-            <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
-        </select>
-
-        <label>Condutor</label>
-        <select id="condutor">
-            <option value="">-- SELECIONE --</option>
-            <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option><option>Condutor 4</option><option>Condutor 5</option>
-            <option>Condutor 6</option><option>Condutor 7</option><option>Condutor 8</option><option>Condutor 9</option><option>Condutor 10</option>
-        </select>
+        <label>Data</label><input type="text" id="dataAtual" readonly>
+        
+        <label>Motorista / Condutor</label>
+        <div class="grid-2">
+            <select id="nomeMot">
+                <option value="">-- MOTORISTA --</option>
+                <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
+            </select>
+            <select id="condutor">
+                <option value="">-- ID --</option>
+                <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option><option>Condutor 4</option><option>Condutor 5</option>
+                <option>Condutor 6</option><option>Condutor 7</option><option>Condutor 8</option><option>Condutor 9</option><option>Condutor 10</option>
+            </select>
+        </div>
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="autoPreencher()">
@@ -67,29 +64,20 @@
         </div>
 
         <label>Observações de Saída</label>
-        <textarea id="obsSaida" placeholder="Ex: Riscos na lataria, pneus baixos..."></textarea>
+        <textarea id="obsSaida" placeholder="Ex: Riscos na lataria..."></textarea>
 
         <div class="section-titulo">DADOS TÉCNICOS</div>
-
         <div class="grid-2">
             <div><label>KM Inicial</label><input type="text" id="kmi" placeholder="164.296"></div>
-            <div><label>Número Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
+            <div><label>Nº Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
 
         <div class="grid-2">
-            <div><label>Tipo de Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
-            <div id="boxTrocaOleo">
-                <label id="labelTrocaOleo">Próx. Troca Óleo</label>
-                <input type="text" id="proxOleo">
-            </div>
+            <div><label>Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
+            <div><label id="labelTrocaOleo">Próx. Troca</label><input type="text" id="proxOleo"></div>
         </div>
 
-        <div class="grid-2">
-            <div><label>Cor do Selo</label><select id="corSelo"><option>AZUL</option><option>VERDE</option><option>AMARELO</option><option>VERMELHO</option></select></div>
-            <div><label>Validade Selo</label><input type="date" id="valSelo"></div>
-        </div>
-
-        <button onclick="salvarSaida()" class="btn btn-azul">🚀 INICIAR TRAJETO</button>
+        <button onclick="enviarWhatsApp('SAIDA')" class="btn btn-whats">📲 INICIAR E ENVIAR WHATSAPP</button>
     </div>
 
     <div id="secaoFinal" class="hidden">
@@ -106,71 +94,79 @@
         <label>Observações de Chegada</label>
         <textarea id="obsFinal" placeholder="Alguma ocorrência durante a viagem?"></textarea>
 
-        <button onclick="finalizarChegada()" class="btn btn-finalizar">🏁 FINALIZAR TRAJETO</button>
+        <button onclick="enviarWhatsApp('CHEGADA')" class="btn btn-whats">🏁 FINALIZAR E ENVIAR WHATSAPP</button>
     </div>
 </div>
 
 <script>
     const frota = {
-        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50", t: "DATA" }, "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02", t: "KM" },
-        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75", t: "DATA" }, "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48", t: "KM" },
+        "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50", t: "DATA" }, "TJUR 06": { v: "SAVEIRO", p: "QUJ3E02", t: "KM" },
+        "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75", t: "DATA" }, "TJUR 08": { v: "HILUX", p: "QVE5H48", t: "KM" },
         "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04", t: "DATA" }, "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37", t: "KM" },
-        "TJUR 13": { v: "CAMINHONETE HILUX", p: "QVD4I38", t: "KM" }
+        "TJUR 13": { v: "HILUX", p: "QVD4I38", t: "KM" }
     };
 
-    // Função para limpar pontos e vírgulas (ex: "164.296" vira 164296)
-    function limparNumero(val) {
-        return Number(val.toString().replace(/[.,]/g, ""));
-    }
+    function limparNum(val) { return Number(val.toString().replace(/[.,]/g, "")); }
 
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         const inputOleo = document.getElementById('proxOleo');
-        const labelOleo = document.getElementById('labelTrocaOleo');
         if(tag && frota[tag]) {
             document.getElementById('veiculoNome').value = frota[tag].v;
             document.getElementById('placa').value = frota[tag].p;
             inputOleo.type = (frota[tag].t === "DATA") ? "date" : "text";
-            labelOleo.innerText = "Próx. Troca (" + frota[tag].t + ")";
             renderFrota(tag);
         }
     }
 
-    function salvarSaida() {
-        const tagVal = document.getElementById('tag').value;
-        const d = {
-            data: document.getElementById('dataAtual').value,
-            tag: tagVal,
-            condutor: document.getElementById('condutor').value,
-            nome: document.getElementById('nomeMot').value,
-            obsS: document.getElementById('obsSaida').value,
-            kmi: document.getElementById('kmi').value,
-            horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-            proxOleo: document.getElementById('proxOleo').value,
-            tipoTroca: frota[tagVal].t,
-            numT: document.getElementById('numTrajeto').value,
-            placa: document.getElementById('placa').value,
-            veiculo: document.getElementById('veiculoNome').value,
-            valS: document.getElementById('valSelo').value,
-            corS: document.getElementById('corSelo').value,
-            tipoO: document.getElementById('tipoOleo').value
-        };
+    function enviarWhatsApp(tipo) {
+        if(tipo === 'SAIDA') {
+            const tagVal = document.getElementById('tag').value;
+            const d = {
+                data: document.getElementById('dataAtual').value,
+                tag: tagVal, condutor: document.getElementById('condutor').value,
+                nome: document.getElementById('nomeMot').value, obsS: document.getElementById('obsSaida').value,
+                kmi: document.getElementById('kmi').value, horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                proxOleo: document.getElementById('proxOleo').value, tipoTroca: frota[tagVal].t,
+                placa: document.getElementById('placa').value
+            };
 
-        if(!d.nome || !d.tag || !d.kmi || !d.condutor || !d.proxOleo) return alert("⚠️ Preencha todos os campos obrigatórios!");
-        localStorage.setItem("tjur_cache", JSON.stringify(d));
-        location.reload();
+            if(!d.nome || !d.tag || !d.kmi || !d.proxOleo) return alert("⚠️ Preencha os dados!");
+            
+            localStorage.setItem("tjur_cache", JSON.stringify(d));
+            
+            let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A%0A`;
+            msg += `*Veículo:* ${d.tag} (${d.placa})%0A*Motorista:* ${d.nome}%0A*ID:* ${d.condutor}%0A*KM Inicial:* ${d.kmi}%0A*Saída:* ${d.horaInic}%0A*Obs:* ${d.obsS || "Nenhuma"}`;
+            
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+            location.reload();
+        } else {
+            const valKmf = document.getElementById('kmf').value;
+            const d = JSON.parse(localStorage.getItem("tjur_cache"));
+            if(!valKmf || limparNum(valKmf) <= limparNum(d.kmi)) return alert("⚠️ KM Final inválido!");
+            
+            const obsF = document.getElementById('obsFinal').value;
+            const resta = document.getElementById('restaTroca').value;
+            const horaF = document.getElementById('horaFim').value;
+
+            let msg = `*🏁 TRAJETO FINALIZADO - TELEJUR*%0A%0A`;
+            msg += `*VEÍCULO:* ${d.tag}%0A*MOTORISTA:* ${d.nome}%0A%0A`;
+            msg += `*--- DADOS SAÍDA ---*%0AKM: ${d.kmi}%0AHora: ${d.horaInic}%0AObs: ${d.obsS || "Nenhuma"}%0A%0A`;
+            msg += `*--- DADOS CHEGADA ---*%0AKM: ${valKmf}%0AHora: ${horaF}%0AObs: ${obsF || "Nenhuma"}%0A%0A`;
+            msg += `*RESTA P/ TROCA:* ${resta}`;
+
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+            localStorage.removeItem("tjur_cache");
+            location.reload();
+        }
     }
 
     function calcularResta() {
         const valKmf = document.getElementById('kmf').value;
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
         const inputResta = document.getElementById('restaTroca');
-
         if(d.tipoTroca === "KM" && valKmf) {
-            const numKmf = limparNumero(valKmf);
-            const numProx = limparNumero(d.proxOleo);
-            const resta = numProx - numKmf;
-            inputResta.value = resta + " KM";
+            inputResta.value = (limparNum(d.proxOleo) - limparNum(valKmf)) + " KM";
         }
     }
 
@@ -182,44 +178,20 @@
         });
     }
 
-    function finalizarChegada() {
-        const valKmf = document.getElementById('kmf').value;
-        const d = JSON.parse(localStorage.getItem("tjur_cache"));
-        if(!valKmf || limparNumero(valKmf) <= limparNumero(d.kmi)) return alert("⚠️ KM Final deve ser maior que o Inicial!");
-        alert("✅ TRAJETO FINALIZADO COM SUCESSO!");
-        localStorage.removeItem("tjur_cache");
-        location.reload();
-    }
-
     window.onload = () => {
         document.getElementById('dataAtual').value = new Date().toLocaleDateString('pt-BR');
         const salvo = localStorage.getItem("tjur_cache");
-        
         if(salvo) {
             const d = JSON.parse(salvo);
-            document.getElementById('tituloPagina').innerText = "TRAJETO FINAL";
+            document.getElementById('tituloPagina').innerText = "🏁 TRAJETO FINAL";
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            
-            document.getElementById('displayResumo').innerHTML = `
-                <b>Resumo do Trajeto Inicial:</b>
-                🚗 ${d.tag} | 🆔 ${d.placa} | 👤 ${d.condutor}<br>
-                🛣️ KM Inicial: ${d.kmi} | 🕒 Início: ${d.horaInic}<br>
-                🛠️ Óleo: ${d.tipoTroca === "DATA" ? d.proxOleo.split('-').reverse().join('/') : d.proxOleo + " KM"}<br>
-                📝 Obs Saída: ${d.obsS || "Nenhuma"}
-            `;
-            
-            if(d.tipoTroca === "DATA") {
-                document.getElementById('labelResta').innerText = "VENCIMENTO TROCA (DATA):";
-                document.getElementById('restaTroca').value = d.proxOleo.split('-').reverse().join('/');
-            }
+            document.getElementById('displayResumo').innerHTML = `<b>Resumo Saída:</b> 🚗 ${d.tag} | 👤 ${d.condutor}<br>🛣️ KM: ${d.kmi} | 🕒 ${d.horaInic}`;
+            if(d.tipoTroca === "DATA") document.getElementById('restaTroca').value = d.proxOleo.split('-').reverse().join('/');
             renderFrota(d.tag);
-        } else {
-            renderFrota();
-        }
+        } else { renderFrota(); }
     };
 </script>
-
 </body>
 </html>
