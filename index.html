@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.9</title>
+    <title>SISTEMA TELEJUR v14.0</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -21,7 +21,6 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-whats { background: var(--success); color: white; }
-        .btn-finalizar { background: var(--danger); color: white; }
         
         .section-titulo { background: #e8eaf6; padding: 8px; border-radius: 5px; color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
@@ -68,13 +67,18 @@
 
         <div class="section-titulo">DADOS TÉCNICOS</div>
         <div class="grid-2">
-            <div><label>KM Inicial</label><input type="text" id="kmi" placeholder="164.296"></div>
+            <div><label>KM Inicial</label><input type="text" inputmode="numeric" id="kmi" placeholder="164.296"></div>
             <div><label>Nº Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
 
         <div class="grid-2">
             <div><label>Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
             <div><label id="labelTrocaOleo">Próx. Troca</label><input type="text" id="proxOleo"></div>
+        </div>
+
+        <div class="grid-2">
+            <div><label>Cor do Selo</label><select id="corSelo"><option>AZUL</option><option>VERDE</option><option>AMARELO</option><option>VERMELHO</option></select></div>
+            <div><label>Validade Selo</label><input type="date" id="valSelo"></div>
         </div>
 
         <button onclick="enviarWhatsApp('SAIDA')" class="btn btn-whats">📲 INICIAR E ENVIAR WHATSAPP</button>
@@ -85,7 +89,7 @@
 
         <div class="grid-2">
             <div><label>Hora Fim</label><input type="text" id="horaFim" readonly></div>
-            <div><label>KM Final</label><input type="text" id="kmf" placeholder="164.500" oninput="calcularResta()"></div>
+            <div><label>KM Final</label><input type="text" inputmode="numeric" id="kmf" placeholder="164.500" oninput="calcularResta()"></div>
         </div>
         
         <label id="labelResta">RESTA PARA A TROCA</label>
@@ -114,46 +118,57 @@
         if(tag && frota[tag]) {
             document.getElementById('veiculoNome').value = frota[tag].v;
             document.getElementById('placa').value = frota[tag].p;
-            inputOleo.type = (frota[tag].t === "DATA") ? "date" : "text";
+            if(frota[tag].t === "DATA") {
+                inputOleo.type = "date";
+            } else {
+                inputOleo.type = "text";
+                inputOleo.inputMode = "numeric";
+            }
             renderFrota(tag);
         }
     }
 
     function enviarWhatsApp(tipo) {
+        const d_saida = JSON.parse(localStorage.getItem("tjur_cache")) || {};
+        
         if(tipo === 'SAIDA') {
             const tagVal = document.getElementById('tag').value;
-            const d = {
+            const data = {
                 data: document.getElementById('dataAtual').value,
                 tag: tagVal, condutor: document.getElementById('condutor').value,
                 nome: document.getElementById('nomeMot').value, obsS: document.getElementById('obsSaida').value,
                 kmi: document.getElementById('kmi').value, horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                 proxOleo: document.getElementById('proxOleo').value, tipoTroca: frota[tagVal].t,
-                placa: document.getElementById('placa').value
+                placa: document.getElementById('placa').value, veiculo: document.getElementById('veiculoNome').value,
+                corS: document.getElementById('corSelo').value, valS: document.getElementById('valSelo').value,
+                tipoO: document.getElementById('tipoOleo').value, numT: document.getElementById('numTrajeto').value
             };
 
-            if(!d.nome || !d.tag || !d.kmi || !d.proxOleo) return alert("⚠️ Preencha todos os campos!");
-            
-            localStorage.setItem("tjur_cache", JSON.stringify(d));
+            if(!data.nome || !data.tag || !data.kmi || !data.proxOleo) return alert("⚠️ Preencha todos os campos!");
+            localStorage.setItem("tjur_cache", JSON.stringify(data));
             
             let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A%0A`;
-            msg += `*Veículo:* ${d.tag} (${d.placa})%0A*Nome:* ${d.nome}%0A*ID:* ${d.condutor}%0A*KM Inicial:* ${d.kmi}%0A*Saída:* ${d.horaInic}%0A*Obs:* ${d.obsS || "Nenhuma"}`;
+            msg += `*Veículo:* ${data.tag} (${data.placa})%0A*Nome:* ${data.nome}%0A*ID:* ${data.condutor}%0A*KM Inicial:* ${data.kmi}%0A*Hora Inicial:* ${data.horaInic}%0A*Nº Trajeto:* ${data.numT}%0A*Próx. Troca:* ${data.tipoTroca === 'DATA' ? data.proxOleo.split('-').reverse().join('/') : data.proxOleo}%0A*Obs Saída:* ${data.obsS || "Nenhuma"}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             location.reload();
         } else {
             const valKmf = document.getElementById('kmf').value;
-            const d = JSON.parse(localStorage.getItem("tjur_cache"));
-            if(!valKmf || limparNum(valKmf) <= limparNum(d.kmi)) return alert("⚠️ KM Final inválido!");
-            
             const obsF = document.getElementById('obsFinal').value;
             const resta = document.getElementById('restaTroca').value;
-            const horaF = document.getElementById('horaFim').value;
+            const horaF = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
-            let msg = `*🏁 TRAJETO FINALIZADO - TELEJUR*%0A%0A`;
-            msg += `*VEÍCULO:* ${d.tag}%0A*NOME:* ${d.nome}%0A%0A`;
-            msg += `*--- DADOS SAÍDA ---*%0AKM: ${d.kmi}%0AHora: ${d.horaInic}%0AObs: ${d.obsS || "Nenhuma"}%0A%0A`;
-            msg += `*--- DADOS CHEGADA ---*%0AKM: ${valKmf}%0AHora: ${horaF}%0AObs: ${obsF || "Nenhuma"}%0A%0A`;
-            msg += `*RESTA P/ TROCA:* ${resta}`;
+            if(!valKmf || limparNum(valKmf) <= limparNum(d_saida.kmi)) return alert("⚠️ KM Final inválido!");
+
+            let msg = `*🏁 RELATÓRIO COMPLETO - TELEJUR*%0A%0A`;
+            msg += `*--- INFORMAÇÕES GERAIS ---*%0A`;
+            msg += `*Veículo:* ${d_saida.tag}%0A*Nome:* ${d_saida.nome}%0A*ID:* ${d_saida.condutor}%0A*Placa:* ${d_saida.placa}%0A%0A`;
+            msg += `*--- TRAJETO INICIAL ---*%0A`;
+            msg += `*KM Inicial:* ${d_saida.kmi}%0A*Hora Inicial:* ${d_saida.horaInic}%0A*Obs Saída:* ${d_saida.obsS || "Nenhuma"}%0A%0A`;
+            msg += `*--- TRAJETO FINAL ---*%0A`;
+            msg += `*KM Final:* ${valKmf}%0A*Hora Final:* ${horaF}%0A*Obs Chegada:* ${obsF || "Nenhuma"}%0A%0A`;
+            msg += `*--- MANUTENÇÃO ---*%0A`;
+            msg += `*Tipo Óleo:* ${d_saida.tipoO}%0A*Próx. Troca:* ${d_saida.tipoTroca === 'DATA' ? d_saida.proxOleo.split('-').reverse().join('/') : d_saida.proxOleo + " KM"}%0A*RESTA P/ TROCA:* ${resta}`;
 
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             localStorage.removeItem("tjur_cache");
@@ -165,8 +180,14 @@
         const valKmf = document.getElementById('kmf').value;
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
         const inputResta = document.getElementById('restaTroca');
+        if(!d) return;
+
         if(d.tipoTroca === "KM" && valKmf) {
-            inputResta.value = (limparNum(d.proxOleo) - limparNum(valKmf)) + " KM";
+            const numKmf = limparNum(valKmf);
+            const numProx = limparNum(d.proxOleo);
+            inputResta.value = (numProx - numKmf) + " KM";
+        } else if(d.tipoTroca === "DATA") {
+            inputResta.value = d.proxOleo.split('-').reverse().join('/');
         }
     }
 
@@ -187,10 +208,8 @@
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('displayResumo').innerHTML = `<b>Resumo Saída:</b> 🚗 ${d.tag} | 👤 ${d.condutor}<br>🛣️ KM: ${d.kmi} | 🕒 ${d.horaInic}`;
-            if(d.tipoTroca === "DATA") {
-                document.getElementById('restaTroca').value = d.proxOleo.split('-').reverse().join('/');
-            }
+            document.getElementById('displayResumo').innerHTML = `<b>Resumo Saída:</b> 🚗 ${d.tag} | 👤 ${d.nome}<br>🛣️ KM: ${d.kmi} | 🕒 ${d.horaInic}`;
+            calcularResta();
             renderFrota(d.tag);
         } else { renderFrota(); }
     };
