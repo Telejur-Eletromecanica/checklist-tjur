@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v14.2</title>
+    <title>SISTEMA TELEJUR v14.3</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -133,13 +133,11 @@
             const diff = numProx - numKmf;
             return diff >= 0 ? `FALTAM ${diff} KM` : `⚠️ EXCEDIDO EM ${Math.abs(diff)} KM`;
         } else {
-            // Lógica de Data
             const hoje = new Date();
             hoje.setHours(0,0,0,0);
             const dataLimite = new Date(d_saida.proxOleo + 'T00:00:00');
             const diffTempo = dataLimite - hoje;
             const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-            
             if(diffDias > 0) return `FALTAM ${diffDias} DIAS (Limite: ${dataLimite.toLocaleDateString('pt-BR')})`;
             if(diffDias === 0) return `VENCE HOJE!`;
             return `⚠️ VENCIDO HÁ ${Math.abs(diffDias)} DIAS`;
@@ -157,26 +155,27 @@
                 nome: document.getElementById('nomeMot').value, obsS: document.getElementById('obsSaida').value,
                 kmi: document.getElementById('kmi').value, horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                 proxOleo: document.getElementById('proxOleo').value, tipoTroca: frota[tagVal].t,
-                placa: document.getElementById('placa').value, tipoO: document.getElementById('tipoOleo').value, numT: document.getElementById('numTrajeto').value
+                placa: document.getElementById('placa').value, veiculo: document.getElementById('veiculoNome').value,
+                tipoO: document.getElementById('tipoOleo').value, numT: document.getElementById('numTrajeto').value
             };
 
             if(!data.nome || !data.tag || !data.kmi || !data.proxOleo) return alert("⚠️ Preencha tudo!");
             localStorage.setItem("tjur_cache", JSON.stringify(data));
             
             let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A%0A`;
-            msg += `*Veículo:* ${data.tag}%0A*Nome:* ${data.nome}%0A*KM Inicial:* ${data.kmi}%0A*Hora Inicial:* ${data.horaInic}%0A*Prox. Troca:* ${data.tipoTroca === 'DATA' ? data.proxOleo.split('-').reverse().join('/') : data.proxOleo}`;
+            msg += `*Veículo:* ${data.tag}%0A*Placa:* ${data.placa}%0A*Nome:* ${data.nome}%0A*KM Inicial:* ${data.kmi}%0A*Hora Inicial:* ${data.horaInic}%0A*Prox. Troca:* ${data.tipoTroca === 'DATA' ? data.proxOleo.split('-').reverse().join('/') : data.proxOleo}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             location.reload();
         } else {
             const valKmf = document.getElementById('kmf').value;
             const status = calcularStatusTroca(d_saida, valKmf);
-            const horaF = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            const horaF = document.getElementById('horaFim').value;
 
             if(!valKmf || limparNum(valKmf) <= limparNum(d_saida.kmi)) return alert("⚠️ KM Final inválido!");
 
             let msg = `*🏁 RELATÓRIO COMPLETO - TELEJUR*%0A%0A`;
-            msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${d_saida.tag}%0A*Nome:* ${d_saida.nome}%0A*ID:* ${d_saida.condutor}%0A%0A`;
+            msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${d_saida.veiculo}%0A*TAG:* ${d_saida.tag}%0A*Placa:* ${d_saida.placa}%0A*Nome:* ${d_saida.nome}%0A*ID:* ${d_saida.condutor}%0A%0A`;
             msg += `*--- TRAJETO ---*%0A*KM Inicial:* ${d_saida.kmi}%0A*KM Final:* ${valKmf}%0A*Hora Inicial:* ${d_saida.horaInic}%0A*Hora Final:* ${horaF}%0A%0A`;
             msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${d_saida.tipoO}%0A*Status Troca:* ${status}%0A*Obs Chegada:* ${document.getElementById('obsFinal').value || "Nenhuma"}`;
 
@@ -209,6 +208,10 @@
             document.getElementById('tituloPagina').innerText = "🏁 TRAJETO FINAL";
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
+            
+            // CORREÇÃO: Preenche a Hora Final visualmente no sistema
+            document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            
             document.getElementById('displayResumo').innerHTML = `<b>Resumo Saída:</b> 🚗 ${d.tag} | 👤 ${d.nome}<br>🛣️ KM: ${d.kmi} | 🕒 ${d.horaInic}`;
             calcularResta();
             renderFrota(d.tag);
