@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.0</title>
+    <title>SISTEMA TELEJUR v13.1</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -37,7 +37,7 @@
     <div id="formSaida">
         <div class="grid-2">
             <div><label>Data</label><input type="text" id="dataAtual" readonly></div>
-            <div><label>ID Viagem</label><input type="text" id="idViagem" readonly></div>
+            <div><label>ID</label><input type="text" id="idViagem" readonly></div>
         </div>
 
         <label>Motorista (Nome)</label>
@@ -49,6 +49,10 @@
             <option>WALTER GONÇALVES</option>
             <option>LAFAITE BATISTA</option>
         </select>
+
+        <label>Condutor</label>
+        <select id="idCondutor">
+            </select>
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="autoPreencher()">
@@ -90,7 +94,7 @@
     <div id="telaAtiva" class="hidden">
         <div style="background:#fff9c4; padding:15px; border-radius:10px; border-left:5px solid #fbc02d; margin-bottom: 15px;">
             <b>TRAJETO EM CURSO: <span id="resumoTag"></span></b><br>
-            <small>Motorista: <span id="resumoMot"></span></small><br>
+            <small>Motorista: <span id="resumoMot"></span> (<span id="resumoCond"></span>)</small><br>
             <small>Início: <span id="horaInic"></span></small>
         </div>
 
@@ -129,6 +133,17 @@
         });
     }
 
+    function popularCondutores() {
+        const sel = document.getElementById('idCondutor');
+        sel.innerHTML = '<option value="">-- SELECIONE --</option>';
+        for(let i=1; i<=10; i++) {
+            let opt = document.createElement('option');
+            opt.value = "Condutor " + i;
+            opt.text = "Condutor " + i;
+            sel.add(opt);
+        }
+    }
+
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         if(tag && frota[tag]) {
@@ -144,6 +159,7 @@
             tag: document.getElementById('tag').value,
             id: document.getElementById('idViagem').value,
             nome: document.getElementById('nomeMot').value,
+            condutor: document.getElementById('idCondutor').value,
             kmi: document.getElementById('kmi').value,
             horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
             proxOleo: document.getElementById('proxOleo').value,
@@ -155,7 +171,7 @@
             tipoOleo: document.getElementById('tipoOleo').value
         };
 
-        if(!d.nome || !d.tag || !d.kmi) return alert("⚠️ Preencha Motorista, Tag e KM!");
+        if(!d.nome || !d.tag || !d.kmi || !d.condutor) return alert("⚠️ Preencha Motorista, Condutor, Tag e KM!");
         
         localStorage.setItem("tjur_sessao", JSON.stringify(d));
         location.reload();
@@ -177,13 +193,14 @@
         
         if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("⚠️ KM Final inválido!");
         
-        alert(`✅ CHECKLIST CONCLUÍDO!\n\nVeículo: ${d.tag}\nMotorista: ${d.nome}\nObs: ${obs || 'Nenhuma'}`);
+        alert(`✅ CHECKLIST CONCLUÍDO!\n\nVeículo: ${d.tag}\nMotorista: ${d.nome}\n${d.condutor}`);
         
         localStorage.removeItem("tjur_sessao");
         location.reload();
     }
 
     window.onload = () => {
+        popularCondutores();
         document.getElementById('dataAtual').value = new Date().toLocaleDateString('pt-BR');
         document.getElementById('idViagem').value = "ID-" + Math.floor(1000 + Math.random() * 9000);
         
@@ -194,6 +211,7 @@
             document.getElementById('telaAtiva').classList.remove('hidden');
             document.getElementById('resumoTag').innerText = d.tag;
             document.getElementById('resumoMot').innerText = d.nome;
+            document.getElementById('resumoCond').innerText = d.condutor;
             document.getElementById('horaInic').innerText = d.horaInic;
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
             renderFrota(d.tag);
