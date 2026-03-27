@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v14.0</title>
+    <title>SISTEMA TELEJUR v14.1</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -73,12 +73,7 @@
 
         <div class="grid-2">
             <div><label>Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
-            <div><label id="labelTrocaOleo">Próx. Troca</label><input type="text" id="proxOleo"></div>
-        </div>
-
-        <div class="grid-2">
-            <div><label>Cor do Selo</label><select id="corSelo"><option>AZUL</option><option>VERDE</option><option>AMARELO</option><option>VERMELHO</option></select></div>
-            <div><label>Validade Selo</label><input type="date" id="valSelo"></div>
+            <div><label id="labelTrocaOleo">Data da Última Troca</label><input type="text" id="proxOleo"></div>
         </div>
 
         <button onclick="enviarWhatsApp('SAIDA')" class="btn btn-whats">📲 INICIAR E ENVIAR WHATSAPP</button>
@@ -92,7 +87,7 @@
             <div><label>KM Final</label><input type="text" inputmode="numeric" id="kmf" placeholder="164.500" oninput="calcularResta()"></div>
         </div>
         
-        <label id="labelResta">RESTA PARA A TROCA</label>
+        <label id="labelResta">RESTA P/ TROCA / DATA LIMITE</label>
         <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold;">
 
         <label>Observações de Chegada</label>
@@ -115,17 +110,28 @@
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         const inputOleo = document.getElementById('proxOleo');
+        const labelOleo = document.getElementById('labelTrocaOleo');
         if(tag && frota[tag]) {
             document.getElementById('veiculoNome').value = frota[tag].v;
             document.getElementById('placa').value = frota[tag].p;
             if(frota[tag].t === "DATA") {
                 inputOleo.type = "date";
+                labelOleo.innerText = "Data da Última Troca";
             } else {
                 inputOleo.type = "text";
                 inputOleo.inputMode = "numeric";
+                labelOleo.innerText = "Próx. Troca (KM)";
             }
             renderFrota(tag);
         }
+    }
+
+    // Calcula data limite somando 6 meses
+    function calcularDataLimite(dataString) {
+        if(!dataString) return "";
+        let data = new Date(dataString + 'T00:00:00');
+        data.setMonth(data.getMonth() + 6);
+        return data.toLocaleDateString('pt-BR');
     }
 
     function enviarWhatsApp(tipo) {
@@ -139,36 +145,30 @@
                 nome: document.getElementById('nomeMot').value, obsS: document.getElementById('obsSaida').value,
                 kmi: document.getElementById('kmi').value, horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                 proxOleo: document.getElementById('proxOleo').value, tipoTroca: frota[tagVal].t,
-                placa: document.getElementById('placa').value, veiculo: document.getElementById('veiculoNome').value,
-                corS: document.getElementById('corSelo').value, valS: document.getElementById('valSelo').value,
-                tipoO: document.getElementById('tipoOleo').value, numT: document.getElementById('numTrajeto').value
+                placa: document.getElementById('placa').value, tipoO: document.getElementById('tipoOleo').value, numT: document.getElementById('numTrajeto').value
             };
 
-            if(!data.nome || !data.tag || !data.kmi || !data.proxOleo) return alert("⚠️ Preencha todos os campos!");
+            if(!data.nome || !data.tag || !data.kmi || !data.proxOleo) return alert("⚠️ Preencha os campos!");
             localStorage.setItem("tjur_cache", JSON.stringify(data));
             
+            let limiteMsg = data.tipoTroca === 'DATA' ? calcularDataLimite(data.proxOleo) : data.proxOleo;
+            
             let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A%0A`;
-            msg += `*Veículo:* ${data.tag} (${data.placa})%0A*Nome:* ${data.nome}%0A*ID:* ${data.condutor}%0A*KM Inicial:* ${data.kmi}%0A*Hora Inicial:* ${data.horaInic}%0A*Nº Trajeto:* ${data.numT}%0A*Próx. Troca:* ${data.tipoTroca === 'DATA' ? data.proxOleo.split('-').reverse().join('/') : data.proxOleo}%0A*Obs Saída:* ${data.obsS || "Nenhuma"}`;
+            msg += `*Veículo:* ${data.tag}%0A*Nome:* ${data.nome}%0A*KM Inicial:* ${data.kmi}%0A*Hora Inicial:* ${data.horaInic}%0A*Limite Troca:* ${limiteMsg}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             location.reload();
         } else {
             const valKmf = document.getElementById('kmf').value;
-            const obsF = document.getElementById('obsFinal').value;
             const resta = document.getElementById('restaTroca').value;
             const horaF = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
             if(!valKmf || limparNum(valKmf) <= limparNum(d_saida.kmi)) return alert("⚠️ KM Final inválido!");
 
             let msg = `*🏁 RELATÓRIO COMPLETO - TELEJUR*%0A%0A`;
-            msg += `*--- INFORMAÇÕES GERAIS ---*%0A`;
-            msg += `*Veículo:* ${d_saida.tag}%0A*Nome:* ${d_saida.nome}%0A*ID:* ${d_saida.condutor}%0A*Placa:* ${d_saida.placa}%0A%0A`;
-            msg += `*--- TRAJETO INICIAL ---*%0A`;
-            msg += `*KM Inicial:* ${d_saida.kmi}%0A*Hora Inicial:* ${d_saida.horaInic}%0A*Obs Saída:* ${d_saida.obsS || "Nenhuma"}%0A%0A`;
-            msg += `*--- TRAJETO FINAL ---*%0A`;
-            msg += `*KM Final:* ${valKmf}%0A*Hora Final:* ${horaF}%0A*Obs Chegada:* ${obsF || "Nenhuma"}%0A%0A`;
-            msg += `*--- MANUTENÇÃO ---*%0A`;
-            msg += `*Tipo Óleo:* ${d_saida.tipoO}%0A*Próx. Troca:* ${d_saida.tipoTroca === 'DATA' ? d_saida.proxOleo.split('-').reverse().join('/') : d_saida.proxOleo + " KM"}%0A*RESTA P/ TROCA:* ${resta}`;
+            msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${d_saida.tag}%0A*Nome:* ${d_saida.nome}%0A*ID:* ${d_saida.condutor}%0A%0A`;
+            msg += `*--- TRAJETO ---*%0A*KM Inicial:* ${d_saida.kmi}%0A*KM Final:* ${valKmf}%0A*Hora Inicial:* ${d_saida.horaInic}%0A*Hora Final:* ${horaF}%0A%0A`;
+            msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${d_saida.tipoO}%0A*Limite/Falta:* ${resta}%0A*Obs Chegada:* ${document.getElementById('obsFinal').value || "Nenhuma"}`;
 
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             localStorage.removeItem("tjur_cache");
@@ -185,9 +185,9 @@
         if(d.tipoTroca === "KM" && valKmf) {
             const numKmf = limparNum(valKmf);
             const numProx = limparNum(d.proxOleo);
-            inputResta.value = (numProx - numKmf) + " KM";
+            inputResta.value = (numProx - numKmf) + " KM FALTANTES";
         } else if(d.tipoTroca === "DATA") {
-            inputResta.value = d.proxOleo.split('-').reverse().join('/');
+            inputResta.value = "LIMITE: " + calcularDataLimite(d.proxOleo);
         }
     }
 
