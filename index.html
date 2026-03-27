@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v14.4</title>
+    <title>SISTEMA TELEJUR v14.5</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -147,7 +147,7 @@
     function enviarWhatsApp(tipo) {
         const d_saida = JSON.parse(localStorage.getItem("tjur_cache")) || {};
         const dataHoje = new Date().toLocaleDateString('pt-BR');
-        const statusNaoFinalizado = "Trajeto não finalizado";
+        const statusPonto = "...";
         
         if(tipo === 'SAIDA') {
             const tagVal = document.getElementById('tag').value;
@@ -167,8 +167,8 @@
             let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A`;
             msg += `*Data:* ${data.data}%0A%0A`;
             msg += `*Veículo:* ${data.veiculo}%0A*TAG:* ${data.tag}%0A*Placa:* ${data.placa}%0A*Nome:* ${data.nome}%0A%0A`;
-            msg += `*KM Inicial:* ${data.kmi}%0A*KM Final:* ${statusNaoFinalizado}%0A*Hora Inicial:* ${data.horaInic}%0A*Hora Final:* ${statusNaoFinalizado}%0A%0A`;
-            msg += `*Status Troca:* ${statusNaoFinalizado}%0A*Obs Chegada:* ${statusNaoFinalizado}`;
+            msg += `*KM Inicial:* ${data.kmi}%0A*KM Final:* ${statusPonto}%0A*Hora Inicial:* ${data.horaInic}%0A*Hora Final:* ${statusPonto}%0A%0A`;
+            msg += `*Status Troca:* ${statusPonto}%0A*Obs Chegada:* ${statusPonto}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             location.reload();
