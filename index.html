@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v14.6</title>
+    <title>SISTEMA TELEJUR v14.7</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -61,8 +61,8 @@
             <div><label>Placa</label><input type="text" id="placa" readonly></div>
         </div>
 
-        <label>Observações de Saída</label>
-        <textarea id="obsSaida" placeholder="Ex: Riscos na lataria..."></textarea>
+        <label>OBSERVAÇÃO DE SAÍDA</label>
+        <textarea id="obsSaida" placeholder="Ex: Pneu reserva ok..."></textarea>
 
         <div class="section-titulo">DADOS TÉCNICOS</div>
         <div class="grid-2">
@@ -89,7 +89,7 @@
         <label id="labelResta">STATUS DA TROCA DE ÓLEO</label>
         <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold;">
 
-        <label>Observações de Chegada</label>
+        <label>OBSERVAÇÃO DE CHEGADA</label>
         <textarea id="obsFinal" placeholder="Alguma ocorrência durante a viagem?"></textarea>
 
         <button onclick="enviarWhatsApp('CHEGADA')" class="btn btn-whats">🏁 FINALIZAR E ENVIAR WHATSAPP</button>
@@ -133,30 +133,27 @@
             const diff = numProx - numKmf;
             return diff >= 0 ? `FALTAM ${diff} KM` : `⚠️ EXCEDIDO EM ${Math.abs(diff)} KM`;
         } else {
-            const hoje = new Date();
-            hoje.setHours(0,0,0,0);
+            if(!d_saida.proxOleo) return "...";
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
             const dataLimite = new Date(d_saida.proxOleo + 'T00:00:00');
-            const diffTempo = dataLimite - hojep;
-            const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-            if(diffDias > 0) return `FALTAM ${diffDias} DIAS (Limite: ${dataLimite.toLocaleDateString('pt-BR')})`;
+            const diffDias = Math.ceil((dataLimite - hoje) / (1000 * 60 * 60 * 24));
+            if(diffDias > 0) return `FALTAM ${diffDias} DIAS`;
             if(diffDias === 0) return `VENCE HOJE!`;
             return `⚠️ VENCIDO HÁ ${Math.abs(diffDias)} DIAS`;
         }
     }
 
     function enviarWhatsApp(tipo) {
-        const d_saida = JSON.parse(localStorage.getItem("tjur_cache")) || {};
         const dataHoje = new Date().toLocaleDateString('pt-BR');
         const statusPonto = "...";
         
         if(tipo === 'SAIDA') {
             const tagVal = document.getElementById('tag').value;
             const data = {
-                data: dataHoje,
-                tag: tagVal, condutor: document.getElementById('condutor').value,
+                data: dataHoje, tag: tagVal, condutor: document.getElementById('condutor').value,
                 nome: document.getElementById('nomeMot').value, obsS: document.getElementById('obsSaida').value,
                 kmi: document.getElementById('kmi').value, horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                proxOleo: document.getElementById('proxOleo').value, tipoTroca: frota[tagVal].t,
+                proxOleo: document.getElementById('proxOleo').value, tipoTroca: frota[tagVal]?.t || "KM",
                 placa: document.getElementById('placa').value, veiculo: document.getElementById('veiculoNome').value,
                 tipoO: document.getElementById('tipoOleo').value, numT: document.getElementById('numTrajeto').value
             };
@@ -168,11 +165,12 @@
             msg += `*Data:* ${data.data}%0A%0A`;
             msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${data.veiculo}%0A*TAG:* ${data.tag}%0A*Placa:* ${data.placa}%0A*Nome:* ${data.nome}%0A*ID:* ${data.condutor}%0A%0A`;
             msg += `*--- TRAJETO ---*%0A*KM Inicial:* ${data.kmi}%0A*KM Final:* ${statusPonto}%0A*Hora Inicial:* ${data.horaInic}%0A*Hora Final:* ${statusPonto}%0A%0A`;
-            msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${data.tipoO}%0A*Status Troca:* ${statusPonto}%0A*Obs Chegada:* ${statusPonto}`;
+            msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${data.tipoO}%0A*Status Troca:* ${statusPonto}%0A*Obs Saída:* ${data.obsS || statusPonto}%0A*Obs Chegada:* ${statusPonto}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
-            location.reload();
+            setTimeout(() => location.reload(), 500);
         } else {
+            const d_saida = JSON.parse(localStorage.getItem("tjur_cache")) || {};
             const valKmf = document.getElementById('kmf').value;
             const status = calcularStatusTroca(d_saida, valKmf);
             const horaF = document.getElementById('horaFim').value;
@@ -183,19 +181,18 @@
             msg += `*Data:* ${dataHoje}%0A%0A`;
             msg += `*--- DADOS GERAIS ---*%0A*Veículo:* ${d_saida.veiculo}%0A*TAG:* ${d_saida.tag}%0A*Placa:* ${d_saida.placa}%0A*Nome:* ${d_saida.nome}%0A*ID:* ${d_saida.condutor}%0A%0A`;
             msg += `*--- TRAJETO ---*%0A*KM Inicial:* ${d_saida.kmi}%0A*KM Final:* ${valKmf}%0A*Hora Inicial:* ${d_saida.horaInic}%0A*Hora Final:* ${horaF}%0A%0A`;
-            msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${d_saida.tipoO}%0A*Status Troca:* ${status}%0A*Obs Chegada:* ${document.getElementById('obsFinal').value || "Nenhuma"}`;
+            msg += `*--- MANUTENÇÃO ---*%0A*Tipo Óleo:* ${d_saida.tipoO}%0A*Status Troca:* ${status}%0A*Obs Saída:* ${d_saida.obsS || "Nenhuma"}%0A*Obs Chegada:* ${document.getElementById('obsFinal').value || "Nenhuma"}`;
 
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             localStorage.removeItem("tjur_cache");
-            location.reload();
+            setTimeout(() => location.reload(), 500);
         }
     }
 
     function calcularResta() {
         const valKmf = document.getElementById('kmf').value;
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
-        if(!d) return;
-        document.getElementById('restaTroca').value = calcularStatusTroca(d, valKmf);
+        if(d) document.getElementById('restaTroca').value = calcularStatusTroca(d, valKmf);
     }
 
     function renderFrota(tagAtiva = null) {
@@ -207,8 +204,7 @@
     }
 
     window.onload = () => {
-        const dataH = new Date().toLocaleDateString('pt-BR');
-        document.getElementById('dataAtual').value = dataH;
+        document.getElementById('dataAtual').value = new Date().toLocaleDateString('pt-BR');
         const salvo = localStorage.getItem("tjur_cache");
         if(salvo) {
             const d = JSON.parse(salvo);
@@ -216,7 +212,7 @@
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('displayResumo').innerHTML = `<b>Resumo Saída:</b> 🚗 ${d.tag} | 👤 ${d.nome}<br>🛣️ KM: ${d.kmi} | 🕒 ${d.horaInic}`;
+            document.getElementById('displayResumo').innerHTML = `<b>Saída:</b> 🚗 ${d.tag} | 👤 ${d.nome} | 🛣️ KM: ${d.kmi}`;
             calcularResta();
             renderFrota(d.tag);
         } else { renderFrota(); }
