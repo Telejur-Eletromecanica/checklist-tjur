@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v16.5</title>
+    <title>SISTEMA TELEJUR v16.7</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -61,7 +61,7 @@
 
         <div class="section-titulo">DADOS TÉCNICOS</div>
         <div class="grid-2">
-            <div><label>KM Inicial</label><input type="text" inputmode="numeric" id="kmi" placeholder="Carregando..."></div>
+            <div><label>KM Inicial</label><input type="text" inputmode="numeric" id="kmi" placeholder="Aguardando TAG..."></div>
             <div><label>Nº Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
 
@@ -80,7 +80,7 @@
             <div><label>KM Final</label><input type="text" inputmode="numeric" id="kmf" oninput="calcularResta()"></div>
         </div>
         <label>STATUS MANUTENÇÃO</label>
-        <input type="text" id="restaTroca" readonly style="color: var(--danger);">
+        <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold;">
         <label>OBSERVAÇÃO DE CHEGADA</label>
         <textarea id="obsFinal"></textarea>
         <button onclick="processarEnvio('CHEGADA')" class="btn btn-whats" id="btnAcaoFim">🏁 FINALIZAR E ENVIAR</button>
@@ -100,20 +100,28 @@
         document.getElementById('kmi').value = "Buscando...";
         
         try {
+            // Fetch com tratamento de erro e redirecionamento do Google
             const resp = await fetch(`${URL_API}?acao=buscarDadosVei&tag=${tag}`);
             const data = await resp.json();
+            
             document.getElementById('veiculoNome').value = data.veiculo || "";
             document.getElementById('placa').value = data.placa || "";
             document.getElementById('kmi').value = data.kmi || "";
             
             const inputOleo = document.getElementById('proxOleo');
             inputOleo.type = data.veiculo?.includes("MUNCK") ? "date" : "text";
-        } catch (e) { alert("Erro ao conectar com a planilha!"); }
+        } catch (e) { 
+            console.error(e);
+            alert("Erro de conexão! Verifique se publicou o script como 'Qualquer Pessoa'."); 
+            document.getElementById('kmi').value = "";
+        }
     }
 
     async function processarEnvio(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnAcao') : document.getElementById('btnAcaoFim');
-        btn.disabled = true; btn.innerText = "⏳ SALVANDO...";
+        const originalText = btn.innerText;
+        btn.disabled = true; 
+        btn.innerText = "⏳ SALVANDO NA PLANILHA...";
 
         const dataHoje = new Date().toLocaleDateString('pt-BR');
         let payload = {};
@@ -128,7 +136,11 @@
                 proxOleo: document.getElementById('proxOleo').value, tipoO: document.getElementById('tipoOleo').value,
                 numT: document.getElementById('numTrajeto').value
             };
-            if(!payload.nome || !payload.tag || !payload.kmi) return alert("Preencha os campos!");
+            if(!payload.nome || !payload.tag || !payload.kmi) {
+                alert("Preencha todos os campos!");
+                btn.disabled = false; btn.innerText = originalText;
+                return;
+            }
             localStorage.setItem("tjur_cache", JSON.stringify(payload));
         } else {
             const dS = JSON.parse(localStorage.getItem("tjur_cache"));
@@ -137,18 +149,34 @@
                 horaFim: document.getElementById('horaFim').value, obsC: document.getElementById('obsFinal').value || "Nenhuma",
                 statusManutencao: document.getElementById('restaTroca').value
             };
+            if(!payload.kmf) {
+                alert("Informe o KM Final!");
+                btn.disabled = false; btn.innerText = originalText;
+                return;
+            }
         }
 
         try {
-            await fetch(URL_API, { method: 'POST', body: JSON.stringify(payload) });
+            // Envio POST para o Google Sheets
+            await fetch(URL_API, { 
+                method: 'POST', 
+                mode: 'no-cors', // Importante para POST no Google Scripts
+                body: JSON.stringify(payload) 
+            });
             
-            // Monta mensagem WhatsApp
+            // Gerar Mensagem WhatsApp
             let msg = `*${tipo === 'SAIDA' ? '🟢 INÍCIO' : '🏁 FIM'} - TELEJUR*%0A*TAG:* ${payload.tag}%0A*Motorista:* ${payload.nome}%0A*KM:* ${tipo === 'SAIDA' ? payload.kmi : payload.kmf}%0A*Obs:* ${tipo === 'SAIDA' ? payload.obsS : payload.obsC}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
-            location.reload();
-        } catch (e) { alert("Erro ao salvar!"); btn.disabled = false; }
+            
+            // Pequeno delay antes de recarregar para garantir o armazenamento
+            setTimeout(() => location.reload(), 1000);
+        } catch (e) { 
+            alert("Erro ao salvar! Tente novamente."); 
+            btn.disabled = false; 
+            btn.innerText = originalText;
+        }
     }
 
     function renderFrota(tagAtiva = null) {
@@ -161,7 +189,7 @@
         const kmf = limparNum(document.getElementById('kmf').value);
         const prox = limparNum(d.proxOleo);
         const diff = prox - kmf;
-        document.getElementById('restaTroca').value = diff > 0 ? `Faltam ${diff} KM` : `Excedido em ${Math.abs(diff)} KM`;
+        document.getElementById('restaTroca').value = diff > 0 ? `Faltam ${diff} KM` : `⚠️ EXCEDIDO EM ${Math.abs(diff)} KM`;
     }
 
     window.onload = () => {
@@ -169,9 +197,10 @@
         const salvo = localStorage.getItem("tjur_cache");
         if(salvo) {
             const d = JSON.parse(salvo);
+            document.getElementById('tituloPagina').innerText = "🏁 FINALIZAR TRAJETO";
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
-            document.getElementById('displayResumo').innerHTML = `🚗 ${d.tag} | 🛣️ KM: ${d.kmi}`;
+            document.getElementById('displayResumo').innerHTML = `🚗 <b>${d.tag}</b> | 👤 ${d.nome} | 🛣️ Saída: ${d.kmi}`;
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             renderFrota(d.tag);
         } else { renderFrota(); }
