@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.8</title>
+    <title>SISTEMA TELEJUR v13.9</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -38,22 +38,22 @@
     <div id="secaoInicial">
         <label>Data</label><input type="text" id="dataAtual" readonly>
         
-        <label>Motorista / Condutor</label>
-        <div class="grid-2">
-            <select id="nomeMot">
-                <option value="">-- MOTORISTA --</option>
-                <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
-            </select>
-            <select id="condutor">
-                <option value="">-- ID --</option>
-                <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option><option>Condutor 4</option><option>Condutor 5</option>
-                <option>Condutor 6</option><option>Condutor 7</option><option>Condutor 8</option><option>Condutor 9</option><option>Condutor 10</option>
-            </select>
-        </div>
+        <label>NOME</label>
+        <select id="nomeMot">
+            <option value="">-- SELECIONE O NOME --</option>
+            <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
+        </select>
+
+        <label>ID</label>
+        <select id="condutor">
+            <option value="">-- SELECIONE O ID --</option>
+            <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option><option>Condutor 4</option><option>Condutor 5</option>
+            <option>Condutor 6</option><option>Condutor 7</option><option>Condutor 8</option><option>Condutor 9</option><option>Condutor 10</option>
+        </select>
 
         <label>Veículo (TAG)</label>
         <select id="tag" onchange="autoPreencher()">
-            <option value="">-- SELECIONE --</option>
+            <option value="">-- SELECIONE A TAG --</option>
             <option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option>
             <option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
         </select>
@@ -131,12 +131,12 @@
                 placa: document.getElementById('placa').value
             };
 
-            if(!d.nome || !d.tag || !d.kmi || !d.proxOleo) return alert("⚠️ Preencha os dados!");
+            if(!d.nome || !d.tag || !d.kmi || !d.proxOleo) return alert("⚠️ Preencha todos os campos!");
             
             localStorage.setItem("tjur_cache", JSON.stringify(d));
             
             let msg = `*🟢 TRAJETO INICIAL - TELEJUR*%0A%0A`;
-            msg += `*Veículo:* ${d.tag} (${d.placa})%0A*Motorista:* ${d.nome}%0A*ID:* ${d.condutor}%0A*KM Inicial:* ${d.kmi}%0A*Saída:* ${d.horaInic}%0A*Obs:* ${d.obsS || "Nenhuma"}`;
+            msg += `*Veículo:* ${d.tag} (${d.placa})%0A*Nome:* ${d.nome}%0A*ID:* ${d.condutor}%0A*KM Inicial:* ${d.kmi}%0A*Saída:* ${d.horaInic}%0A*Obs:* ${d.obsS || "Nenhuma"}`;
             
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             location.reload();
@@ -150,7 +150,7 @@
             const horaF = document.getElementById('horaFim').value;
 
             let msg = `*🏁 TRAJETO FINALIZADO - TELEJUR*%0A%0A`;
-            msg += `*VEÍCULO:* ${d.tag}%0A*MOTORISTA:* ${d.nome}%0A%0A`;
+            msg += `*VEÍCULO:* ${d.tag}%0A*NOME:* ${d.nome}%0A%0A`;
             msg += `*--- DADOS SAÍDA ---*%0AKM: ${d.kmi}%0AHora: ${d.horaInic}%0AObs: ${d.obsS || "Nenhuma"}%0A%0A`;
             msg += `*--- DADOS CHEGADA ---*%0AKM: ${valKmf}%0AHora: ${horaF}%0AObs: ${obsF || "Nenhuma"}%0A%0A`;
             msg += `*RESTA P/ TROCA:* ${resta}`;
@@ -188,7 +188,9 @@
             document.getElementById('secaoFinal').classList.remove('hidden');
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
             document.getElementById('displayResumo').innerHTML = `<b>Resumo Saída:</b> 🚗 ${d.tag} | 👤 ${d.condutor}<br>🛣️ KM: ${d.kmi} | 🕒 ${d.horaInic}`;
-            if(d.tipoTroca === "DATA") document.getElementById('restaTroca').value = d.proxOleo.split('-').reverse().join('/');
+            if(d.tipoTroca === "DATA") {
+                document.getElementById('restaTroca').value = d.proxOleo.split('-').reverse().join('/');
+            }
             renderFrota(d.tag);
         } else { renderFrota(); }
     };
