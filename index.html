@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v14.9</title>
+    <title>SISTEMA TELEJUR v15.0</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -104,7 +104,11 @@
         "TJUR 13": { v: "HILUX", p: "QVD4I38", t: "KM" }
     };
 
-    function limparNum(val) { return Number(val.toString().replace(/[.,]/g, "")); }
+    // Função melhorada para limpar qualquer caractere não numérico
+    function limparNum(val) { 
+        if(!val) return 0;
+        return Number(val.toString().replace(/\D/g, "")); 
+    }
 
     function formatarProx(val, tipo) {
         if (tipo === 'DATA' && val.includes('-')) return val.split('-').reverse().join('/');
@@ -132,16 +136,27 @@
 
     function calcularStatusTroca(d_saida, kmFinalStr = null) {
         if(d_saida.tipoTroca === "KM") {
-            if(!kmFinalStr) return d_saida.proxOleo + " KM";
-            const numKmf = limparNum(kmFinalStr);
             const numProx = limparNum(d_saida.proxOleo);
+            if(!kmFinalStr) return d_saida.proxOleo + " KM";
+            
+            const numKmf = limparNum(kmFinalStr);
             const diff = numProx - numKmf;
-            return diff >= 0 ? `FALTAM ${diff} KM` : `⚠️ EXCEDIDO EM ${Math.abs(diff)} KM`;
+            
+            if (diff > 0) return `FALTAM ${diff.toLocaleString('pt-BR')} KM`;
+            if (diff === 0) return `TROCAR AGORA!`;
+            return `⚠️ EXCEDIDO EM ${Math.abs(diff).toLocaleString('pt-BR')} KM`;
         } else {
             if(!d_saida.proxOleo) return "...";
-            const hoje = new Date(); hoje.setHours(0,0,0,0);
-            const dataLimite = new Date(d_saida.proxOleo + 'T00:00:00');
-            const diffDias = Math.ceil((dataLimite - hoje) / (1000 * 60 * 60 * 24));
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0);
+            
+            // Corrige leitura da data para evitar erro de fuso-horário
+            const partesData = d_saida.proxOleo.split('-');
+            const dataLimite = new Date(partesData[0], partesData[1] - 1, partesData[2]);
+            
+            const diffTempo = dataLimite - hoje;
+            const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+            
             if(diffDias > 0) return `FALTAM ${diffDias} DIAS`;
             if(diffDias === 0) return `VENCE HOJE!`;
             return `⚠️ VENCIDO HÁ ${Math.abs(diffDias)} DIAS`;
@@ -154,12 +169,11 @@
         
         if(tipo === 'SAIDA') {
             const tagVal = document.getElementById('tag').value;
-            const proxBruto = document.getElementById('proxOleo').value;
             const data = {
                 data: dataHoje, tag: tagVal, condutor: document.getElementById('condutor').value,
                 nome: document.getElementById('nomeMot').value, obsS: document.getElementById('obsSaida').value || "Nenhuma",
                 kmi: document.getElementById('kmi').value, horaInic: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                proxOleo: proxBruto, tipoTroca: frota[tagVal]?.t || "KM",
+                proxOleo: document.getElementById('proxOleo').value, tipoTroca: frota[tagVal]?.t || "KM",
                 placa: document.getElementById('placa').value, veiculo: document.getElementById('veiculoNome').value,
                 tipoO: document.getElementById('tipoOleo').value, numT: document.getElementById('numTrajeto').value
             };
