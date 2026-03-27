@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v13.6</title>
+    <title>SISTEMA TELEJUR v13.7</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #2e7d32; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
-        /* Painel de Tags */
         .grid-frota { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 20px; }
         .v-box { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; background: #fff; color: #444; }
         .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); border-width: 2px; }
@@ -27,7 +26,6 @@
         .section-titulo { background: #e8eaf6; padding: 8px; border-radius: 5px; color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
 
-        /* Estilo do Resumo de Saída na Chegada */
         .resumo-saida { background: #fffde7; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-bottom: 15px; font-size: 13px; line-height: 1.5; }
         .resumo-saida b { color: var(--primary); font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 5px; }
     </style>
@@ -74,7 +72,7 @@
         <div class="section-titulo">DADOS TÉCNICOS</div>
 
         <div class="grid-2">
-            <div><label>KM Inicial</label><input type="number" id="kmi" placeholder="164296"></div>
+            <div><label>KM Inicial</label><input type="text" id="kmi" placeholder="164.296"></div>
             <div><label>Número Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
 
@@ -82,7 +80,7 @@
             <div><label>Tipo de Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
             <div id="boxTrocaOleo">
                 <label id="labelTrocaOleo">Próx. Troca Óleo</label>
-                <input type="number" id="proxOleo">
+                <input type="text" id="proxOleo">
             </div>
         </div>
 
@@ -95,16 +93,15 @@
     </div>
 
     <div id="secaoFinal" class="hidden">
-        <div class="resumo-saida" id="displayResumo">
-            </div>
+        <div class="resumo-saida" id="displayResumo"></div>
 
         <div class="grid-2">
             <div><label>Hora Fim</label><input type="text" id="horaFim" readonly></div>
-            <div><label>KM Final</label><input type="number" id="kmf" oninput="calcularResta()"></div>
+            <div><label>KM Final</label><input type="text" id="kmf" placeholder="164.500" oninput="calcularResta()"></div>
         </div>
         
-        <label id="labelResta">Resta para a troca</label>
-        <input type="text" id="restaTroca" readonly style="color: var(--danger);">
+        <label id="labelResta">RESTA PARA A TROCA</label>
+        <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold;">
 
         <label>Observações de Chegada</label>
         <textarea id="obsFinal" placeholder="Alguma ocorrência durante a viagem?"></textarea>
@@ -121,6 +118,11 @@
         "TJUR 13": { v: "CAMINHONETE HILUX", p: "QVD4I38", t: "KM" }
     };
 
+    // Função para limpar pontos e vírgulas (ex: "164.296" vira 164296)
+    function limparNumero(val) {
+        return Number(val.toString().replace(/[.,]/g, ""));
+    }
+
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         const inputOleo = document.getElementById('proxOleo');
@@ -128,7 +130,7 @@
         if(tag && frota[tag]) {
             document.getElementById('veiculoNome').value = frota[tag].v;
             document.getElementById('placa').value = frota[tag].p;
-            inputOleo.type = (frota[tag].t === "DATA") ? "date" : "number";
+            inputOleo.type = (frota[tag].t === "DATA") ? "date" : "text";
             labelOleo.innerText = "Próx. Troca (" + frota[tag].t + ")";
             renderFrota(tag);
         }
@@ -160,11 +162,15 @@
     }
 
     function calcularResta() {
-        const kmf = document.getElementById('kmf').value;
+        const valKmf = document.getElementById('kmf').value;
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
         const inputResta = document.getElementById('restaTroca');
-        if(d.tipoTroca === "KM" && kmf) {
-            inputResta.value = (Number(d.proxOleo) - Number(kmf)) + " KM";
+
+        if(d.tipoTroca === "KM" && valKmf) {
+            const numKmf = limparNumero(valKmf);
+            const numProx = limparNumero(d.proxOleo);
+            const resta = numProx - numKmf;
+            inputResta.value = resta + " KM";
         }
     }
 
@@ -177,9 +183,9 @@
     }
 
     function finalizarChegada() {
-        const kmf = document.getElementById('kmf').value;
+        const valKmf = document.getElementById('kmf').value;
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
-        if(!kmf || Number(kmf) <= Number(d.kmi)) return alert("⚠️ KM Final deve ser maior que o Inicial!");
+        if(!valKmf || limparNumero(valKmf) <= limparNumero(d.kmi)) return alert("⚠️ KM Final deve ser maior que o Inicial!");
         alert("✅ TRAJETO FINALIZADO COM SUCESSO!");
         localStorage.removeItem("tjur_cache");
         location.reload();
@@ -196,7 +202,6 @@
             document.getElementById('secaoFinal').classList.remove('hidden');
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
             
-            // Monta o resumo das informações salvas
             document.getElementById('displayResumo').innerHTML = `
                 <b>Resumo do Trajeto Inicial:</b>
                 🚗 ${d.tag} | 🆔 ${d.placa} | 👤 ${d.condutor}<br>
@@ -206,7 +211,7 @@
             `;
             
             if(d.tipoTroca === "DATA") {
-                document.getElementById('labelResta').innerText = "Próxima troca em:";
+                document.getElementById('labelResta').innerText = "VENCIMENTO TROCA (DATA):";
                 document.getElementById('restaTroca').value = d.proxOleo.split('-').reverse().join('/');
             }
             renderFrota(d.tag);
