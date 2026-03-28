@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v17.5</title>
+    <title>SISTEMA TELEJUR v18.0</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -26,26 +26,26 @@
 <body>
 
 <div class="card">
-    <h2 id="tituloPagina">🚀 TRAJETO INICIAL</h2>
+    <h2 id="tituloPagina">🚀 CHECKLIST TELEJUR</h2>
     <div id="painelFrota" class="grid-frota"></div>
 
     <div id="secaoInicial">
         <label>Data Atual</label><input type="text" id="dataAtual" readonly>
         
-        <label>NOME</label>
+        <label>NOME DO MOTORISTA</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
             <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option>
             <option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
         </select>
 
-        <label>ID</label>
+        <label>CONDUTOR / ID</label>
         <select id="condutor">
             <option value="">-- SELECIONE --</option>
-            <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option>
+            <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option><option>Condutor 4</option><option>Condutor 5</option>
         </select>
 
-        <label>Veículo (TAG)</label>
+        <label>SELECIONE A TAG</label>
         <select id="tag" onchange="autoPreencher()">
             <option value="">-- SELECIONE --</option>
             <option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option>
@@ -57,40 +57,42 @@
             <div><label>Placa</label><input type="text" id="placa" readonly></div>
         </div>
 
-        <label>OBSERVAÇÃO DE SAÍDA</label>
-        <textarea id="obsSaida"></textarea>
+        <label>OBSERVAÇÃO DE SAÍDA (CHECKLIST)</label>
+        <textarea id="obsSaida" placeholder="Ex: Pneus ok, nível de óleo ok..."></textarea>
 
         <div class="section-titulo">DADOS TÉCNICOS</div>
         <div class="grid-2">
             <div><label>KM Inicial</label><input type="text" inputmode="numeric" id="kmi"></div>
-            <div><label>Nº Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
+            <div><label>Nº do Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
 
         <div class="grid-2">
-            <div><label>Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option></select></div>
-            <div><label>Próxima Troca</label><input type="text" id="proxOleo"></div>
+            <div><label>Tipo de Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
+            <div><label>KM Próxima Troca</label><input type="text" id="proxOleo"></div>
         </div>
 
-        <button onclick="processarEnvio('SAIDA')" class="btn btn-whats" id="btnAcao">📲 INICIAR E ENVIAR</button>
+        <button onclick="processarEnvio('SAIDA')" class="btn btn-whats" id="btnAcao">📲 INICIAR TRAJETO E ENVIAR</button>
     </div>
 
     <div id="secaoFinal" class="hidden">
         <div class="resumo-saida" id="displayResumo"></div>
         <div class="grid-2">
-            <div><label>Hora Final</label><input type="text" id="horaFim" readonly></div>
+            <div><label>Hora de Chegada</label><input type="text" id="horaFim" readonly></div>
             <div><label>KM Final</label><input type="text" inputmode="numeric" id="kmf" oninput="calcularResta()"></div>
         </div>
-        <label>STATUS MANUTENÇÃO</label>
+        <label>STATUS DA MANUTENÇÃO</label>
         <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold;">
         <label>OBSERVAÇÃO DE CHEGADA</label>
-        <textarea id="obsFinal"></textarea>
-        <button onclick="processarEnvio('CHEGADA')" class="btn btn-whats" id="btnAcaoFim">🏁 FINALIZAR E ENVIAR</button>
+        <textarea id="obsFinal" placeholder="Relate problemas se houver..."></textarea>
+        <button onclick="processarEnvio('CHEGADA')" class="btn btn-whats" id="btnAcaoFim">🏁 FINALIZAR TRAJETO</button>
     </div>
 </div>
 
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const frotaFixo = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
+
+    function limparNum(val) { return Number(val.toString().replace(/\D/g, "")); }
 
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
@@ -112,7 +114,7 @@
 
     async function processarEnvio(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnAcao') : document.getElementById('btnAcaoFim');
-        btn.disabled = true; btn.innerText = "⏳ SALVANDO...";
+        btn.disabled = true; btn.innerText = "⏳ SALVANDO NA PLANILHA...";
 
         let payload = {};
         if(tipo === 'SAIDA') {
@@ -125,7 +127,7 @@
                 proxOleo: document.getElementById('proxOleo').value, tipoO: document.getElementById('tipoOleo').value,
                 numT: document.getElementById('numTrajeto').value
             };
-            if(!payload.nome || !payload.tag) return alert("Preencha Nome e TAG!");
+            if(!payload.nome || !payload.tag) { alert("Selecione Motorista e TAG!"); btn.disabled = false; return; }
             localStorage.setItem("tjur_cache", JSON.stringify(payload));
         } else {
             const dS = JSON.parse(localStorage.getItem("tjur_cache"));
@@ -135,19 +137,32 @@
         }
 
         try {
-            // AJUSTE CRÍTICO: Usando Blob para garantir que o Apps Script receba o POST
             const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain' });
             await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: blob });
             
-            let msg = `*${tipo === 'SAIDA' ? '🟢 INÍCIO' : '🏁 FIM'}*%0A*TAG:* ${payload.tag}%0A*Motorista:* ${payload.nome}`;
+            // MENSAGEM WHATSAPP COMPLETA
+            let msg = `*${tipo === 'SAIDA' ? '🟢 INÍCIO DE TRAJETO' : '🏁 FIM DE TRAJETO'} - TELEJUR*%0A%0A`;
+            msg += `*TAG:* ${payload.tag}%0A*Motorista:* ${payload.nome}%0A*Veículo:* ${payload.veiculo}%0A`;
+            msg += `*KM:* ${tipo === 'SAIDA' ? payload.kmi : payload.kmf}%0A`;
+            if(tipo === 'CHEGADA') msg += `*Obs Chegada:* ${payload.obsC}`;
+            else msg += `*Obs Saída:* ${payload.obsS}`;
+
             window.open(`https://wa.me/?text=${msg}`, '_blank');
             if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
             setTimeout(() => location.reload(), 1500);
-        } catch (e) { alert("Erro!"); btn.disabled = false; }
+        } catch (e) { alert("Erro ao salvar!"); btn.disabled = false; }
     }
 
     function renderFrota(tagAtiva = null) {
         document.getElementById('painelFrota').innerHTML = frotaFixo.map(t => `<div class="v-box ${t === tagAtiva ? 'active' : ''}">${t}</div>`).join('');
+    }
+
+    function calcularResta() {
+        const d = JSON.parse(localStorage.getItem("tjur_cache"));
+        const kmf = limparNum(document.getElementById('kmf').value);
+        const prox = limparNum(d.proxOleo);
+        const diff = prox - kmf;
+        document.getElementById('restaTroca').value = diff > 0 ? `Faltam ${diff} KM` : `⚠️ EXCEDIDO EM ${Math.abs(diff)} KM`;
     }
 
     window.onload = () => {
