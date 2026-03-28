@@ -3,33 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v22.0</title>
+    <title>TELEJUR CHECKLIST</title>
     <style>
         :root { --primary: #1a237e; --success: #25d366; --bg: #f0f4f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .grid-frota { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 20px; }
-        .v-box { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; background: #fff; color: #444; }
-        .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); border-width: 2px; }
-        label { display: block; font-weight: bold; font-size: 10px; color: #555; margin-top: 12px; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; outline: none; }
-        input[readonly] { background: #f1f3f4; color: #555; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
+        .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .grid-frota { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 15px; }
+        .v-box { padding: 8px; border-radius: 5px; text-align: center; font-size: 10px; border: 1px solid #ddd; background: #fff; }
+        .v-box.active { border-color: var(--primary); background: #e8eaf6; font-weight: bold; }
+        label { display: block; font-weight: bold; font-size: 11px; margin-top: 10px; color: #333; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; }
+        input[readonly] { background: #f9f9f9; color: #555; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-whats { background: var(--success); color: white; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; color: white; background: var(--success); }
         .hidden { display: none; }
-        .resumo-saida { background: #fffde7; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-bottom: 15px; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 id="tituloPagina">🚀 CHECKLIST TELEJUR</h2>
+    <h2 style="text-align:center; color:var(--primary)">📋 CHECKLIST</h2>
     <div id="painelFrota" class="grid-frota"></div>
 
     <div id="secaoInicial">
-        <label>MOTORISTA RESPONSÁVEL</label>
+        <label>MOTORISTA QUE ESTÁ SAINDO</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
             <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option>
@@ -38,7 +35,7 @@
 
         <div class="grid-2">
             <div>
-                <label>TAG VEÍCULO</label>
+                <label>TAG</label>
                 <select id="tag" onchange="autoPreencher()">
                     <option value="">--</option>
                     <option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option>
@@ -46,8 +43,8 @@
                 </select>
             </div>
             <div>
-                <label>CONDUTOR (PLANILHA)</label>
-                <input type="text" id="condutor" readonly placeholder="Aguardando TAG...">
+                <label>CONDUTOR ATUAL (STATUS)</label>
+                <input type="text" id="condutor" readonly placeholder="...">
             </div>
         </div>
 
@@ -58,40 +55,30 @@
 
         <div class="grid-2">
             <div><label>KM Inicial</label><input type="number" id="kmi" inputmode="numeric"></div>
-            <div><label>Nº Trajeto</label><input type="number" id="numTrajeto" value="1" inputmode="numeric"></div>
+            <div><label>Trajeto Nº</label><input type="number" id="numTrajeto" value="1" inputmode="numeric"></div>
         </div>
-
-        <div class="grid-2">
-            <div>
-                <label>Cor do Selo</label>
-                <select id="corSelo">
-                    <option value="Verde">🟢 Verde</option><option value="Azul">🔵 Azul</option>
-                    <option value="Amarelo">🟡 Amarelo</option><option value="Vermelho">🔴 Vermelho</option>
-                </select>
-            </div>
-            <div><label>Validade</label><input type="date" id="validadeSelo"></div>
-        </div>
-
+        
         <label>Próx. Troca Óleo (KM)</label>
         <input type="number" id="proxOleo" inputmode="numeric">
 
-        <button onclick="processarEnvio('SAIDA')" class="btn btn-whats" id="btnAcao">📲 INICIAR TRAJETO</button>
+        <button onclick="processarEnvio('SAIDA')" class="btn" id="btnAcao">📲 INICIAR TRAJETO</button>
     </div>
 
     <div id="secaoFinal" class="hidden">
-        <div class="resumo-saida" id="displayResumo"></div>
+        <div id="resumo" style="background:#eee; padding:10px; border-radius:5px; margin-bottom:10px"></div>
         <div class="grid-2">
             <div><label>Hora Chegada</label><input type="text" id="horaFim" readonly></div>
             <div><label>KM Final</label><input type="number" id="kmf" inputmode="numeric" oninput="calcularResta()"></div>
         </div>
         <label>STATUS MANUTENÇÃO</label>
-        <input type="text" id="restaTroca" readonly style="color: red; font-weight: bold;">
-        <button onclick="processarEnvio('CHEGADA')" class="btn btn-whats" id="btnAcaoFim">🏁 FINALIZAR TRAJETO</button>
+        <input type="text" id="restaTroca" readonly style="color:red; font-weight:bold">
+        <button onclick="processarEnvio('CHEGADA')" class="btn" id="btnAcaoFim">🏁 FINALIZAR TRAJETO</button>
     </div>
 </div>
 
 <script>
-    const URL_API = "SUA_URL_ATUALIZADA_AQUI"; // COLOQUE A URL DA NOVA IMPLANTAÇÃO!
+    // ⚠️ RECOLE SUA URL AQUI:
+    const URL_API = "SUA_URL_AQUI_TERMINADA_EM_EXEC"; 
     const frotaFixo = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
 
     function autoPreencher() {
@@ -99,8 +86,8 @@
         if(!tag) return;
         renderFrota(tag);
         
-        document.getElementById('veiculoNome').value = "Carregando...";
-        document.getElementById('condutor').value = "Buscando...";
+        document.getElementById('veiculoNome').value = "Buscando...";
+        document.getElementById('condutor').value = "...";
         
         const script = document.createElement('script');
         script.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&callback=retornoPlanilha&t=${Date.now()}`;
@@ -109,16 +96,15 @@
     }
 
     function retornoPlanilha(data) {
-        document.getElementById('veiculoNome').value = data.veiculo || "Não encontrado";
-        document.getElementById('placa').value = data.placa || "---";
+        document.getElementById('veiculoNome').value = data.veiculo || "";
+        document.getElementById('placa').value = data.placa || "";
         document.getElementById('kmi').value = data.kmi || "";
-        document.getElementById('proxOleo').value = data.proxOleo || "";
-        document.getElementById('condutor').value = data.condutorSugerido || "N/A";
+        document.getElementById('condutor').value = data.condutorSugerido || "Vazio";
     }
 
     async function processarEnvio(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnAcao') : document.getElementById('btnAcaoFim');
-        btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
+        btn.disabled = true; btn.innerText = "⏳...";
         
         const agora = new Date();
         let payload = {};
@@ -129,14 +115,11 @@
                 data: agora.toLocaleDateString('pt-BR'),
                 tag: document.getElementById('tag').value,
                 nome: document.getElementById('nomeMot').value,
-                condutor: document.getElementById('condutor').value,
-                veiculo: document.getElementById('veiculoNome').value,
-                placa: document.getElementById('placa').value,
                 kmi: document.getElementById('kmi').value,
-                numT: document.getElementById('numTrajeto').value,
-                corSelo: document.getElementById('corSelo').value,
-                validadeSelo: document.getElementById('validadeSelo').value,
+                placa: document.getElementById('placa').value,
+                veiculo: document.getElementById('veiculoNome').value,
                 proxOleo: document.getElementById('proxOleo').value,
+                numT: document.getElementById('numTrajeto').value,
                 horaInic: agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
             };
             localStorage.setItem("tjur_cache", JSON.stringify(payload));
@@ -151,11 +134,8 @@
 
         try {
             await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: new Blob([JSON.stringify(payload)]) });
-            let texto = payload.tipo === 'SAIDA' ? 
-                `🚀 *SAÍDA:* ${payload.tag}%0A*Mot.:* ${payload.nome}%0A*Condutor:* ${payload.condutor}%0A*KM:* ${payload.kmi}` :
-                `🏁 *CHEGADA:* ${payload.tag}%0A*KM Final:* ${payload.kmf}%0A*Status:* ${payload.statusManutencao}`;
-            
-            window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
+            let msg = payload.tipo === 'SAIDA' ? `🚀 SAÍDA: ${payload.tag} | Mot: ${payload.nome}` : `🏁 CHEGADA: ${payload.tag} | KM: ${payload.kmf}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
             if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
             location.reload();
         } catch (e) { alert("Erro!"); btn.disabled = false; }
@@ -163,8 +143,7 @@
 
     function calcularResta() {
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
-        const kmf = Number(document.getElementById('kmf').value);
-        const diff = Number(d.proxOleo) - kmf;
+        const diff = Number(d.proxOleo) - Number(document.getElementById('kmf').value);
         document.getElementById('restaTroca').value = diff > 0 ? `Faltam ${diff} KM` : `⚠️ EXCEDIDO ${Math.abs(diff)} KM`;
     }
 
@@ -180,7 +159,7 @@
             const d = JSON.parse(salvo);
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
-            document.getElementById('displayResumo').innerHTML = `🚗 <b>${d.tag}</b> | 👤 ${d.nome}`;
+            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> | 👤 ${d.nome}`;
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             renderFrota(d.tag);
         } else { renderFrota(); }
