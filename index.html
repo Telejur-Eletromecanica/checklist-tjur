@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V5.3</title>
+    <title>TELEJUR CHECKLIST V5.5</title>
     <style>
         :root { --primary: #1a237e; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -80,7 +80,7 @@
 </div>
 
 <script>
-    const URL_API = "COLOQUE_AQUI_A_URL_DO_GOOGLE"; // <--- IMPORTANTE: COLE A URL AQUI
+    const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
@@ -121,26 +121,26 @@
                 valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value
             };
-            localStorage.setItem('tjur_v53', JSON.stringify(p));
+            localStorage.setItem('tjur_final_v1', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v53'));
+            const d = JSON.parse(localStorage.getItem('tjur_final_v1'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
         let textoZap = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*KM Final:* ${p.kmf}`;
         window.open(`https://api.whatsapp.com/send?text=${textoZap}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v53');
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_final_v1');
         setTimeout(() => location.reload(), 1500);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v53');
+        const salvo = localStorage.getItem('tjur_final_v1');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
             document.getElementById('secaoChegada').classList.remove('hidden');
-            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 ${d.horaInic}`;
+            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 Saída: ${d.horaInic}`;
         }
     };
 </script>
