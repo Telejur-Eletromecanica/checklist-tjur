@@ -10,7 +10,7 @@
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .grid-frota { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 20px; }
-        .v-box { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; background: #fff; color: #444; }
+        .v-box { padding: 10px 2px; border-radius: 8px; text-align: center; font-size: 9px; font-weight: bold; border: 1px solid #ddd; background: #fff; color: #444; transition: 0.3s; }
         .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); border-width: 2px; }
         label { display: block; font-weight: bold; font-size: 10px; color: #555; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; outline: none; background: #fff; }
@@ -21,6 +21,9 @@
         .section-titulo { background: #e8eaf6; padding: 8px; border-radius: 5px; color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
         .resumo-saida { background: #fffde7; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-bottom: 15px; font-size: 13px; }
+        
+        /* Efeito de destaque para o condutor automático */
+        .auto-select { border: 2px solid var(--primary) !important; background-color: #e8eaf6 !important; transition: 0.5s; }
     </style>
 </head>
 <body>
@@ -31,27 +34,36 @@
 
     <div id="secaoInicial">
         <label>Data Atual</label><input type="text" id="dataAtual" readonly>
+        
         <label>MOTORISTA</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
-            <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option>
-            <option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
+            <option>FRANCIVALDO COSTA</option>
+            <option>ADRIANO NASCIMENTO</option>
+            <option>REGINALDO</option>
+            <option>WALTER GONÇALVES</option>
+            <option>LAFAITE BATISTA</option>
         </select>
+
         <label>CONDUTOR / ID</label>
         <select id="condutor">
-            <option value="">-- SELECIONE --</option>
-            <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option>
+            <option value="Condutor 1">Condutor 1</option>
+            <option value="Condutor 2">Condutor 2</option>
+            <option value="Condutor 3">Condutor 3</option>
         </select>
+
         <label>SELECIONE A TAG</label>
         <select id="tag" onchange="autoPreencher()">
             <option value="">-- SELECIONE --</option>
-            <option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option>
-            <option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
+            <option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option>
+            <option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
         </select>
+
         <div class="grid-2">
             <div><label>Veículo</label><input type="text" id="veiculoNome" readonly></div>
             <div><label>Placa</label><input type="text" id="placa" readonly></div>
         </div>
+
         <label>OBSERVAÇÃO DE SAÍDA</label>
         <textarea id="obsSaida" placeholder="Alguma avaria ou observação..."></textarea>
         
@@ -61,7 +73,13 @@
             <div><label>Nº Trajeto</label><input type="number" id="numTrajeto" value="1"></div>
         </div>
         <div class="grid-2">
-            <div><label>Tipo de Óleo</label><select id="tipoOleo"><option>15W40</option><option>5W30</option><option>10W40</option></select></div>
+            <div><label>Tipo de Óleo</label>
+                <select id="tipoOleo">
+                    <option>15W40</option>
+                    <option>5W30</option>
+                    <option>10W40</option>
+                </select>
+            </div>
             <div><label>Próx. Troca Óleo</label><input type="text" id="proxOleo"></div>
         </div>
         
@@ -86,7 +104,6 @@
 </div>
 
 <script>
-    // URL DO SEU DEPLOY (WEB APP)
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     const frotaFixo = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
 
@@ -96,6 +113,10 @@
         const tag = document.getElementById('tag').value;
         if(!tag) return;
         renderFrota(tag);
+        
+        // Exibe um feedback visual de carregamento nos campos
+        document.getElementById('veiculoNome').value = "Buscando...";
+        
         const script = document.createElement('script');
         script.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&callback=retornoPlanilha&t=${Date.now()}`;
         document.body.appendChild(script);
@@ -106,6 +127,16 @@
         document.getElementById('placa').value = data.placa || "";
         document.getElementById('kmi').value = data.kmi || "";
         if(data.proxOleo) document.getElementById('proxOleo').value = data.proxOleo;
+
+        // --- LÓGICA DE CONDUTOR AUTOMÁTICO ---
+        if(data.condutorSugerido) {
+            const campoCondutor = document.getElementById('condutor');
+            campoCondutor.value = data.condutorSugerido;
+            
+            // Feedback Visual
+            campoCondutor.classList.add('auto-select');
+            setTimeout(() => campoCondutor.classList.remove('auto-select'), 2000);
+        }
     }
 
     async function processarEnvio(tipo) {
@@ -132,7 +163,11 @@
                 numT: document.getElementById('numTrajeto').value, 
                 validadeSelo: document.getElementById('validadeSelo').value
             };
-            if(!payload.nome || !payload.tag || !payload.kmi) { alert("Preencha Motorista, TAG e KM!"); btn.disabled = false; btn.innerText = "📲 INICIAR TRAJETO"; return; }
+            if(!payload.nome || !payload.tag || !payload.kmi) { 
+                alert("Preencha Motorista, TAG e KM!"); 
+                btn.disabled = false; btn.innerText = "📲 INICIAR TRAJETO"; 
+                return; 
+            }
             localStorage.setItem("tjur_cache", JSON.stringify(payload));
         } else {
             const dS = JSON.parse(localStorage.getItem("tjur_cache"));
@@ -144,18 +179,25 @@
                 obsC: document.getElementById('obsFinal').value,
                 statusManutencao: document.getElementById('restaTroca').value
             };
-            if(!payload.kmf) { alert("Informe o KM Final!"); btn.disabled = false; btn.innerText = "🏁 FINALIZAR TRAJETO"; return; }
+            if(!payload.kmf) { 
+                alert("Informe o KM Final!"); 
+                btn.disabled = false; btn.innerText = "🏁 FINALIZAR TRAJETO"; 
+                return; 
+            }
         }
 
         try {
             const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain' });
             await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: blob });
+            
             if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
-            alert("Sucesso!");
+            
+            alert("Dados gravados com sucesso!");
             setTimeout(() => { location.reload(); }, 1000);
         } catch (e) { 
-            alert("Erro ao gravar dados!"); 
+            alert("Erro de conexão com a planilha!"); 
             btn.disabled = false; 
+            btn.innerText = (tipo === 'SAIDA') ? "📲 INICIAR TRAJETO" : "🏁 FINALIZAR TRAJETO";
         }
     }
 
