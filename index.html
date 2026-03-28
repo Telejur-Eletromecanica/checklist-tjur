@@ -14,7 +14,7 @@
         .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); border-width: 2px; }
         label { display: block; font-weight: bold; font-size: 10px; color: #555; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; outline: none; }
-        input[readonly] { background: #f9f9f9; color: #666; }
+        input[readonly] { background: #f9f9f9; color: #666; cursor: not-allowed; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
         .btn-whats { background: var(--success); color: white; }
@@ -32,15 +32,20 @@
         <label>MOTORISTA</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
-            <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option>
-            <option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
+            <option>FRANCIVALDO COSTA</option>
+            <option>ADRIANO NASCIMENTO</option>
+            <option>REGINALDO</option>
+            <option>WALTER GONÇALVES</option>
+            <option>LAFAITE BATISTA</option>
         </select>
 
         <div class="grid-2">
             <div>
                 <label>CONDUTOR</label>
                 <select id="condutor">
-                    <option>Condutor 1</option><option>Condutor 2</option><option>Condutor 3</option>
+                    <option>Condutor 1</option>
+                    <option>Condutor 2</option>
+                    <option>Condutor 3</option>
                 </select>
             </div>
             <div>
@@ -54,8 +59,8 @@
         </div>
 
         <div class="grid-2">
-            <div><label>Veículo</label><input type="text" id="veiculoNome" readonly placeholder="---"></div>
-            <div><label>Placa</label><input type="text" id="placa" readonly placeholder="---"></div>
+            <div><label>Veículo</label><input type="text" id="veiculoNome" readonly></div>
+            <div><label>Placa</label><input type="text" id="placa" readonly></div>
         </div>
 
         <div class="grid-2">
@@ -80,7 +85,7 @@
         <input type="number" id="proxOleo" inputmode="numeric">
 
         <label>OBSERVAÇÃO DE SAÍDA</label>
-        <textarea id="obsSaida" placeholder="Avarias, limpeza, etc..."></textarea>
+        <textarea id="obsSaida" placeholder="Avarias ou observações..."></textarea>
 
         <button onclick="processarEnvio('SAIDA')" class="btn btn-whats" id="btnAcao">📲 INICIAR TRAJETO</button>
     </div>
@@ -91,50 +96,57 @@
             <div><label>Hora Chegada</label><input type="text" id="horaFim" readonly></div>
             <div><label>KM Final</label><input type="number" id="kmf" inputmode="numeric" oninput="calcularResta()"></div>
         </div>
+        
         <label>STATUS MANUTENÇÃO</label>
-        <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold; background: #fff;">
+        <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold; border: 2px solid var(--danger);">
         
         <label>OBSERVAÇÃO DE CHEGADA</label>
-        <textarea id="obsFinal" placeholder="Ocorrências no trajeto..."></textarea>
+        <textarea id="obsFinal"></textarea>
         <button onclick="processarEnvio('CHEGADA')" class="btn btn-whats" id="btnAcaoFim">🏁 FINALIZAR TRAJETO</button>
     </div>
 </div>
 
 <script>
-    // IMPORTANTE: Substitua pela sua URL de implantação atualizada
-    const URL_API = "SUA_URL_AQUI"; 
+    // --- IMPORTANTE: COLOQUE SUA URL DO GOOGLE SCRIPT AQUI ---
+    const URL_API = "SUA_URL_DA_IMPLANTACAO_AQUI"; 
+    
     const frotaFixo = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
 
+    // 1. BUSCA AUTOMÁTICA DE DADOS
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         if(!tag) return;
         renderFrota(tag);
         
-        // Feedback visual de carregamento
         document.getElementById('veiculoNome').value = "Buscando...";
+        document.getElementById('placa').value = "Buscando...";
         
         const script = document.createElement('script');
         script.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&callback=retornoPlanilha&t=${Date.now()}`;
         document.body.appendChild(script);
+        
+        // Remove o script após a execução para limpar o DOM
+        script.onload = () => script.remove();
     }
 
+    // 2. RETORNO DOS DADOS DA PLANILHA
     function retornoPlanilha(data) {
-        console.log("Dados recebidos:", data);
         document.getElementById('veiculoNome').value = data.veiculo || "";
         document.getElementById('placa').value = data.placa || "";
         document.getElementById('kmi').value = data.kmi || "";
-        // Preenche o campo de próxima troca para o cálculo posterior
-        document.getElementById('proxOleo').value = data.proxOleo || ""; 
+        document.getElementById('proxOleo').value = data.proxOleo || "";
         
+        // Ajusta o condutor baseado na Coluna C da aba Status
         if(data.condutorSugerido) {
             document.getElementById('condutor').value = data.condutorSugerido;
         }
     }
 
+    // 3. PROCESSAMENTO E ENVIO
     async function processarEnvio(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnAcao') : document.getElementById('btnAcaoFim');
-        const txtOriginal = btn.innerText;
-        btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
+        btn.disabled = true; 
+        btn.innerText = "⏳ GRAVANDO...";
         
         const agora = new Date();
         let payload = {};
@@ -153,12 +165,13 @@
                 corSelo: document.getElementById('corSelo').value,
                 validadeSelo: document.getElementById('validadeSelo').value,
                 proxOleo: document.getElementById('proxOleo').value,
-                obsS: document.getElementById('obsSaida').value,
+                obsS: document.getElementById('obsSaida').value || "Nenhuma",
                 horaInic: agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
             };
+            
             if(!payload.nome || !payload.tag || !payload.kmi) {
-                alert("Preencha Motorista, TAG e KM Inicial!");
-                btn.disabled = false; btn.innerText = txtOriginal;
+                alert("Por favor, preencha Motorista, TAG e KM Inicial!");
+                btn.disabled = false; btn.innerText = "📲 INICIAR TRAJETO";
                 return;
             }
             localStorage.setItem("tjur_cache", JSON.stringify(payload));
@@ -169,19 +182,15 @@
                 kmf: document.getElementById('kmf').value,
                 horaFim: document.getElementById('horaFim').value,
                 statusManutencao: document.getElementById('restaTroca').value,
-                obsC: document.getElementById('obsFinal').value
+                obsC: document.getElementById('obsFinal').value || "Nenhuma"
             };
-            if(!payload.kmf) {
-                alert("Informe o KM Final!");
-                btn.disabled = false; btn.innerText = txtOriginal;
-                return;
-            }
         }
 
         try {
+            // Envia para o Google Sheets (doPost)
             await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: new Blob([JSON.stringify(payload)]) });
             
-            // WHATSAPP
+            // WHATSAPP RELATÓRIO
             let texto = "";
             if(payload.tipo === 'SAIDA') {
                 texto = `🚀 *SAÍDA TELEJUR*%0A*TAG:* ${payload.tag}%0A*Mot.:* ${payload.nome}%0A*Trajeto:* ${payload.numT}%0A*KM:* ${payload.kmi}%0A*Selo:* ${payload.corSelo}%0A*Saída:* ${payload.horaInic}`;
@@ -192,19 +201,19 @@
             window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
             
             if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
-            alert("Dados enviados com sucesso!");
+            alert("Sucesso!");
             location.reload();
         } catch (e) { 
-            alert("Erro na conexão!"); 
-            btn.disabled = false; btn.innerText = txtOriginal;
+            alert("Erro ao gravar dados."); 
+            btn.disabled = false;
         }
     }
 
+    // 4. CÁLCULO DE KM RESTANTE
     function calcularResta() {
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
         const kmf = Number(document.getElementById('kmf').value);
-        // Usa o proxOleo do cache da saída
-        const prox = Number(d.proxOleo); 
+        const prox = Number(d.proxOleo);
         
         if(!kmf || !prox) return;
         
@@ -213,12 +222,14 @@
         document.getElementById('restaTroca').value = msg;
     }
 
+    // 5. RENDERIZAÇÃO VISUAL DA FROTA
     function renderFrota(tagAtiva = null) {
         document.getElementById('painelFrota').innerHTML = frotaFixo.map(t => 
             `<div class="v-box ${t === tagAtiva ? 'active' : ''}">${t}</div>`
         ).join('');
     }
 
+    // 6. AO CARREGAR A PÁGINA
     window.onload = () => {
         const salvo = localStorage.getItem("tjur_cache");
         if(salvo) {
@@ -228,7 +239,9 @@
             document.getElementById('displayResumo').innerHTML = `🚗 <b>${d.tag}</b> | Trajeto ${d.numT} | 👤 ${d.nome}`;
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             renderFrota(d.tag);
-        } else { renderFrota(); }
+        } else { 
+            renderFrota(); 
+        }
     };
 </script>
 </body>
