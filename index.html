@@ -14,6 +14,7 @@
         .v-box.active { border-color: var(--primary); background: #e8eaf6; color: var(--primary); border-width: 2px; }
         label { display: block; font-weight: bold; font-size: 10px; color: #555; margin-top: 12px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; outline: none; }
+        input[readonly] { background: #f9f9f9; color: #666; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
         .btn-whats { background: var(--success); color: white; }
@@ -53,8 +54,8 @@
         </div>
 
         <div class="grid-2">
-            <div><label>Veículo</label><input type="text" id="veiculoNome" readonly></div>
-            <div><label>Placa</label><input type="text" id="placa" readonly></div>
+            <div><label>Veículo</label><input type="text" id="veiculoNome" readonly placeholder="---"></div>
+            <div><label>Placa</label><input type="text" id="placa" readonly placeholder="---"></div>
         </div>
 
         <div class="grid-2">
@@ -66,17 +67,20 @@
             <div>
                 <label>Cor do Selo</label>
                 <select id="corSelo">
-                    <option>Verde</option><option>Azul</option><option>Amarelo</option><option>Vermelho</option>
+                    <option value="Verde">🟢 Verde</option>
+                    <option value="Azul">🔵 Azul</option>
+                    <option value="Amarelo">🟡 Amarelo</option>
+                    <option value="Vermelho">🔴 Vermelho</option>
                 </select>
             </div>
-            <div><label>Validade</label><input type="date" id="validadeSelo"></div>
+            <div><label>Validade Selo</label><input type="date" id="validadeSelo"></div>
         </div>
 
-        <label>Próx. Troca Óleo</label>
+        <label>Próx. Troca Óleo (KM)</label>
         <input type="number" id="proxOleo" inputmode="numeric">
 
         <label>OBSERVAÇÃO DE SAÍDA</label>
-        <textarea id="obsSaida"></textarea>
+        <textarea id="obsSaida" placeholder="Avarias, limpeza, etc..."></textarea>
 
         <button onclick="processarEnvio('SAIDA')" class="btn btn-whats" id="btnAcao">📲 INICIAR TRAJETO</button>
     </div>
@@ -88,37 +92,48 @@
             <div><label>KM Final</label><input type="number" id="kmf" inputmode="numeric" oninput="calcularResta()"></div>
         </div>
         <label>STATUS MANUTENÇÃO</label>
-        <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold;">
+        <input type="text" id="restaTroca" readonly style="color: var(--danger); font-weight: bold; background: #fff;">
         
         <label>OBSERVAÇÃO DE CHEGADA</label>
-        <textarea id="obsFinal"></textarea>
+        <textarea id="obsFinal" placeholder="Ocorrências no trajeto..."></textarea>
         <button onclick="processarEnvio('CHEGADA')" class="btn btn-whats" id="btnAcaoFim">🏁 FINALIZAR TRAJETO</button>
     </div>
 </div>
 
 <script>
-    const URL_API = "SUA_URL_AQUI"; // COLOQUE SUA URL DO GOOGLE SCRIPT
+    // IMPORTANTE: Substitua pela sua URL de implantação atualizada
+    const URL_API = "SUA_URL_AQUI"; 
     const frotaFixo = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
 
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         if(!tag) return;
         renderFrota(tag);
+        
+        // Feedback visual de carregamento
+        document.getElementById('veiculoNome').value = "Buscando...";
+        
         const script = document.createElement('script');
         script.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&callback=retornoPlanilha&t=${Date.now()}`;
         document.body.appendChild(script);
     }
 
     function retornoPlanilha(data) {
+        console.log("Dados recebidos:", data);
         document.getElementById('veiculoNome').value = data.veiculo || "";
         document.getElementById('placa').value = data.placa || "";
         document.getElementById('kmi').value = data.kmi || "";
-        document.getElementById('proxOleo').value = data.proxOleo || "";
-        if(data.condutorSugerido) document.getElementById('condutor').value = data.condutorSugerido;
+        // Preenche o campo de próxima troca para o cálculo posterior
+        document.getElementById('proxOleo').value = data.proxOleo || ""; 
+        
+        if(data.condutorSugerido) {
+            document.getElementById('condutor').value = data.condutorSugerido;
+        }
     }
 
     async function processarEnvio(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnAcao') : document.getElementById('btnAcaoFim');
+        const txtOriginal = btn.innerText;
         btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
         
         const agora = new Date();
@@ -141,42 +156,61 @@
                 obsS: document.getElementById('obsSaida').value,
                 horaInic: agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
             };
+            if(!payload.nome || !payload.tag || !payload.kmi) {
+                alert("Preencha Motorista, TAG e KM Inicial!");
+                btn.disabled = false; btn.innerText = txtOriginal;
+                return;
+            }
             localStorage.setItem("tjur_cache", JSON.stringify(payload));
         } else {
             const d = JSON.parse(localStorage.getItem("tjur_cache"));
-            payload = { ...d, tipo: 'CHEGADA', 
+            payload = { ...d, 
+                tipo: 'CHEGADA', 
                 kmf: document.getElementById('kmf').value,
                 horaFim: document.getElementById('horaFim').value,
                 statusManutencao: document.getElementById('restaTroca').value,
                 obsC: document.getElementById('obsFinal').value
             };
+            if(!payload.kmf) {
+                alert("Informe o KM Final!");
+                btn.disabled = false; btn.innerText = txtOriginal;
+                return;
+            }
         }
 
         try {
             await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: new Blob([JSON.stringify(payload)]) });
             
-            // --- WHATSAPP DETALHADO ---
+            // WHATSAPP
             let texto = "";
             if(payload.tipo === 'SAIDA') {
                 texto = `🚀 *SAÍDA TELEJUR*%0A*TAG:* ${payload.tag}%0A*Mot.:* ${payload.nome}%0A*Trajeto:* ${payload.numT}%0A*KM:* ${payload.kmi}%0A*Selo:* ${payload.corSelo}%0A*Saída:* ${payload.horaInic}`;
             } else {
-                texto = `🏁 *CHEGADA TELEJUR*%0A*TAG:* ${payload.tag}%0A*Mot.:* ${payload.nome}%0A*KM Final:* ${payload.kmf}%0A*Trajeto:* ${payload.numT}%0A*Manutenção:* ${payload.statusManutencao}`;
+                texto = `🏁 *CHEGADA TELEJUR*%0A*TAG:* ${payload.tag}%0A*Mot.:* ${payload.nome}%0A*KM Final:* ${payload.kmf}%0A*Trajeto:* ${payload.numT}%0A*Status:* ${payload.statusManutencao}`;
             }
             
             window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
+            
             if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
-            alert("Sucesso!");
+            alert("Dados enviados com sucesso!");
             location.reload();
-        } catch (e) { alert("Erro!"); btn.disabled = false; }
+        } catch (e) { 
+            alert("Erro na conexão!"); 
+            btn.disabled = false; btn.innerText = txtOriginal;
+        }
     }
 
     function calcularResta() {
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
         const kmf = Number(document.getElementById('kmf').value);
-        const prox = Number(d.proxOleo);
+        // Usa o proxOleo do cache da saída
+        const prox = Number(d.proxOleo); 
+        
         if(!kmf || !prox) return;
+        
         const diff = prox - kmf;
-        document.getElementById('restaTroca').value = diff > 0 ? `Faltam ${diff} KM` : `⚠️ EXCEDIDO ${Math.abs(diff)} KM`;
+        const msg = diff > 0 ? `Faltam ${diff} KM` : `⚠️ EXCEDIDO ${Math.abs(diff)} KM`;
+        document.getElementById('restaTroca').value = msg;
     }
 
     function renderFrota(tagAtiva = null) {
