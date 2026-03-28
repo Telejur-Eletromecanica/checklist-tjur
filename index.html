@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V5.5</title>
+    <title>TELEJUR CHECKLIST V6.0</title>
     <style>
         :root { --primary: #1a237e; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -41,7 +41,7 @@
                     <option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
                 </select>
             </div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="..."></div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Carregando..."></div>
         </div>
 
         <div class="grid">
@@ -85,6 +85,7 @@
     function puxarDados() {
         const tag = document.getElementById('tag').value;
         if(!tag) return;
+        document.getElementById('condID').value = "Buscando...";
         const s = document.createElement('script');
         s.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&callback=preencherCampos&t=${Date.now()}`;
         document.body.appendChild(s);
@@ -100,11 +101,12 @@
     async function enviar(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnS') : document.getElementById('btnC');
         btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
+        
         const agora = new Date();
         const dataH = agora.toLocaleDateString('pt-BR');
         const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+        
         let p = {};
-
         if(tipo === 'SAIDA') {
             p = {
                 tipo: 'SAIDA', data: dataH, horaInic: horaH,
@@ -121,26 +123,28 @@
                 valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value
             };
-            localStorage.setItem('tjur_final_v1', JSON.stringify(p));
+            localStorage.setItem('tjur_v6', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_final_v1'));
+            const d = JSON.parse(localStorage.getItem('tjur_v6'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-        let textoZap = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*KM Final:* ${p.kmf}`;
-        window.open(`https://api.whatsapp.com/send?text=${textoZap}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_final_v1');
-        setTimeout(() => location.reload(), 1500);
+        
+        let msg = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR*%0A*TAG:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR*%0A*TAG:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*KM Final:* ${p.kmf}`;
+        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+        
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v6');
+        setTimeout(() => location.reload(), 1000);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_final_v1');
+        const salvo = localStorage.getItem('tjur_v6');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
             document.getElementById('secaoChegada').classList.remove('hidden');
-            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 Saída: ${d.horaInic}`;
+            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 ${d.horaInic}`;
         }
     };
 </script>
