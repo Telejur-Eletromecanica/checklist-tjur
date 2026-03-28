@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA TELEJUR v18.2</title>
+    <title>SISTEMA TELEJUR v18.5</title>
     <style>
         :root { --primary: #1a237e; --danger: #c62828; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -138,21 +138,24 @@
         }
 
         try {
-            // CORREÇÃO FINAL: Envia como Blob (texto simples) para evitar bloqueio do Google
             const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain' });
             await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: blob });
             
-            // WHATSAPP DETALHADO
-            let msg = `*${tipo === 'SAIDA' ? '🟢 INÍCIO DE TRAJETO' : '🏁 FIM DE TRAJETO'} - TELEJUR*%0A%0A`;
-            msg += `*TAG:* ${payload.tag}%0A*Motorista:* ${payload.nome}%0A*Veículo:* ${payload.veiculo}%0A`;
-            msg += `*Placa:* ${payload.placa}%0A*KM:* ${tipo === 'SAIDA' ? payload.kmi : payload.kmf}%0A`;
-            if(tipo === 'CHEGADA') msg += `*Obs Chegada:* ${payload.obsC}`;
-            else msg += `*Obs Saída:* ${payload.obsS}`;
+            // MENSAGEM WHATSAPP COMPLETA
+            let msg = `*${tipo === 'SAIDA' ? '🟢 INÍCIO' : '🏁 FIM'} - TELEJUR*%0A*TAG:* ${payload.tag}%0A*Motorista:* ${payload.nome}%0A*KM:* ${tipo === 'SAIDA' ? payload.kmi : payload.kmf}`;
 
             window.open(`https://wa.me/?text=${msg}`, '_blank');
+            
             if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
-            setTimeout(() => location.reload(), 1500);
-        } catch (e) { alert("Erro ao salvar!"); btn.disabled = false; }
+            
+            setTimeout(() => {
+                location.reload();
+            }, 2000); 
+
+        } catch (e) { 
+            alert("Erro ao conectar com a planilha!"); 
+            btn.disabled = false; 
+        }
     }
 
     function renderFrota(tagAtiva = null) {
@@ -161,6 +164,7 @@
 
     function calcularResta() {
         const d = JSON.parse(localStorage.getItem("tjur_cache"));
+        if(!d) return;
         const kmf = limparNum(document.getElementById('kmf').value);
         const prox = limparNum(d.proxOleo);
         const diff = prox - kmf;
