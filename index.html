@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V6.0</title>
+    <title>CHECKLIST TELEJUR V7.0</title>
     <style>
         :root { --primary: #1a237e; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -41,7 +41,7 @@
                     <option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
                 </select>
             </div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Carregando..."></div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="..."></div>
         </div>
 
         <div class="grid">
@@ -101,12 +101,11 @@
     async function enviar(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnS') : document.getElementById('btnC');
         btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
-        
         const agora = new Date();
         const dataH = agora.toLocaleDateString('pt-BR');
         const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-        
         let p = {};
+
         if(tipo === 'SAIDA') {
             p = {
                 tipo: 'SAIDA', data: dataH, horaInic: horaH,
@@ -121,25 +120,31 @@
                 tipoOleo: document.getElementById('tpO').value,
                 corSelo: document.getElementById('corS').value,
                 valSelo: document.getElementById('valS').value,
-                obs: document.getElementById('obs').value
+                obs: document.getElementById('obs').value || "SEM OBS"
             };
-            localStorage.setItem('tjur_v6', JSON.stringify(p));
+            localStorage.setItem('tjur_v7', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v6'));
+            const d = JSON.parse(localStorage.getItem('tjur_v7'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-        
-        let msg = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR*%0A*TAG:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR*%0A*TAG:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*KM Final:* ${p.kmf}`;
-        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v6');
-        setTimeout(() => location.reload(), 1000);
+
+        // MENSAGEM WHATSAPP COMPLETA CONFORME SOLICITADO
+        let textoZap = "";
+        if(tipo === 'SAIDA') {
+            textoZap = `🚀 *SAÍDA TELEJUR*%0A*Data:* ${p.data}%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Nome:* ${p.nome}%0A*KM Inicial:* ${p.kmi}%0A*Hora Início:* ${p.horaInic}%0A*Veículo:* ${p.veiculo}%0A*Placa:* ${p.placa}%0A*Nº Trajeto:* ${p.numT}%0A*Próx. Óleo:* ${p.proxOleo}%0A*Tipo Óleo:* ${p.tipoOleo}%0A*Selo:* ${p.corSelo} (${p.valSelo})%0A*Obs:* ${p.obs}`;
+        } else {
+            textoZap = `🏁 *CHEGADA TELEJUR*%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*KM Final:* ${p.kmf}%0A*Hora Fim:* ${p.horaFim}%0A*Status:* CONCLUÍDO`;
+        }
+
+        window.open(`https://api.whatsapp.com/send?text=${textoZap}`, '_blank');
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v7');
+        setTimeout(() => location.reload(), 1500);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v6');
+        const salvo = localStorage.getItem('tjur_v7');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
