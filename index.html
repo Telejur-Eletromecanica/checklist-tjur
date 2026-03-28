@@ -3,35 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHECKLIST V5</title>
+    <title>TELEJUR CHECKLIST V5</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 10px; margin: 0; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+        h3 { font-size: 12px; color: #1a237e; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 15px; }
+        label { font-size: 10px; font-weight: bold; color: #666; display: block; margin-top: 8px; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 2px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; margin-top: 15px; }
         .btn-saida { background: #1a237e; }
         .btn-chegada { background: #075e54; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .hidden { display: none; }
-        label { font-size: 12px; font-weight: bold; color: #555; }
+        input[readonly] { background: #f9f9f9; color: #1a237e; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:#1a237e">TELEJUR CHECKLIST</h2>
+    <h2 style="text-align:center; color:#1a237e; margin:0">CHECKLIST TELEJUR</h2>
 
     <div id="formSaida">
+        <h3>👤 IDENTIFICAÇÃO</h3>
         <label>Motorista</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
             <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option>
-            <option>REGINALDO</option><option>WALTER GONÇALVES</option>
+            <option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
         </select>
 
         <div class="grid">
-            <div><label>TAG</label><select id="tag" onchange="buscarDados()"><option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option></select></div>
-            <div><label>ID DO DIA</label><input type="text" id="condutorID" readonly></div>
+            <div><label>TAG</label><select id="tag" onchange="buscar()"><option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option></select></div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly></div>
         </div>
 
         <div class="grid">
@@ -44,38 +47,39 @@
             <div><label>Nº Trajeto</label><input type="number" id="numT" value="1"></div>
         </div>
 
+        <h3>🛠️ MANUTENÇÃO / SELO</h3>
         <div class="grid">
-            <div><label>Próx. Troca Óleo</label><input type="number" id="proxOleo"></div>
-            <div><label>Tipo Óleo</label><select id="tipoOleo"><option>5W30</option><option>10W40</option><option>15W40</option></select></div>
+            <div><label>Próx. Troca Óleo</label><input type="number" id="pxO"></div>
+            <div><label>Tipo Óleo</label><select id="tpO"><option>5W30</option><option>10W40</option><option>15W40</option></select></div>
         </div>
 
         <div class="grid">
-            <div><label>Cor Selo</label><select id="corSelo"><option>VERDE</option><option>AZUL</option><option>AMARELO</option><option>VERMELHO</option></select></div>
-            <div><label>Validade Selo</label><input type="date" id="valSelo"></div>
+            <div><label>Cor Selo</label><select id="corS"><option>VERDE</option><option>AZUL</option><option>AMARELO</option><option>VERMELHO</option></select></div>
+            <div><label>Validade Selo</label><input type="date" id="valS"></div>
         </div>
 
         <label>Observações</label>
         <textarea id="obs" rows="2"></textarea>
 
-        <button class="btn btn-saida" onclick="enviar('SAIDA')">INICIAR VIAGEM</button>
+        <button class="btn btn-saida" onclick="enviar('SAIDA')">INICIAR SAÍDA</button>
     </div>
 
     <div id="formChegada" class="hidden">
-        <div id="infoSaida" style="background:#fff9c4; padding:10px; border-radius:6px; margin-bottom:10px; font-size:13px"></div>
+        <div id="infoSaida" style="background:#fff9c4; padding:10px; border-radius:6px; margin-bottom:15px; font-size:13px; border:1px solid #fbc02d"></div>
         <label>KM Final</label>
         <input type="number" id="kmf">
-        <button class="btn btn-chegada" onclick="enviar('CHEGADA')">CONCLUIR VIAGEM</button>
+        <button class="btn btn-chegada" onclick="enviar('CHEGADA')">CONCLUIR CHEGADA</button>
     </div>
 </div>
 
 <script>
-    const API = "SUA_NOVA_URL_AQUI"; // COLE A URL DA IMPLANTAÇÃO AQUI
+    const API = "URL_DO_SEU_SCRIPT_AQUI"; // Cole aqui a URL gerada na implantação
 
-    function buscarDados() {
+    function buscar() {
         const tag = document.getElementById('tag').value;
         if(!tag) return;
         const s = document.createElement('script');
-        s.src = `${API}?acao=buscarDadosVei&tag=${tag}&callback=preencher`;
+        s.src = `${API}?acao=buscarDadosVei&tag=${tag}&callback=preencher&t=${Date.now()}`;
         document.body.appendChild(s);
     }
 
@@ -83,7 +87,7 @@
         document.getElementById('vei').value = d.veiculo;
         document.getElementById('pla').value = d.placa;
         document.getElementById('kmi').value = d.kmi;
-        document.getElementById('condutorID').value = d.condutorSugerido;
+        document.getElementById('condID').value = d.condutorSugerido;
     }
 
     async function enviar(tipo) {
@@ -96,37 +100,40 @@
             p = {
                 tipo: 'SAIDA', data, horaInic: hora,
                 tag: document.getElementById('tag').value,
-                condutorID: document.getElementById('condutorID').value,
+                condutorID: document.getElementById('condID').value,
                 nome: document.getElementById('nomeMot').value,
                 kmi: document.getElementById('kmi').value,
                 veiculo: document.getElementById('vei').value,
                 placa: document.getElementById('pla').value,
                 numT: document.getElementById('numT').value,
-                proxOleo: document.getElementById('proxOleo').value,
-                tipoOleo: document.getElementById('tipoOleo').value,
-                corSelo: document.getElementById('corSelo').value,
-                validadeSelo: document.getElementById('valSelo').value,
+                proxOleo: document.getElementById('pxO').value,
+                tipoOleo: document.getElementById('tpO').value,
+                corSelo: document.getElementById('corS').value,
+                valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value
             };
-            localStorage.setItem('trip', JSON.stringify(p));
+            localStorage.setItem('tjur_v5', JSON.stringify(p));
         } else {
-            const salvo = JSON.parse(localStorage.getItem('trip'));
+            const salvo = JSON.parse(localStorage.getItem('tjur_v5'));
             p = { ...salvo, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: hora };
         }
 
         await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-        alert("Enviado com sucesso!");
-        if(tipo === 'CHEGADA') localStorage.removeItem('trip');
-        location.reload();
+        
+        let tZap = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*KM Final:* ${p.kmf}`;
+        window.open(`https://api.whatsapp.com/send?text=${tZap}`, '_blank');
+        
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v5');
+        setTimeout(() => location.reload(), 1000);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('trip');
+        const salvo = localStorage.getItem('tjur_v5');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('formSaida').className = 'hidden';
             document.getElementById('formChegada').className = '';
-            document.getElementById('infoSaida').innerHTML = `<b>Veículo:</b> ${d.tag} (${d.condutorID})<br><b>Motorista:</b> ${d.nome}`;
+            document.getElementById('infoSaida').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 ${d.horaInic}`;
         }
     };
 </script>
