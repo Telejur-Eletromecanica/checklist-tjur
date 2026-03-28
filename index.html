@@ -3,33 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR V8.0 - 18 COLUNAS</title>
+    <title>TELEJUR V9.0</title>
     <style>
-        :root { --primary: #1a237e; --bg: #f4f7f9; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
+        :root { --primary: #1a237e; }
+        body { font-family: sans-serif; background: #f4f7f9; margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h3 { font-size: 11px; color: var(--primary); border-bottom: 1px solid #ddd; padding-bottom: 5px; text-transform: uppercase; margin-top: 15px; }
         label { display: block; font-weight: bold; font-size: 10px; margin-top: 8px; color: #555; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 3px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 3px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; }
         .btn-saida { background: var(--primary); }
         .btn-chegada { background: #075e54; }
-        .resta-box { background: #e8eaf6; padding: 10px; border-radius: 6px; text-align: center; margin-top: 10px; font-weight: bold; color: #1a237e; }
+        .resta-box { background: #e8eaf6; padding: 10px; border-radius: 6px; text-align: center; margin-top: 10px; font-weight: bold; color: #1a237e; border: 1px solid var(--primary); }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0">📋 CHECKLIST COMPLETO</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0">📋 CHECKLIST TELEJUR</h2>
 
     <div id="secaoSaida">
-        <label>Motorista Responsável</label>
+        <label>Motorista</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
-            <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option>
-            <option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
+            <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
         </select>
 
         <div class="grid">
@@ -38,21 +36,20 @@
         </div>
 
         <div class="grid">
+            <div><label>KM Inicial</label><input type="text" id="kmi" oninput="calcularResta()"></div>
+            <div><label>Próx. Troca (KM)</label><input type="text" id="pxO" oninput="calcularResta()"></div>
+        </div>
+        <div id="restaAviso" class="resta-box">Resta para troca: -</div>
+
+        <div class="grid">
             <div><label>Veículo</label><input type="text" id="vei" readonly></div>
             <div><label>Placa</label><input type="text" id="pla" readonly></div>
         </div>
 
         <div class="grid">
-            <div><label>KM Inicial</label><input type="number" id="kmi" oninput="calcularResta()"></div>
             <div><label>Nº Trajeto</label><input type="number" id="numT" value="1"></div>
-        </div>
-
-        <h3>🛠️ MANUTENÇÃO</h3>
-        <div class="grid">
-            <div><label>Próx. Troca (KM)</label><input type="number" id="pxO" oninput="calcularResta()"></div>
             <div><label>Tipo Óleo</label><select id="tpO"><option>5W30</option><option>10W40</option><option>15W40</option></select></div>
         </div>
-        <div id="restaAviso" class="resta-box">Resta para troca: -</div>
 
         <div class="grid">
             <div><label>Cor Selo</label><select id="corS"><option>VERDE</option><option>AZUL</option><option>AMARELO</option><option>VERMELHO</option></select></div>
@@ -60,21 +57,22 @@
         </div>
 
         <label>Observações</label>
-        <textarea id="obs" rows="2" placeholder="Opcional..."></textarea>
-
+        <textarea id="obs" rows="2"></textarea>
         <button onclick="enviar('SAIDA')" class="btn btn-saida" id="btnS">🚀 INICIAR SAÍDA</button>
     </div>
 
     <div id="secaoChegada" class="hidden">
-        <div id="resumo" style="background:#fff9c4; padding:12px; border-radius:8px; font-size:13px; margin-bottom:15px; border:1px solid #fbc02d"></div>
+        <div id="resumo" style="background:#fff9c4; padding:12px; border-radius:8px; margin-bottom:15px;"></div>
         <label>KM Final de Chegada</label>
-        <input type="number" id="kmf">
+        <input type="text" id="kmf">
         <button onclick="enviar('CHEGADA')" class="btn btn-chegada" id="btnC">🏁 CONCLUIR CHEGADA</button>
     </div>
 </div>
 
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+
+    function limparTextoNum(t) { return t.toString().replace(/[\.\,]/g, ''); }
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
@@ -94,8 +92,8 @@
     }
 
     function calcularResta() {
-        const kmi = document.getElementById('kmi').value;
-        const pxo = document.getElementById('pxO').value;
+        const kmi = limparTextoNum(document.getElementById('kmi').value);
+        const pxo = limparTextoNum(document.getElementById('pxO').value);
         if(kmi && pxo) {
             document.getElementById('restaAviso').innerText = "Resta para troca: " + (pxo - kmi) + " KM";
         }
@@ -103,7 +101,7 @@
 
     async function enviar(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnS') : document.getElementById('btnC');
-        btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
+        btn.disabled = true; btn.innerText = "GRAVANDO...";
         const agora = new Date();
         const dataH = agora.toLocaleDateString('pt-BR');
         const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
@@ -125,29 +123,25 @@
                 valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value || "S/O"
             };
-            localStorage.setItem('tjur_v8', JSON.stringify(p));
+            localStorage.setItem('tjur_v9', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v8'));
+            const d = JSON.parse(localStorage.getItem('tjur_v9'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
 
-        // WHATSAPP COM AS 18 INFORMAÇÕES
-        let msg = "";
-        if(tipo === 'SAIDA') {
-            msg = `🚀 *SAÍDA TELEJUR*%0A*Data:* ${p.data}%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Motorista:* ${p.nome}%0A*KM Inicial:* ${p.kmi}%0A*Hora Início:* ${p.horaInic}%0A*Veículo:* ${p.veiculo}%0A*Placa:* ${p.placa}%0A*Nº Trajeto:* ${p.numT}%0A*Próx. Troca:* ${p.proxOleo}%0A*Tipo Óleo:* ${p.tipoOleo}%0A*Selo:* ${p.corSelo} (${p.valSelo})%0A*Resta:* ${p.proxOleo - p.kmi} KM`;
-        } else {
-            msg = `🏁 *CHEGADA TELEJUR*%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*KM Final:* ${p.kmf}%0A*Hora Fim:* ${p.horaFim}%0A*Status:* CONCLUÍDO%0A*Resta Atual:* ${p.proxOleo - p.kmf} KM`;
-        }
+        let msg = tipo === 'SAIDA' ? 
+            `🚀 *SAÍDA TELEJUR*%0A*Data:* ${p.data}%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Motorista:* ${p.nome}%0A*KM Inicial:* ${p.kmi}%0A*Hora Início:* ${p.horaInic}%0A*Resta:* ${limparTextoNum(p.proxOleo) - limparTextoNum(p.kmi)} KM` : 
+            `🏁 *CHEGADA TELEJUR*%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*KM Final:* ${p.kmf}%0A*Status:* CONCLUÍDO`;
 
         window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v8');
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v9');
         setTimeout(() => location.reload(), 1000);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v8');
+        const salvo = localStorage.getItem('tjur_v9');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
