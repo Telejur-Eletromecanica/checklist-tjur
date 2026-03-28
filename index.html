@@ -21,9 +21,7 @@
         .section-titulo { background: #e8eaf6; padding: 8px; border-radius: 5px; color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
         .resumo-saida { background: #fffde7; padding: 15px; border-radius: 10px; border-left: 5px solid #fbc02d; margin-bottom: 15px; font-size: 13px; }
-        
-        /* Efeito de destaque para o condutor automático */
-        .auto-select { border: 2px solid var(--primary) !important; background-color: #e8eaf6 !important; transition: 0.5s; }
+        .auto-select { border: 2px solid var(--primary) !important; background-color: #e8eaf6 !important; }
     </style>
 </head>
 <body>
@@ -113,8 +111,6 @@
         const tag = document.getElementById('tag').value;
         if(!tag) return;
         renderFrota(tag);
-        
-        // Exibe um feedback visual de carregamento nos campos
         document.getElementById('veiculoNome').value = "Buscando...";
         
         const script = document.createElement('script');
@@ -128,12 +124,9 @@
         document.getElementById('kmi').value = data.kmi || "";
         if(data.proxOleo) document.getElementById('proxOleo').value = data.proxOleo;
 
-        // --- LÓGICA DE CONDUTOR AUTOMÁTICO ---
         if(data.condutorSugerido) {
             const campoCondutor = document.getElementById('condutor');
             campoCondutor.value = data.condutorSugerido;
-            
-            // Feedback Visual
             campoCondutor.classList.add('auto-select');
             setTimeout(() => campoCondutor.classList.remove('auto-select'), 2000);
         }
@@ -141,6 +134,7 @@
 
     async function processarEnvio(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnAcao') : document.getElementById('btnAcaoFim');
+        const originalText = btn.innerText;
         btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
         
         let payload = {};
@@ -165,7 +159,7 @@
             };
             if(!payload.nome || !payload.tag || !payload.kmi) { 
                 alert("Preencha Motorista, TAG e KM!"); 
-                btn.disabled = false; btn.innerText = "📲 INICIAR TRAJETO"; 
+                btn.disabled = false; btn.innerText = originalText; 
                 return; 
             }
             localStorage.setItem("tjur_cache", JSON.stringify(payload));
@@ -179,25 +173,31 @@
                 obsC: document.getElementById('obsFinal').value,
                 statusManutencao: document.getElementById('restaTroca').value
             };
-            if(!payload.kmf) { 
-                alert("Informe o KM Final!"); 
-                btn.disabled = false; btn.innerText = "🏁 FINALIZAR TRAJETO"; 
-                return; 
-            }
+            if(!payload.kmf) { alert("Informe o KM Final!"); btn.disabled = false; btn.innerText = originalText; return; }
         }
 
         try {
             const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain' });
             await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: blob });
             
+            // --- DISPARO WHATSAPP ---
+            let msg = "";
+            if(payload.tipo === "SAIDA") {
+                msg = `🚀 *SAÍDA TELEJUR*%0A*TAG:* ${payload.tag}%0A*Motorista:* ${payload.nome}%0A*Condutor:* ${payload.condutor}%0A*KM:* ${payload.kmi}%0A*Saída:* ${payload.horaInic}`;
+            } else {
+                msg = `🏁 *CHEGADA TELEJUR*%0A*TAG:* ${payload.tag}%0A*Motorista:* ${payload.nome}%0A*KM Final:* ${payload.kmf}%0A*Chegada:* ${payload.horaFim}%0A*Status:* ${payload.statusManutencao}`;
+            }
+            
+            // Abre o WhatsApp (Número de exemplo, ajuste se necessário)
+            window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+
             if(tipo === 'CHEGADA') localStorage.removeItem("tjur_cache");
             
-            alert("Dados gravados com sucesso!");
+            alert("Sucesso! Abrindo WhatsApp...");
             setTimeout(() => { location.reload(); }, 1000);
         } catch (e) { 
-            alert("Erro de conexão com a planilha!"); 
-            btn.disabled = false; 
-            btn.innerText = (tipo === 'SAIDA') ? "📲 INICIAR TRAJETO" : "🏁 FINALIZAR TRAJETO";
+            alert("Erro ao gravar dados!"); 
+            btn.disabled = false; btn.innerText = originalText;
         }
     }
 
@@ -226,9 +226,7 @@
             document.getElementById('displayResumo').innerHTML = `🚗 <b>${d.tag}</b> | Saída: ${d.kmi} | 👤 ${d.nome}`;
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             renderFrota(d.tag);
-        } else { 
-            renderFrota(); 
-        }
+        } else { renderFrota(); }
     };
 </script>
 </body>
