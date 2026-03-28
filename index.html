@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V5.1</title>
+    <title>TELEJUR CHECKLIST V5.2</title>
     <style>
         :root { --primary: #1a237e; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -36,9 +36,9 @@
             <div>
                 <label>TAG</label>
                 <select id="tag" onchange="puxarDados()">
-                    <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option>
-                    <option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option>
-                    <option>TJUR 10</option><option>TJUR 13</option>
+                    <option value="">--</option>
+                    <option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option>
+                    <option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
                 </select>
             </div>
             <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="..."></div>
@@ -80,13 +80,13 @@
 </div>
 
 <script>
-    const URL_API = "COLOQUE_SUA_URL_AQUI"; // Cole a URL do Google aqui
+    const URL_API = "COLOQUE_SUA_URL_AQUI"; // <--- COLOQUE A URL DO GOOGLE AQUI
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
         if(!tag) return;
         const s = document.createElement('script');
-        s.src = `${URL_API}?acao=buscarDadosVei&tag=${tag}&callback=preencherCampos&t=${Date.now()}`;
+        s.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&callback=preencherCampos&t=${Date.now()}`;
         document.body.appendChild(s);
     }
 
@@ -100,7 +100,6 @@
     async function enviar(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnS') : document.getElementById('btnC');
         btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
-
         const agora = new Date();
         const dataH = agora.toLocaleDateString('pt-BR');
         const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
@@ -122,23 +121,21 @@
                 valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value
             };
-            localStorage.setItem('tjur_v51', JSON.stringify(p));
+            localStorage.setItem('tjur_session', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v51'));
+            const d = JSON.parse(localStorage.getItem('tjur_session'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
-        try {
-            await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-            let textoZap = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*KM Final:* ${p.kmf}`;
-            window.open(`https://api.whatsapp.com/send?text=${textoZap}`, '_blank');
-            if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v51');
-            setTimeout(() => location.reload(), 1000);
-        } catch (e) { alert("Erro ao enviar!"); btn.disabled = false; }
+        await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
+        let textoZap = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*KM Final:* ${p.kmf}`;
+        window.open(`https://api.whatsapp.com/send?text=${textoZap}`, '_blank');
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_session');
+        setTimeout(() => location.reload(), 1500);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v51');
+        const salvo = localStorage.getItem('tjur_session');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
