@@ -2,30 +2,30 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TELEJUR CHECKLIST V5</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TELEJUR CHECKLIST V5.1</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 10px; margin: 0; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        h3 { font-size: 12px; color: #1a237e; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 15px; }
-        label { font-size: 10px; font-weight: bold; color: #666; display: block; margin-top: 8px; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 2px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; margin-top: 15px; }
-        .btn-saida { background: #1a237e; }
+        :root { --primary: #1a237e; --bg: #f4f7f9; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
+        .card { max-width: 480px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h3 { font-size: 11px; color: var(--primary); border-bottom: 1px solid #ddd; padding-bottom: 5px; text-transform: uppercase; margin-top: 15px; }
+        label { display: block; font-weight: bold; font-size: 10px; margin-top: 8px; color: #555; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 3px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; color: white; }
+        .btn-saida { background: var(--primary); }
         .btn-chegada { background: #075e54; }
         .hidden { display: none; }
-        input[readonly] { background: #f9f9f9; color: #1a237e; }
+        input[readonly] { background: #f8f9fa; color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:#1a237e; margin:0">CHECKLIST TELEJUR</h2>
+    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 CHECKLIST</h2>
 
-    <div id="formSaida">
-        <h3>👤 IDENTIFICAÇÃO</h3>
-        <label>Motorista</label>
+    <div id="secaoSaida">
+        <label>Motorista Responsável</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
             <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option>
@@ -33,8 +33,15 @@
         </select>
 
         <div class="grid">
-            <div><label>TAG</label><select id="tag" onchange="buscar()"><option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option></select></div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly></div>
+            <div>
+                <label>TAG</label>
+                <select id="tag" onchange="puxarDados()">
+                    <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option>
+                    <option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option>
+                    <option>TJUR 10</option><option>TJUR 13</option>
+                </select>
+            </div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="..."></div>
         </div>
 
         <div class="grid">
@@ -49,7 +56,7 @@
 
         <h3>🛠️ MANUTENÇÃO / SELO</h3>
         <div class="grid">
-            <div><label>Próx. Troca Óleo</label><input type="number" id="pxO"></div>
+            <div><label>Próx. Troca (KM)</label><input type="number" id="pxO"></div>
             <div><label>Tipo Óleo</label><select id="tpO"><option>5W30</option><option>10W40</option><option>15W40</option></select></div>
         </div>
 
@@ -61,44 +68,47 @@
         <label>Observações</label>
         <textarea id="obs" rows="2"></textarea>
 
-        <button class="btn btn-saida" onclick="enviar('SAIDA')">INICIAR SAÍDA</button>
+        <button onclick="enviar('SAIDA')" class="btn btn-saida" id="btnS">🚀 INICIAR SAÍDA</button>
     </div>
 
-    <div id="formChegada" class="hidden">
-        <div id="infoSaida" style="background:#fff9c4; padding:10px; border-radius:6px; margin-bottom:15px; font-size:13px; border:1px solid #fbc02d"></div>
-        <label>KM Final</label>
+    <div id="secaoChegada" class="hidden">
+        <div id="resumo" style="background:#fff9c4; padding:12px; border-radius:8px; font-size:13px; margin-bottom:15px; border:1px solid #fbc02d"></div>
+        <label>KM Final de Chegada</label>
         <input type="number" id="kmf">
-        <button class="btn btn-chegada" onclick="enviar('CHEGADA')">CONCLUIR CHEGADA</button>
+        <button onclick="enviar('CHEGADA')" class="btn btn-chegada" id="btnC">🏁 CONCLUIR CHEGADA</button>
     </div>
 </div>
 
 <script>
-    const API = "URL_DO_SEU_SCRIPT_AQUI"; // Cole aqui a URL gerada na implantação
+    const URL_API = "COLOQUE_SUA_URL_AQUI"; // Cole a URL do Google aqui
 
-    function buscar() {
+    function puxarDados() {
         const tag = document.getElementById('tag').value;
         if(!tag) return;
         const s = document.createElement('script');
-        s.src = `${API}?acao=buscarDadosVei&tag=${tag}&callback=preencher&t=${Date.now()}`;
+        s.src = `${URL_API}?acao=buscarDadosVei&tag=${tag}&callback=preencherCampos&t=${Date.now()}`;
         document.body.appendChild(s);
     }
 
-    function preencher(d) {
-        document.getElementById('vei').value = d.veiculo;
-        document.getElementById('pla').value = d.placa;
-        document.getElementById('kmi').value = d.kmi;
-        document.getElementById('condID').value = d.condutorSugerido;
+    function preencherCampos(d) {
+        document.getElementById('vei').value = d.veiculo || "";
+        document.getElementById('pla').value = d.placa || "";
+        document.getElementById('kmi').value = d.kmi || "";
+        document.getElementById('condID').value = d.condutorSugerido || "CONDUTOR 1";
     }
 
     async function enviar(tipo) {
+        const btn = tipo === 'SAIDA' ? document.getElementById('btnS') : document.getElementById('btnC');
+        btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
+
         const agora = new Date();
-        const data = agora.toLocaleDateString('pt-BR');
-        const hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+        const dataH = agora.toLocaleDateString('pt-BR');
+        const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
         let p = {};
 
         if(tipo === 'SAIDA') {
             p = {
-                tipo: 'SAIDA', data, horaInic: hora,
+                tipo: 'SAIDA', data: dataH, horaInic: horaH,
                 tag: document.getElementById('tag').value,
                 condutorID: document.getElementById('condID').value,
                 nome: document.getElementById('nomeMot').value,
@@ -112,28 +122,28 @@
                 valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value
             };
-            localStorage.setItem('tjur_v5', JSON.stringify(p));
+            localStorage.setItem('tjur_v51', JSON.stringify(p));
         } else {
-            const salvo = JSON.parse(localStorage.getItem('tjur_v5'));
-            p = { ...salvo, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: hora };
+            const d = JSON.parse(localStorage.getItem('tjur_v51'));
+            p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
-        await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-        
-        let tZap = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*KM Final:* ${p.kmf}`;
-        window.open(`https://api.whatsapp.com/send?text=${tZap}`, '_blank');
-        
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v5');
-        setTimeout(() => location.reload(), 1000);
+        try {
+            await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
+            let textoZap = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*KM Final:* ${p.kmf}`;
+            window.open(`https://api.whatsapp.com/send?text=${textoZap}`, '_blank');
+            if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v51');
+            setTimeout(() => location.reload(), 1000);
+        } catch (e) { alert("Erro ao enviar!"); btn.disabled = false; }
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v5');
+        const salvo = localStorage.getItem('tjur_v51');
         if(salvo) {
             const d = JSON.parse(salvo);
-            document.getElementById('formSaida').className = 'hidden';
-            document.getElementById('formChegada').className = '';
-            document.getElementById('infoSaida').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 ${d.horaInic}`;
+            document.getElementById('secaoSaida').classList.add('hidden');
+            document.getElementById('secaoChegada').classList.remove('hidden');
+            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 ${d.horaInic}`;
         }
     };
 </script>
