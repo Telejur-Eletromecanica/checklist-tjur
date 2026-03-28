@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V5.2</title>
+    <title>TELEJUR CHECKLIST V5.3</title>
     <style>
         :root { --primary: #1a237e; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -80,7 +80,7 @@
 </div>
 
 <script>
-    const URL_API = "COLOQUE_SUA_URL_AQUI"; // <--- COLOQUE A URL DO GOOGLE AQUI
+    const URL_API = "COLOQUE_AQUI_A_URL_DO_GOOGLE"; // <--- IMPORTANTE: COLE A URL AQUI
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
@@ -121,21 +121,21 @@
                 valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value
             };
-            localStorage.setItem('tjur_session', JSON.stringify(p));
+            localStorage.setItem('tjur_v53', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_session'));
+            const d = JSON.parse(localStorage.getItem('tjur_v53'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
         let textoZap = tipo === 'SAIDA' ? `🚀 *SAÍDA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*Mot:* ${p.nome}` : `🏁 *CHEGADA TELEJUR* (${p.condutorID})%0A*TAG:* ${p.tag}%0A*KM Final:* ${p.kmf}`;
         window.open(`https://api.whatsapp.com/send?text=${textoZap}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_session');
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v53');
         setTimeout(() => location.reload(), 1500);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_session');
+        const salvo = localStorage.getItem('tjur_v53');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
