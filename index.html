@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR v4.0 - COMPLETO</title>
+    <title>TELEJUR v4.1 - ID DINÂMICO</title>
     <style>
         :root { --primary: #1a237e; --success: #25d366; --bg: #f0f4f8; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; font-size: 14px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h3 { font-size: 13px; color: var(--primary); border-bottom: 1px solid #ddd; padding-bottom: 5px; margin: 15px 0 5px 0; text-transform: uppercase; }
+        h3 { font-size: 11px; color: var(--primary); border-bottom: 1px solid #ddd; padding-bottom: 5px; margin: 15px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
         label { display: block; font-weight: bold; font-size: 10px; margin-top: 8px; color: #666; }
         input, select, textarea { width: 100%; padding: 10px; margin-top: 3px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; background: var(--success); }
         .hidden { display: none; }
-        input[readonly] { background: #f1f3f4; color: #555; }
+        input[readonly] { background: #f1f3f4; color: #1a237e; font-weight: bold; }
         #restaTroca { font-size: 20px; color: red; text-align: center; border: 2px solid red; background: #fff1f1; font-weight: bold; }
     </style>
 </head>
@@ -24,7 +24,7 @@
     <h2 style="text-align:center; margin:0 0 10px 0; color:var(--primary)">📋 CHECKLIST TELEJUR</h2>
     
     <div id="secaoInicial">
-        <h3>👤 MOTORISTA E VEÍCULO</h3>
+        <h3>👤 IDENTIFICAÇÃO</h3>
         <label>Motorista Responsável</label>
         <select id="nomeMot">
             <option value="">-- SELECIONE --</option>
@@ -41,7 +41,7 @@
                     <option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
                 </select>
             </div>
-            <div><label>Último Condutor</label><input type="text" id="condutor" readonly></div>
+            <div><label>ID DO DIA</label><input type="text" id="condutorID" readonly placeholder="Calculando..."></div>
         </div>
 
         <div class="grid-2">
@@ -76,7 +76,7 @@
         </div>
 
         <label>Observações de Saída</label>
-        <textarea id="obs" rows="2" placeholder="Ex: Pneu reserva murcho..."></textarea>
+        <textarea id="obs" rows="2" placeholder="Ex: Tudo OK..."></textarea>
 
         <button onclick="processarEnvio('SAIDA')" class="btn" id="btnAcao">📲 INICIAR E ENVIAR ZAP</button>
     </div>
@@ -84,7 +84,7 @@
     <div id="secaoFinal" class="hidden">
         <div id="resumoSaida" style="background:#fff9c4; padding:10px; border-radius:8px; font-size:12px; margin-bottom:10px; border:1px dashed #fbc02d"></div>
         
-        <h3>🏁 FINALIZAÇÃO DO TRAJETO</h3>
+        <h3>🏁 FINALIZAÇÃO</h3>
         <div class="grid-2">
             <div><label>Hora Chegada</label><input type="text" id="horaFim" readonly></div>
             <div><label>KM Final</label><input type="text" id="kmf" inputmode="numeric" oninput="calcularResta()"></div>
@@ -105,6 +105,7 @@
     function autoPreencher() {
         const tag = document.getElementById('tag').value;
         if(!tag) return;
+        document.getElementById('condutorID').value = "Buscando...";
         const script = document.createElement('script');
         script.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&callback=retornoPlanilha&t=${Date.now()}`;
         document.body.appendChild(script);
@@ -115,12 +116,12 @@
         document.getElementById('veiculoNome').value = data.veiculo || "";
         document.getElementById('placa').value = data.placa || "";
         document.getElementById('kmi').value = data.kmi || "";
-        document.getElementById('condutor').value = data.condutorSugerido || "1º DO DIA";
+        document.getElementById('condutorID').value = data.condutorSugerido || "CONDUTOR 1";
     }
 
     async function processarEnvio(tipo) {
         const btn = tipo === 'SAIDA' ? document.getElementById('btnAcao') : document.getElementById('btnAcaoFim');
-        btn.disabled = true; btn.innerText = "⏳ GRAVANDO...";
+        btn.disabled = true; btn.innerText = "⏳ PROCESSANDO...";
         
         const agora = new Date();
         const dataH = agora.toLocaleDateString('pt-BR');
@@ -130,15 +131,16 @@
         if(tipo === 'SAIDA') {
             payload = {
                 tipo: 'SAIDA', data: dataH, tag: document.getElementById('tag').value,
+                condutorID: document.getElementById('condutorID').value, // Vai para coluna C
                 nome: document.getElementById('nomeMot').value, kmi: limparNum(document.getElementById('kmi').value),
                 placa: document.getElementById('placa').value, veiculo: document.getElementById('veiculoNome').value,
                 numT: document.getElementById('numTrajeto').value, proxOleo: limparNum(document.getElementById('proxOleo').value),
                 corSelo: document.getElementById('corSelo').value, validadeSelo: document.getElementById('validadeSelo').value,
                 tipoOleo: document.getElementById('tipoOleo').value, obs: document.getElementById('obs').value, horaInic: horaH
             };
-            localStorage.setItem("tjur_v4", JSON.stringify(payload));
+            localStorage.setItem("tjur_v41", JSON.stringify(payload));
         } else {
-            const d = JSON.parse(localStorage.getItem("tjur_v4"));
+            const d = JSON.parse(localStorage.getItem("tjur_v41"));
             payload = { ...d, tipo: 'CHEGADA', kmf: limparNum(document.getElementById('kmf').value), horaFim: horaH, restaTroca: document.getElementById('restaTroca').value };
         }
 
@@ -146,17 +148,17 @@
             await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: new Blob([JSON.stringify(payload)]) });
             
             let textoZap = tipo === 'SAIDA' ? 
-                `*🚀 SAÍDA TELEJUR*%0A-----------------------%0A*TAG:* ${payload.tag}%0A*Vei:* ${payload.veiculo}%0A*Placa:* ${payload.placa}%0A*Mot:* ${payload.nome}%0A*KM:* ${payload.kmi}%0A*Selo:* ${payload.corSelo} (${payload.validadeSelo})%0A*Óleo:* ${payload.tipoOleo}%0A*Obs:* ${payload.obs}` :
-                `*🏁 CHEGADA TELEJUR*%0A-----------------------%0A*TAG:* ${payload.tag}%0A*Vei:* ${payload.veiculo}%0A*Placa:* ${payload.placa}%0A*Mot:* ${payload.nome}%0A*KM Final:* ${payload.kmf}%0A*Resta Óleo:* ${payload.restaTroca}`;
+                `*🚀 SAÍDA TELEJUR (${payload.condutorID})*%0A-----------------------%0A*TAG:* ${payload.tag}%0A*Vei:* ${payload.veiculo}%0A*Placa:* ${payload.placa}%0A*Mot:* ${payload.nome}%0A*KM:* ${payload.kmi}` :
+                `*🏁 CHEGADA TELEJUR (${payload.condutorID})*%0A-----------------------%0A*TAG:* ${payload.tag}%0A*Vei:* ${payload.veiculo}%0A*Mot:* ${payload.nome}%0A*KM Final:* ${payload.kmf}%0A*Resta Óleo:* ${payload.restaTroca}`;
             
             window.open(`https://api.whatsapp.com/send?text=${textoZap}`, '_blank');
-            if(tipo === 'CHEGADA') localStorage.removeItem("tjur_v4");
+            if(tipo === 'CHEGADA') localStorage.removeItem("tjur_v41");
             location.reload();
-        } catch (e) { alert("Erro de conexão!"); btn.disabled = false; btn.innerText = "ERRO!"; }
+        } catch (e) { alert("Erro de conexão!"); btn.disabled = false; }
     }
 
     function calcularResta() {
-        const d = JSON.parse(localStorage.getItem("tjur_v4"));
+        const d = JSON.parse(localStorage.getItem("tjur_v41"));
         const kmf = limparNum(document.getElementById('kmf').value);
         const prox = limparNum(d.proxOleo);
         const diff = prox - kmf;
@@ -164,12 +166,12 @@
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem("tjur_v4");
+        const salvo = localStorage.getItem("tjur_v41");
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoInicial').classList.add('hidden');
             document.getElementById('secaoFinal').classList.remove('hidden');
-            document.getElementById('resumoSaida').innerHTML = `🚗 <b>${d.tag}</b> - ${d.veiculo}<br>👤 ${d.nome} | 🕒 Início: ${d.horaInic}`;
+            document.getElementById('resumoSaida').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 ${d.horaInic}`;
             document.getElementById('horaFim').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
         }
     };
