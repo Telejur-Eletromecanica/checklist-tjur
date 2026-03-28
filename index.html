@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR V9.0</title>
+    <title>TELEJUR CHECKLIST V10</title>
     <style>
-        :root { --primary: #1a237e; }
-        body { font-family: sans-serif; background: #f4f7f9; margin: 0; padding: 10px; }
+        :root { --primary: #1a237e; --bg: #f4f7f9; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         label { display: block; font-weight: bold; font-size: 10px; margin-top: 8px; color: #555; }
         input, select, textarea { width: 100%; padding: 10px; margin-top: 3px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
@@ -62,7 +62,7 @@
     </div>
 
     <div id="secaoChegada" class="hidden">
-        <div id="resumo" style="background:#fff9c4; padding:12px; border-radius:8px; margin-bottom:15px;"></div>
+        <div id="resumo" style="background:#fff9c4; padding:12px; border-radius:8px; margin-bottom:15px; font-size:14px;"></div>
         <label>KM Final de Chegada</label>
         <input type="text" id="kmf">
         <button onclick="enviar('CHEGADA')" class="btn btn-chegada" id="btnC">🏁 CONCLUIR CHEGADA</button>
@@ -72,7 +72,7 @@
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
 
-    function limparTextoNum(t) { return t.toString().replace(/[\.\,]/g, ''); }
+    function num(t) { return parseInt(t.toString().replace(/[\.\,]/g, '')) || 0; }
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
@@ -92,11 +92,8 @@
     }
 
     function calcularResta() {
-        const kmi = limparTextoNum(document.getElementById('kmi').value);
-        const pxo = limparTextoNum(document.getElementById('pxO').value);
-        if(kmi && pxo) {
-            document.getElementById('restaAviso').innerText = "Resta para troca: " + (pxo - kmi) + " KM";
-        }
+        const resta = num(document.getElementById('pxO').value) - num(document.getElementById('kmi').value);
+        document.getElementById('restaAviso').innerText = "Resta para troca: " + resta + " KM";
     }
 
     async function enviar(tipo) {
@@ -123,30 +120,36 @@
                 valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value || "S/O"
             };
-            localStorage.setItem('tjur_v9', JSON.stringify(p));
+            localStorage.setItem('tjur_v10', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v9'));
+            const d = JSON.parse(localStorage.getItem('tjur_v10'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
 
-        let msg = tipo === 'SAIDA' ? 
-            `🚀 *SAÍDA TELEJUR*%0A*Data:* ${p.data}%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Motorista:* ${p.nome}%0A*KM Inicial:* ${p.kmi}%0A*Hora Início:* ${p.horaInic}%0A*Resta:* ${limparTextoNum(p.proxOleo) - limparTextoNum(p.kmi)} KM` : 
-            `🏁 *CHEGADA TELEJUR*%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*KM Final:* ${p.kmf}%0A*Status:* CONCLUÍDO`;
+        let restaCalc = num(p.proxOleo) - (tipo === 'SAIDA' ? num(p.kmi) : num(p.kmf));
+        
+        // MENSAGEM WHATSAPP COM 18 CAMPOS
+        let msg = `*TELEJUR CHECKLIST - ${tipo}*%0A` +
+                  `*Data:* ${p.data}%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Nome:* ${p.nome}%0A` +
+                  `*KM:* ${tipo === 'SAIDA' ? p.kmi : p.kmf}%0A*Hora:* ${tipo === 'SAIDA' ? p.horaInic : p.horaFim}%0A` +
+                  `*Veículo:* ${p.veiculo}%0A*Placa:* ${p.placa}%0A*Status:* ${tipo === 'SAIDA' ? 'EM TRÂNSITO' : 'CONCLUÍDO'}%0A` +
+                  `*Trajeto:* ${p.numT}%0A*Próx. Troca:* ${p.proxOleo}%0A*Óleo:* ${p.tipoOleo}%0A` +
+                  `*Selo:* ${p.corSelo} (${p.valSelo})%0A*Resta:* ${restaCalc} KM%0A*Obs:* ${p.obs}`;
 
         window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v9');
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v10');
         setTimeout(() => location.reload(), 1000);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v9');
+        const salvo = localStorage.getItem('tjur_v10');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
             document.getElementById('secaoChegada').classList.remove('hidden');
-            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome} | 🕒 ${d.horaInic}`;
+            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome}<br>🕒 Saída: ${d.horaInic}`;
         }
     };
 </script>
