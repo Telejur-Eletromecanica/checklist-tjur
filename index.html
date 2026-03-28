@@ -3,41 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V10</title>
+    <title>TELEJUR CHECKLIST V11</title>
     <style>
         :root { --primary: #1a237e; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         label { display: block; font-weight: bold; font-size: 10px; margin-top: 8px; color: #555; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 3px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 3px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; color: white; }
         .btn-saida { background: var(--primary); }
         .btn-chegada { background: #075e54; }
         .resta-box { background: #e8eaf6; padding: 10px; border-radius: 6px; text-align: center; margin-top: 10px; font-weight: bold; color: #1a237e; border: 1px solid var(--primary); }
         .hidden { display: none; }
+        input[readonly] { background: #eee; color: #333; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0">📋 CHECKLIST TELEJUR</h2>
+    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0">📋 CHECKLIST V11</h2>
 
     <div id="secaoSaida">
-        <label>Motorista</label>
-        <select id="nomeMot">
+        <label>Motorista Responsável</label>
+        <select id="nomeMot" onchange="puxarDados()">
             <option value="">-- SELECIONE --</option>
             <option>FRANCIVALDO COSTA</option><option>ADRIANO NASCIMENTO</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
         </select>
 
         <div class="grid">
             <div><label>TAG</label><select id="tag" onchange="puxarDados()"><option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option></select></div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly></div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Aguardando..."></div>
         </div>
 
         <div class="grid">
-            <div><label>KM Inicial</label><input type="text" id="kmi" oninput="calcularResta()"></div>
-            <div><label>Próx. Troca (KM)</label><input type="text" id="pxO" oninput="calcularResta()"></div>
+            <div><label>KM Inicial</label><input type="text" id="kmi" inputmode="numeric" pattern="[0-9]*" oninput="calcularResta()"></div>
+            <div><label>Próx. Troca (KM)</label><input type="text" id="pxO" inputmode="numeric" pattern="[0-9]*" oninput="calcularResta()"></div>
         </div>
         <div id="restaAviso" class="resta-box">Resta para troca: -</div>
 
@@ -47,7 +48,7 @@
         </div>
 
         <div class="grid">
-            <div><label>Nº Trajeto</label><input type="number" id="numT" value="1"></div>
+            <div><label>Nº Trajeto</label><input type="text" id="numT" value="1" inputmode="numeric" pattern="[0-9]*"></div>
             <div><label>Tipo Óleo</label><select id="tpO"><option>5W30</option><option>10W40</option><option>15W40</option></select></div>
         </div>
 
@@ -64,7 +65,7 @@
     <div id="secaoChegada" class="hidden">
         <div id="resumo" style="background:#fff9c4; padding:12px; border-radius:8px; margin-bottom:15px; font-size:14px;"></div>
         <label>KM Final de Chegada</label>
-        <input type="text" id="kmf">
+        <input type="text" id="kmf" inputmode="numeric" pattern="[0-9]*">
         <button onclick="enviar('CHEGADA')" class="btn btn-chegada" id="btnC">🏁 CONCLUIR CHEGADA</button>
     </div>
 </div>
@@ -76,9 +77,11 @@
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
-        if(!tag) return;
+        const nome = document.getElementById('nomeMot').value;
+        if(!tag || !nome) return;
+        document.getElementById('condID').value = "Buscando...";
         const s = document.createElement('script');
-        s.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&callback=preencherCampos&t=${Date.now()}`;
+        s.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}&callback=preencherCampos&t=${Date.now()}`;
         document.body.appendChild(s);
     }
 
@@ -87,13 +90,13 @@
         document.getElementById('pla').value = d.placa || "";
         document.getElementById('kmi').value = d.kmi || "";
         document.getElementById('pxO').value = d.proxOleo || "";
-        document.getElementById('condID').value = d.condutorSugerido || "CONDUTOR 1";
+        document.getElementById('condID').value = d.condutorSugerido;
         calcularResta();
     }
 
     function calcularResta() {
-        const resta = num(document.getElementById('pxO').value) - num(document.getElementById('kmi').value);
-        document.getElementById('restaAviso').innerText = "Resta para troca: " + resta + " KM";
+        const r = num(document.getElementById('pxO').value) - num(document.getElementById('kmi').value);
+        document.getElementById('restaAviso').innerText = "Resta para troca: " + r + " KM";
     }
 
     async function enviar(tipo) {
@@ -120,31 +123,24 @@
                 valSelo: document.getElementById('valS').value,
                 obs: document.getElementById('obs').value || "S/O"
             };
-            localStorage.setItem('tjur_v10', JSON.stringify(p));
+            localStorage.setItem('tjur_v11', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v10'));
+            const d = JSON.parse(localStorage.getItem('tjur_v11'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
 
         let restaCalc = num(p.proxOleo) - (tipo === 'SAIDA' ? num(p.kmi) : num(p.kmf));
-        
-        // MENSAGEM WHATSAPP COM 18 CAMPOS
-        let msg = `*TELEJUR CHECKLIST - ${tipo}*%0A` +
-                  `*Data:* ${p.data}%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Nome:* ${p.nome}%0A` +
-                  `*KM:* ${tipo === 'SAIDA' ? p.kmi : p.kmf}%0A*Hora:* ${tipo === 'SAIDA' ? p.horaInic : p.horaFim}%0A` +
-                  `*Veículo:* ${p.veiculo}%0A*Placa:* ${p.placa}%0A*Status:* ${tipo === 'SAIDA' ? 'EM TRÂNSITO' : 'CONCLUÍDO'}%0A` +
-                  `*Trajeto:* ${p.numT}%0A*Próx. Troca:* ${p.proxOleo}%0A*Óleo:* ${p.tipoOleo}%0A` +
-                  `*Selo:* ${p.corSelo} (${p.valSelo})%0A*Resta:* ${restaCalc} KM%0A*Obs:* ${p.obs}`;
+        let msg = `*CHECKLIST TELEJUR - ${tipo}*%0A*Data:* ${p.data}%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Nome:* ${p.nome}%0A*KM:* ${tipo === 'SAIDA' ? p.kmi : p.kmf}%0A*Hora:* ${tipo === 'SAIDA' ? p.horaInic : p.horaFim}%0A*Veículo:* ${p.veiculo}%0A*Placa:* ${p.placa}%0A*Resta:* ${restaCalc} KM`;
 
         window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v10');
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v11');
         setTimeout(() => location.reload(), 1000);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v10');
+        const salvo = localStorage.getItem('tjur_v11');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
