@@ -4,21 +4,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { background: #000; color: #fff; font-family: sans-serif; padding: 10px; }
-    .container { max-width: 400px; margin: auto; border: 1px solid #333; padding: 15px; border-radius: 10px; background: #111; }
-    h2 { text-align: center; color: #888; font-size: 18px; letter-spacing: 2px; }
-    label { font-size: 10px; font-weight: bold; color: #555; display: block; margin-top: 10px; }
-    select, input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 6px; border: 1px solid #444; background: #222; color: white; box-sizing: border-box; }
+    .container { max-width: 400px; margin: auto; border: 1px solid #222; padding: 15px; border-radius: 10px; background: #111; }
+    h2 { text-align: center; color: #777; font-size: 16px; letter-spacing: 2px; margin-bottom: 20px; }
+    label { font-size: 10px; font-weight: bold; color: #444; display: block; margin-top: 10px; text-transform: uppercase; }
+    select, input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 6px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; }
     .grid { display: flex; gap: 10px; }
     .col { flex: 1; }
-    .id-box { color: #ff00ff; text-align: center; font-weight: bold; border-color: #303; }
-    .trajeto-box { color: yellow; text-align: center; font-weight: bold; }
-    .btn { background: #0a0a2a; color: #555; border: 1px solid #1a1a3a; padding: 16px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 20px; font-size: 16px; cursor: pointer; }
+    .id-box { color: #ff00ff; text-align: center; font-weight: bold; }
+    .btn-acao { background: #05051a; color: #444; border: 1px solid #111; padding: 16px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 20px; font-size: 14px; cursor: pointer; }
+    /* Estilo do Modal de Confirmação das imagens 1 e 2 */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; padding: 20px; z-index: 100; }
+    .modal-content { background: white; border-radius: 15px; width: 100%; max-width: 300px; padding: 20px; text-align: center; }
+    .modal-h3 { color: black; margin-bottom: 20px; font-size: 18px; }
+    .btn-ok { background: #2e7d32; color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+    .btn-voltar { background: #757575; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; text-transform: uppercase; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>TELEJUR V22</h2>
-    
+    <h2>📋 TELEJUR V22</h2>
     <form id="formMaster">
       <label>Motorista Responsável</label>
       <select name="nome" id="nome" onchange="buscar()" required>
@@ -57,27 +61,32 @@
           <input type="number" name="kmi" id="kmi" required>
         </div>
         <div class="col">
-          <label>Nº Trajeto</label>
-          <input type="text" name="numT" id="numT" class="trajeto-box" readonly>
+          <label>Próx. Troca (KM)</label>
+          <input type="number" name="proxOleo" id="proxOleo" style="color: #fbbf24" readonly>
         </div>
       </div>
-
-      <label>Próxima Troca (KM)</label>
-      <input type="number" name="proxOleo" id="proxOleo" style="color: yellow" readonly>
 
       <label>Observação</label>
       <input type="text" name="obs">
 
       <input type="hidden" name="placa" id="placa">
       <input type="hidden" name="veiculo" id="veiculo">
+      <input type="hidden" name="numT" id="numT">
 
-      <button type="submit" id="btn" class="btn">🚀 INICIAR SAÍDA</button>
+      <button type="button" onclick="abrirModal()" class="btn-acao">🚀 INICIAR SAÍDA</button>
     </form>
   </div>
 
+  <div id="modalConf" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-h3">Confirmar Dados?</h3>
+      <button id="btnFinal" onclick="enviar()" class="btn-ok">OK...</button>
+      <button onclick="fecharModal()" class="btn-voltar">Voltar</button>
+    </div>
+  </div>
+
   <script>
-    // COLE A URL DO SEU SCRIPT AQUI ABAIXO
-    const URL_APP = "SUA_URL_AQUI";
+    const URL_APP = "SUA_URL_DA_NOVA_IMPLANTACAO_AQUI";
 
     function buscar() {
       const tag = document.getElementById('tag').value;
@@ -98,29 +107,27 @@
       document.getElementById('veiculo').value = r.veiculo;
     }
 
-    document.getElementById('formMaster').onsubmit = function(e) {
-      e.preventDefault();
-      const b = document.getElementById('btn');
+    function abrirModal() { document.getElementById('modalConf').style.display = 'flex'; }
+    function fecharModal() { document.getElementById('modalConf').style.display = 'none'; }
+
+    function enviar() {
+      const b = document.getElementById('btnFinal');
       b.innerText = "ENVIANDO..."; b.disabled = true;
 
-      const dados = Object.fromEntries(new FormData(this));
-      dados.data = new Date().toLocaleDateString('pt-BR');
-      dados.horaInic = new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-      dados.tipo = "SAIDA";
+      const f = document.getElementById('formMaster');
+      const dados = Object.fromEntries(new FormData(f));
+      const agora = new Date();
+      dados.data = agora.toLocaleDateString('pt-BR');
+      dados.horaInic = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
 
       fetch(URL_APP, { method: 'POST', body: JSON.stringify(dados) })
       .then(() => {
-        // Envio para WhatsApp com as informações das 18 colunas
-        const texto = `*📋 TELEJUR - SAIDA*%0A*Mot:* ${dados.nome}%0A*Tag:* ${dados.tag}%0A*Trajeto:* ${dados.numT}%0A*KM:* ${dados.kmi}`;
-        window.open(`https://api.whatsapp.com/send?phone=55XXXXXXXXXXX&text=${texto}`, '_blank');
+        const resta = parseInt(dados.proxOleo) - parseInt(dados.kmi);
+        const msg = `*📋 CHECKLIST TELEJUR - SAIDA*%0A🗓️ *Data:* ${dados.data}%0A🚗 *Veículo:* ${dados.veiculo}%0A🆔 *ID:* ${dados.condutorID}%0A👤 *Motorista:* ${dados.nome}%0A🛣️ *KM:* ${dados.kmi}%0A🔧 *Resta:* ${resta} KM`;
+        window.open(`https://api.whatsapp.com/send?phone=55XXXXXXXXXXX&text=${msg}`, '_blank');
         location.reload();
-      })
-      .catch(() => {
-        alert("Erro no envio!");
-        b.disabled = false;
-        b.innerText = "🚀 INICIAR SAÍDA";
-      });
-    };
+      }).catch(() => { alert("Erro!"); b.disabled = false; b.innerText = "OK..."; });
+    }
   </script>
 </body>
 </html>
