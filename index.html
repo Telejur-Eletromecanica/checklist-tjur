@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Frota Telejur</title>
     <style>
@@ -10,7 +10,7 @@
         .aba-inativa { opacity: 0.6; }
     </style>
 </head>
-<body class="bg-slate-100 pb-10 font-sans">
+<body class="bg-slate-100 pb-10 font-sans text-slate-800">
 
     <header class="bg-blue-800 text-white shadow-lg sticky top-0 z-50">
         <div class="p-4 text-center border-b border-blue-700">
@@ -43,8 +43,8 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="date" id="data_input" readonly class="border rounded-lg p-2 text-xs font-bold bg-slate-50">
-                    <input type="time" id="hora_inicio_input" class="border rounded-lg p-2 text-xs font-bold bg-slate-50">
+                    <input type="date" id="data_input" readonly class="border rounded-lg p-2 text-xs font-bold bg-slate-50 text-center">
+                    <input type="time" id="hora_inicio_input" class="border rounded-lg p-2 text-xs font-bold bg-slate-50 text-center">
                 </div>
 
                 <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold bg-white">
@@ -63,15 +63,23 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 items-end">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[10px] font-bold text-orange-600 uppercase mb-1">Validade Selo</label>
                         <input type="date" id="data_selo" class="w-full border-2 border-orange-50 rounded-xl p-3 text-xs font-bold text-orange-700 outline-none bg-orange-50">
                     </div>
-                    <div class="bg-blue-50 rounded-xl p-2 border border-blue-100 text-center">
-                        <span class="block text-[8px] font-black text-blue-900 uppercase">Resta p/ Troca:</span>
-                        <span id="resultado_texto_saida" class="text-sm font-black text-blue-300">--- KM</span>
+                    <div>
+                        <label class="block text-[10px] font-bold text-orange-600 uppercase mb-1">Cor do Selo</label>
+                        <select id="cor_selo" class="w-full border-2 border-orange-50 rounded-xl p-3 text-xs font-bold text-orange-700 outline-none bg-orange-50">
+                            <option value="NÃO INFORMADO">SELECIONE...</option>
+                            <option value="VERDE">VERDE</option><option value="AMARELO">AMARELO</option><option value="AZUL">AZUL</option><option value="VERMELHO">VERMELHO</option>
+                        </select>
                     </div>
+                </div>
+
+                <div class="bg-blue-50 rounded-xl p-3 border border-blue-100 text-center">
+                    <span class="text-[10px] font-black text-blue-900 uppercase">Resta p/ Troca:</span>
+                    <span id="resultado_texto_saida" class="text-lg font-black text-blue-300 ml-2">--- KM</span>
                 </div>
 
                 <button onclick="enviarDados('inicio')" class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg active:scale-95 transition-all uppercase">Registrar Saída</button>
@@ -92,19 +100,19 @@
                 </div>
                 
                 <div class="bg-blue-50 rounded-xl p-4 flex justify-between items-center border border-blue-100">
-                    <span class="text-[10px] font-black text-blue-900 uppercase">Resta p/ Troca:</span>
+                    <span class="text-[10px] font-black text-blue-900 uppercase tracking-tighter">Resta para a troca:</span>
                     <span id="resultado_texto_fim" class="text-2xl font-black text-blue-300">--- KM</span>
                 </div>
                 
-                <textarea id="observacao" placeholder="Alguma observação ou avaria?" class="w-full border rounded-xl p-3 text-sm h-20 outline-none focus:border-blue-500 bg-slate-50"></textarea>
+                <textarea id="observacao" placeholder="Observações ou Avarias..." class="w-full border rounded-xl p-3 text-sm h-24 outline-none focus:border-blue-500 bg-slate-50"></textarea>
                 
                 <button onclick="enviarDados('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-all uppercase tracking-widest text-lg">Finalizar Trajeto</button>
             </section>
         </div>
-
     </div>
 
     <script>
+        // SUBSTITUA PELA SUA URL DO GOOGLE APPS SCRIPT
         const scriptURL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
         
         function mudarTela(tela) {
@@ -133,11 +141,8 @@
             return parseFloat(valor.replace(/[^\d]/g, '')) || 0;
         }
 
-        // Sincroniza o KM da Troca entre as telas
         function sincronizarTroca(el) {
-            const val = el.value;
-            document.getElementById('km_troca').value = val;
-            document.getElementById('km_troca_fim').value = val;
+            document.getElementById('km_troca').value = el.value;
             calcularTroca();
         }
 
@@ -145,31 +150,24 @@
             const ini = limparNumero(document.getElementById('km_inicial').value);
             const fim = limparNumero(document.getElementById('km_final').value);
             const tro = limparNumero(document.getElementById('km_troca').value);
-            
-            // Atualiza KM Troca no outro campo
             document.getElementById('km_troca_fim').value = document.getElementById('km_troca').value;
 
-            const resSaida = document.getElementById('resultado_texto_saida');
-            const resFim = document.getElementById('resultado_texto_fim');
-
+            const resS = document.getElementById('resultado_texto_saida');
+            const resF = document.getElementById('resultado_texto_fim');
             let kmRef = (fim > 0) ? fim : ini;
 
             if (kmRef > 0 && tro > 0) {
                 const resta = tro - kmRef;
-                const texto = (resta <= 0) ? "VENCIDO!" : resta.toLocaleString('pt-BR') + " KM";
+                const txt = (resta <= 0) ? "VENCIDO!" : resta.toLocaleString('pt-BR') + " KM";
                 const cor = (resta <= 0) ? "text-red-600" : (resta <= 500 ? "text-orange-500" : "text-green-600");
-                
-                resSaida.innerText = texto; resSaida.className = "text-sm font-black " + cor;
-                resFim.innerText = texto; resFim.className = "text-2xl font-black " + cor;
-            } else {
-                resSaida.innerText = "--- KM"; resFim.innerText = "--- KM";
+                resS.innerText = txt; resS.className = "text-lg font-black " + cor;
+                resF.innerText = txt; resF.className = "text-2xl font-black " + cor;
             }
         }
 
         async function enviarDados(tipo) {
             const btn = event.target;
-            btn.disabled = true;
-            btn.innerText = "ENVIANDO...";
+            btn.disabled = true; btn.innerText = "ENVIANDO...";
 
             const dados = {
                 tipo: tipo,
@@ -179,11 +177,12 @@
                 km_inicial: document.getElementById('km_inicial').value,
                 km_final: document.getElementById('km_final').value,
                 hora_inicio: document.getElementById('hora_inicio_input').value,
-                hora_fim: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                hora_fim: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
                 status: (tipo === 'inicio') ? "EM TRÂNSITO" : "CONCLUÍDO",
                 obs: document.getElementById('observacao').value || "S/O",
                 prox_oleo: document.getElementById('km_troca').value,
                 val_selo: document.getElementById('data_selo').value,
+                cor_selo: document.getElementById('cor_selo').value,
                 placa: document.getElementById('placa_input').value,
                 veiculo: document.getElementById('veiculo_input').value,
                 resta_troca: document.getElementById('resultado_texto_fim').innerText
@@ -191,22 +190,18 @@
 
             try {
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados)});
-                
-                // MENSAGEM WHATSAPP ATUALIZADA
                 const kmMsg = tipo === 'inicio' ? `*KM Inicial:* ${dados.km_inicial}` : `*KM Inicial:* ${dados.km_inicial}\n*KM Final:* ${dados.km_final}`;
-                const zap = `*TELEJUR*\n*${dados.status}*\n*Motorista:* ${dados.nome}\n*Veículo:* ${dados.tag}\n${kmMsg}\n*Resta para a troca:* ${dados.resta_troca}`;
-                
+                const seloMsg = tipo === 'inicio' ? `\n*Cor do Selo:* ${dados.cor_selo}` : "";
+                const zap = `*TELEJUR*\n*${dados.status}*\n*Motorista:* ${dados.nome}\n*Veículo:* ${dados.tag}\n${kmMsg}${seloMsg}\n*Resta para a troca:* ${dados.resta_troca}`;
                 window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(zap)}`);
-                
                 alert("Salvo com sucesso!");
-                if(tipo === 'fim') { location.reload(); } 
-                else { mudarTela('retorno'); btn.disabled = false; btn.innerText = "Registrar Saída"; }
+                if(tipo === 'fim') { location.reload(); } else { mudarTela('retorno'); btn.disabled = false; btn.innerText = "Registrar Saída"; }
             } catch(e) { alert("Erro ao salvar!"); btn.disabled = false; }
         }
 
         window.onload = () => {
             document.getElementById('data_input').value = new Date().toISOString().split('T')[0];
-            document.getElementById('hora_inicio_input').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('hora_inicio_input').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
         };
     </script>
 </body>
