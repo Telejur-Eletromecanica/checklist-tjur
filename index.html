@@ -1,166 +1,251 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    /* Estilo Fundo Claro para melhor leitura no sol */
-    body { background: #f0f2f5; color: #1c1e21; font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-    h2 { text-align: center; color: #0056b3; margin-top: 0; font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-    
-    label { font-size: 11px; font-weight: bold; color: #65676b; display: block; margin-top: 15px; text-transform: uppercase; }
-    select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ced4da; background: #fff; font-size: 16px; box-sizing: border-box; color: #000; }
-    
-    /* Campos Automáticos ficam com fundo cinza leve */
-    input[readonly] { background: #e9ecef; color: #495057; border-color: #dee2e6; font-weight: bold; }
-    
-    .grid { display: flex; gap: 10px; }
-    .col { flex: 1; }
-    
-    .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; font-size: 16px; transition: opacity 0.2s; }
-    .btn-saida { background: #007bff; color: white; margin-top: 25px; }
-    .btn-chegada { background: #dc3545; color: white; }
-    
-    .status-badge { background: #e7f3ff; color: #1877f2; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: center; font-size: 14px; font-weight: bold; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Telejur V22 - Controle de Frota</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --danger: #d93025;
+            --bg: #f8f9fa;
+            --text: #202124;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 25px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #5f6368;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            color: var(--text);
+        }
+
+        input[readonly] {
+            background-color: #f1f3f4;
+            color: #5f6368;
+            border-color: #e8eaed;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .col { flex: 1; }
+
+        .info-panel {
+            background: #e8f0fe;
+            border: 1px solid #d2e3fc;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            color: white;
+            transition: filter 0.2s;
+        }
+
+        .btn:active { filter: brightness(0.8); }
+
+        .btn-saida { background-color: var(--primary); margin-top: 30px; }
+        .btn-chegada { background-color: var(--danger); }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>TELEJUR V22 - CONTROLE</h2>
-  
-  <form id="formFrota">
-    <label>Motorista</label>
-    <select name="nome" id="nome" onchange="buscarDados()" required>
-      <option value="">-- SELECIONE O MOTORISTA --</option>
-      <option value="Adriano Nascimento">Adriano Nascimento</option>
-      <option value="Fracivaldo Costa">Fracivaldo Costa</option>
-      <option value="Lafaiete Batista">Lafaiete Batista</option>
-      <option value="Reginaldo">Reginaldo</option>
-      <option value="Walter Gonçalves">Walter Gonçalves</option>
-      <option value="Ezequeil Silva">Ezequeil Silva</option>
-    </select>
+<div class="container">
+    <h2>Telejur V22</h2>
 
-    <div class="grid">
-      <div class="col">
-        <label>TAG</label>
-        <select name="tag" id="tag" onchange="buscarDados()" required>
-          <option value="">--</option>
-          <option value="TJUR 04">TJUR 04</option>
-          <option value="TJUR 06">TJUR 06</option>
-          <option value="TJUR 07">TJUR 07</option>
-          <option value="TJUR 08">TJUR 08</option>
-          <option value="TJUR 09">TJUR 09</option>
-          <option value="TJUR 10">TJUR 10</option>
-          <option value="TJUR 13">TJUR 13</option>
+    <form id="fleetForm">
+        <label>Motorista Responsável</label>
+        <select id="nome" name="nome" onchange="autoBusca()" required>
+            <option value="">-- SELECIONE --</option>
+            <option value="Adriano Nascimento">Adriano Nascimento</option>
+            <option value="Fracivaldo Costa">Fracivaldo Costa</option>
+            <option value="Lafaiete Batista">Lafaiete Batista</option>
+            <option value="Reginaldo">Reginaldo</option>
+            <option value="Walter Gonçalves">Walter Gonçalves</option>
+            <option value="Ezequeil Silva">Ezequeil Silva</option>
         </select>
-      </div>
-      <div class="col">
-        <label>ID Condutor</label>
-        <input type="text" name="condutorID" id="condutorID" readonly placeholder="...">
-      </div>
-    </div>
 
-    <div id="displayVeiculo" class="status-badge">Selecione TAG e Motorista</div>
+        <div class="row">
+            <div class="col">
+                <label>TAG</label>
+                <select id="tag" name="tag" onchange="autoBusca()" required>
+                    <option value="">--</option>
+                    <option value="TJUR 04">TJUR 04</option>
+                    <option value="TJUR 06">TJUR 06</option>
+                    <option value="TJUR 07">TJUR 07</option>
+                    <option value="TJUR 08">TJUR 08</option>
+                    <option value="TJUR 09">TJUR 09</option>
+                    <option value="TJUR 10">TJUR 10</option>
+                    <option value="TJUR 13">TJUR 13</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>ID Condutor</label>
+                <input type="text" id="condutorID" name="condutorID" readonly placeholder="...">
+            </div>
+        </div>
 
-    <div class="grid">
-      <div class="col">
-        <label>KM Inicial</label>
-        <input type="number" name="kmi" id="kmi" readonly>
-      </div>
-      <div class="col">
-        <label>KM Final (Chegada)</label>
-        <input type="number" name="kmf" id="kmf" placeholder="000000">
-      </div>
-    </div>
+        <div id="veiculoDisplay" class="info-panel">Aguardando seleção...</div>
 
-    <label>Observação</label>
-    <input type="text" name="obs" placeholder="Opcional">
+        <div class="row">
+            <div class="col">
+                <label>KM Inicial</label>
+                <input type="number" id="kmi" name="kmi" readonly>
+            </div>
+            <div class="col">
+                <label>KM Final</label>
+                <input type="number" id="kmf" name="kmf" placeholder="Chegada">
+            </div>
+        </div>
 
-    <input type="hidden" name="veiculo" id="veiculo">
-    <input type="hidden" name="placa" id="placa">
-    <input type="hidden" name="proxOleo" id="proxOleo">
-    <input type="hidden" name="numT" id="numT">
+        <label>Observações</label>
+        <input type="text" id="obs" name="obs" placeholder="Ex: Pneu baixo, limpeza...">
 
-    <button type="button" onclick="enviarDados('SAIDA')" class="btn btn-saida">🚀 INICIAR SAÍDA</button>
-    <button type="button" onclick="enviarDados('CHEGADA')" class="btn btn-chegada">🏁 REGISTRAR CHEGADA</button>
-  </form>
+        <input type="hidden" id="veiculo" name="veiculo">
+        <input type="hidden" id="placa" name="placa">
+        <input type="hidden" id="proxOleo" name="proxOleo">
+        <input type="hidden" id="numT" name="numT">
+
+        <button type="button" id="btnSaida" onclick="enviar('SAIDA')" class="btn btn-saida">🚀 INICIAR SAÍDA</button>
+        <button type="button" id="btnChegada" onclick="enviar('CHEGADA')" class="btn btn-chegada">🏁 FINALIZAR CHEGADA</button>
+    </form>
 </div>
 
 <script>
-  // ATENÇÃO: COLOQUE SUA URL DE IMPLANTAÇÃO AQUI
-  const SCRIPT_URL = "SUA_URL_DO_GOOGLE_SCRIPT_AQUI";
+    // IMPORTANTE: Insira a URL que o Google Apps Script gerou no "Implantar"
+    const WEB_APP_URL = "SUA_URL_DA_IMPLANTACAO_AQUI";
 
-  function buscarDados() {
-    const tag = document.getElementById('tag').value;
-    const nome = document.getElementById('nome').value;
-    
-    if (tag && nome) {
-      document.getElementById('displayVeiculo').innerText = "Buscando dados...";
-      const script = document.createElement('script');
-      // O callback 'autoPreencher' deve bater com a função abaixo
-      script.src = `${SCRIPT_URL}?callback=autoPreencher&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}`;
-      document.body.appendChild(script);
-    }
-  }
+    function autoBusca() {
+        const tag = document.getElementById('tag').value;
+        const nome = document.getElementById('nome').value;
 
-  function autoPreencher(dados) {
-    if (dados.erro) {
-      alert("Erro ao buscar: " + dados.erro);
-      return;
-    }
-    // Preenchendo os campos automaticamente
-    document.getElementById('condutorID').value = dados.condutorSugerido || "";
-    document.getElementById('kmi').value = dados.kmi || "";
-    document.getElementById('veiculo').value = dados.veiculo || "";
-    document.getElementById('placa').value = dados.placa || "";
-    document.getElementById('proxOleo').value = dados.proxOleo || "";
-    
-    document.getElementById('displayVeiculo').innerText = (dados.veiculo || "Não cadastrado") + " | " + (dados.placa || "");
-  }
-
-  function enviarDados(tipo) {
-    const btn = event.target;
-    const originalText = btn.innerText;
-    
-    // Validação básica
-    const tag = document.getElementById('tag').value;
-    const nome = document.getElementById('nome').value;
-    if(!tag || !nome) { alert("Selecione Motorista e TAG primeiro!"); return; }
-    
-    if(tipo === "CHEGADA" && !document.getElementById('kmf').value) {
-      alert("Informe o KM Final para a chegada!"); return;
+        if (tag && nome) {
+            document.getElementById('veiculoDisplay').innerText = "Carregando dados...";
+            const script = document.createElement('script');
+            // JSONP para evitar erro de CORS no GitHub Pages
+            script.src = `${WEB_APP_URL}?callback=preencherForm&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}`;
+            document.body.appendChild(script);
+        }
     }
 
-    btn.innerText = "ENVIANDO...";
-    btn.disabled = true;
+    function preencherForm(res) {
+        if (res.erro) {
+            alert("Erro: " + res.erro);
+            return;
+        }
+        document.getElementById('condutorID').value = res.condutorSugerido || "";
+        document.getElementById('kmi').value = res.kmi || "";
+        document.getElementById('veiculo').value = res.veiculo || "";
+        document.getElementById('placa').value = res.placa || "";
+        document.getElementById('proxOleo').value = res.proxOleo || "";
+        document.getElementById('numT').value = "1"; // Valor padrão para numT se não vier do script
+        
+        document.getElementById('veiculoDisplay').innerText = `${res.veiculo || 'N/A'} - ${res.placa || 'N/A'}`;
+    }
 
-    const formData = new FormData(document.getElementById('formFrota'));
-    const objeto = Object.fromEntries(formData);
-    
-    const agora = new Date();
-    objeto.tipo = tipo;
-    objeto.data = agora.toLocaleDateString('pt-BR');
-    const horaFormatada = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
-    
-    if (tipo === "SAIDA") objeto.horaInic = horaFormatada;
-    else objeto.horaFim = horaFormatada;
+    function enviar(tipo) {
+        const form = document.getElementById('fleetForm');
+        const btn = tipo === 'SAIDA' ? document.getElementById('btnSaida') : document.getElementById('btnChegada');
+        
+        if (tipo === 'CHEGADA' && !document.getElementById('kmf').value) {
+            alert("Por favor, informe o KM Final para encerrar.");
+            return;
+        }
 
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify(objeto)
-    })
-    .then(res => res.text())
-    .then(txt => {
-      alert("Registro de " + tipo + " realizado!");
-      location.reload();
-    })
-    .catch(err => {
-      alert("Erro ao salvar!");
-      btn.innerText = originalText;
-      btn.disabled = false;
-    });
-  }
+        if (!document.getElementById('tag').value || !document.getElementById('nome').value) {
+            alert("Selecione o motorista e a TAG.");
+            return;
+        }
+
+        btn.classList.add('loading');
+        btn.innerText = "ENVIANDO...";
+
+        const payload = Object.fromEntries(new FormData(form));
+        const agora = new Date();
+        
+        payload.tipo = tipo;
+        payload.data = agora.toLocaleDateString('pt-BR');
+        const hora = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+        
+        if (tipo === 'SAIDA') payload.horaInic = hora;
+        else payload.horaFim = hora;
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.text())
+        .then(res => {
+            alert("Sucesso! Registro de " + tipo + " gravado.");
+            location.reload();
+        })
+        .catch(err => {
+            alert("Erro ao conectar com a planilha.");
+            btn.classList.remove('loading');
+            btn.innerText = tipo === 'SAIDA' ? "🚀 INICIAR SAÍDA" : "🏁 FINALIZAR CHEGADA";
+        });
+    }
 </script>
 
 </body>
