@@ -3,83 +3,93 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { background: #121212; color: white; font-family: Arial; padding: 15px; }
-    input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; border: 1px solid #444; background: #222; color: white; box-sizing: border-box; }
-    label { font-size: 12px; color: #888; text-transform: uppercase; }
-    .btn { background: #1a1a3a; color: #aaa; border: 1px solid #333; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .id-display { color: #ff00ff; font-weight: bold; text-align: center; background: #1a1a1a; }
+    body { background: #000; color: #fff; font-family: sans-serif; padding: 10px; }
+    .container { max-width: 400px; margin: auto; border: 1px solid #333; padding: 15px; border-radius: 10px; background: #111; }
+    h2 { text-align: center; color: #888; font-size: 18px; letter-spacing: 2px; }
+    label { font-size: 10px; font-weight: bold; color: #555; display: block; margin-top: 10px; }
+    select, input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 6px; border: 1px solid #444; background: #222; color: white; box-sizing: border-box; }
+    .grid { display: flex; gap: 10px; }
+    .col { flex: 1; }
+    .id-box { color: #ff00ff; text-align: center; font-weight: bold; border-color: #303; }
+    .trajeto-box { color: yellow; text-align: center; font-weight: bold; }
+    .btn { background: #0a0a2a; color: #555; border: 1px solid #1a1a3a; padding: 16px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 20px; font-size: 16px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h3 style="text-align:center; color:#ccc;">TELEJUR V22</h3>
-  
-  <form id="formCheck">
-    <label>Motorista</label>
-    <select name="nome" id="nome" onchange="buscar()" required>
-      <option value="">-- SELECIONE --</option>
-      <option value="Adriano Nascimento">Adriano Nascimento</option>
-      <option value="Fracivaldo Costa">Fracivaldo Costa</option>
-      <option value="Lafaiete Batista">Lafaiete Batista</option>
-      <option value="Reginaldo">Reginaldo</option>
-      <option value="Walter Gonçalves">Walter Gonçalves</option>
-      <option value="Ezequeil Silva">Ezequeil Silva</option>
-    </select>
+  <div class="container">
+    <h2>TELEJUR V22</h2>
+    
+    <form id="formMaster">
+      <label>Motorista Responsável</label>
+      <select name="nome" id="nome" onchange="buscar()" required>
+        <option value="">-- SELECIONE --</option>
+        <option value="Adriano Nascimento">Adriano Nascimento</option>
+        <option value="Fracivaldo Costa">Fracivaldo Costa</option>
+        <option value="Lafaiete Batista">Lafaiete Batista</option>
+        <option value="Reginaldo">Reginaldo</option>
+        <option value="Walter Gonçalves">Walter Gonçalves</option>
+        <option value="Ezequeil Silva">Ezequeil Silva</option>
+      </select>
 
-    <div style="display: flex; gap: 10px;">
-      <div style="flex:1">
-        <label>TAG</label>
-        <select name="tag" id="tag" onchange="buscar()" required>
-          <option value="">--</option>
-          <option value="TJUR 04">04</option>
-          <option value="TJUR 06">06</option>
-          <option value="TJUR 07">07</option>
-          <option value="TJUR 08">08</option>
-          <option value="TJUR 09">09</option>
-          <option value="TJUR 10">10</option>
-          <option value="TJUR 13">13</option>
-        </select>
+      <div class="grid">
+        <div class="col">
+          <label>TAG</label>
+          <select name="tag" id="tag" onchange="buscar()" required>
+            <option value="">--</option>
+            <option value="TJUR 04">04</option>
+            <option value="TJUR 06">06</option>
+            <option value="TJUR 07">07</option>
+            <option value="TJUR 08">08</option>
+            <option value="TJUR 09">09</option>
+            <option value="TJUR 10">10</option>
+            <option value="TJUR 13">13</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>ID DO DIA</label>
+          <input type="text" name="condutorID" id="condutorID" class="id-box" readonly>
+        </div>
       </div>
-      <div style="flex:1">
-        <label>ID</label>
-        <input type="text" id="condutorID" class="id-display" readonly>
+
+      <div class="grid">
+        <div class="col">
+          <label>KM Inicial</label>
+          <input type="number" name="kmi" id="kmi" required>
+        </div>
+        <div class="col">
+          <label>Nº Trajeto</label>
+          <input type="text" name="numT" id="numT" class="trajeto-box" readonly>
+        </div>
       </div>
-    </div>
 
-    <div style="display: flex; gap: 10px;">
-      <div style="flex:1">
-        <label>KM Inicial</label>
-        <input type="number" name="kmi" id="kmi" required>
-      </div>
-      <div style="flex:1">
-        <label>Nº Trajeto</label>
-        <input type="text" name="numT" id="numT" style="color:yellow; text-align:center" readonly>
-      </div>
-    </div>
+      <label>Próxima Troca (KM)</label>
+      <input type="number" name="proxOleo" id="proxOleo" style="color: yellow" readonly>
 
-    <label>Observação</label>
-    <input type="text" name="obs">
+      <label>Observação</label>
+      <input type="text" name="obs">
 
-    <input type="hidden" name="proxOleo" id="proxOleo">
-    <input type="hidden" name="placa" id="placa">
-    <input type="hidden" name="veiculo" id="veiculo">
+      <input type="hidden" name="placa" id="placa">
+      <input type="hidden" name="veiculo" id="veiculo">
 
-    <button type="submit" id="btn" class="btn">🚀 INICIAR SAÍDA</button>
-  </form>
+      <button type="submit" id="btn" class="btn">🚀 INICIAR SAÍDA</button>
+    </form>
+  </div>
 
   <script>
-    const SCRIPT_URL = "SUA_URL_DA_IMPLANTACAO_AQUI";
+    // COLE A URL DO SEU SCRIPT AQUI ABAIXO
+    const URL_APP = "SUA_URL_AQUI";
 
     function buscar() {
       const tag = document.getElementById('tag').value;
       const nome = document.getElementById('nome').value;
       if(tag && nome) {
         const s = document.createElement('script');
-        s.src = `${SCRIPT_URL}?callback=retorno&acao=buscarDadosVei&tag=${tag}&nome=${nome}`;
+        s.src = `${URL_APP}?callback=preencher&acao=buscarDadosVei&tag=${tag}&nome=${nome}`;
         document.body.appendChild(s);
       }
     }
 
-    function retorno(r) {
+    function preencher(r) {
       document.getElementById('condutorID').value = r.condutorSugerido;
       document.getElementById('kmi').value = r.kmi;
       document.getElementById('numT').value = r.numT;
@@ -88,22 +98,27 @@
       document.getElementById('veiculo').value = r.veiculo;
     }
 
-    document.getElementById('formCheck').onsubmit = function(e) {
+    document.getElementById('formMaster').onsubmit = function(e) {
       e.preventDefault();
       const b = document.getElementById('btn');
       b.innerText = "ENVIANDO..."; b.disabled = true;
 
       const dados = Object.fromEntries(new FormData(this));
       dados.data = new Date().toLocaleDateString('pt-BR');
-      dados.horaInic = new Date().getHours() + ":" + new Date().getMinutes();
+      dados.horaInic = new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+      dados.tipo = "SAIDA";
 
-      fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(dados) })
+      fetch(URL_APP, { method: 'POST', body: JSON.stringify(dados) })
       .then(() => {
-        alert("Salvo!");
+        // Envio para WhatsApp com as informações das 18 colunas
+        const texto = `*📋 TELEJUR - SAIDA*%0A*Mot:* ${dados.nome}%0A*Tag:* ${dados.tag}%0A*Trajeto:* ${dados.numT}%0A*KM:* ${dados.kmi}`;
+        window.open(`https://api.whatsapp.com/send?phone=55XXXXXXXXXXX&text=${texto}`, '_blank');
         location.reload();
-      }).catch(() => {
+      })
+      .catch(() => {
         alert("Erro no envio!");
         b.disabled = false;
+        b.innerText = "🚀 INICIAR SAÍDA";
       });
     };
   </script>
