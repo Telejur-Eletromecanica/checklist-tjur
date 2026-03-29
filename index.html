@@ -13,8 +13,8 @@
             <h1 class="font-bold text-lg uppercase tracking-wider">Frota Telejur</h1>
         </div>
         <div class="flex justify-around bg-blue-900">
-            <button onclick="mudarTela('saida')" id="btn-saida" class="w-1/2 py-3 font-bold uppercase text-xs border-b-4 border-white opacity-100">1. Saída Trajeto</button>
-            <button onclick="mudarTela('retorno')" id="btn-retorno" class="w-1/2 py-3 font-bold uppercase text-xs opacity-60">2. Chegada Trajeto</button>
+            <button onclick="mudarTela('saida')" id="btn-saida" class="w-1/2 py-3 font-bold uppercase text-[10px] border-b-4 border-white opacity-100">1. SAÍDA TRAJETO</button>
+            <button onclick="mudarTela('retorno')" id="btn-retorno" class="w-1/2 py-3 font-bold uppercase text-[10px] opacity-60">2. CHEGADA TRAJETO</button>
         </div>
     </header>
 
@@ -23,7 +23,7 @@
         <div id="tela-saida" class="space-y-4">
             <section class="bg-white rounded-2xl shadow-sm border p-4 space-y-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Veículo (TAG)</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">VEÍCULO (TAG)</label>
                     <select id="tag_select" onchange="preencherVeiculoPlaca()" class="w-full border-2 border-blue-50 rounded-xl p-3 font-black text-blue-700 bg-blue-50 outline-none">
                         <option value="" disabled selected>ESCOLHA A TAG...</option>
                         <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
@@ -34,65 +34,75 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="veiculo_input" readonly placeholder="Veículo" class="bg-slate-50 border p-2 rounded-lg text-[10px] font-bold text-slate-500 uppercase text-center">
-                    <input type="text" id="placa_input" readonly placeholder="Placa" class="bg-slate-50 border p-2 rounded-lg text-[10px] font-bold text-slate-500 uppercase text-center">
+                    <input type="text" id="veiculo_input" readonly class="bg-slate-50 border p-2 rounded-lg text-[10px] font-bold text-slate-500 text-center">
+                    <input type="text" id="placa_input" readonly class="bg-slate-50 border p-2 rounded-lg text-[10px] font-bold text-slate-500 text-center uppercase">
                 </div>
 
-                <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold bg-white">
-                    <option disabled selected>Motorista...</option>
-                    <option>ADRIANO NASCIMENTO</option><option>FRACIVALDO COSTA</option><option>JOELCINEI GUIMARÃES</option><option>FRACINILDO TEIXEIRA</option><option>EZEQUIEL SILVA</option><option>REGINALDO PEREIRA</option><option>LAFAIETE BATISTA</option><option>WALTER GONÇALVES</option>
-                </select>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">MOTORISTA</label>
+                    <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold bg-white">
+                        <option value="" disabled selected>Selecione o motorista...</option>
+                        <option value="1|ADRIANO NASCIMENTO">ID 1 - Adriano Nascimento</option>
+                        <option value="2|FRACIVALDO COSTA">ID 2 - Fracivaldo Costa</option>
+                        <option value="3|JOELCINEI GUIMARÃES">ID 3 - Joelcinei Guimarães</option>
+                        <option value="4|FRACINILDO TEIXEIRA">ID 4 - Fracinildo Teixeira</option>
+                        <option value="5|EZEQUIEL SILVA">ID 5 - Ezequiel Silva</option>
+                        <option value="6|REGINALDO PEREIRA">ID 6 - Reginaldo Pereira</option>
+                        <option value="7|LAFAIETE BATISTA">ID 7 - Lafaiete Batista</option>
+                        <option value="8|WALTER GONÇALVES">ID 8 - Walter Gonçalves</option>
+                    </select>
+                </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[10px] font-bold text-green-600 uppercase mb-1">KM Saída</label>
+                        <label class="block text-[10px] font-bold text-green-600 uppercase mb-1">KM SAÍDA</label>
                         <input type="tel" inputmode="numeric" id="km_inicial" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-green-100 rounded-xl p-3 text-xl font-black text-green-700 text-center outline-none">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tipo de Óleo</label>
-                        <select id="tipo_oleo" class="w-full border-2 border-slate-100 rounded-xl p-3 text-[10px] font-bold text-slate-700 outline-none">
-                            <option value="5W30 (Sintético)">5W30 (Sintético)</option><option value="10W40 (Semi-sint)">10W40 (Semi-sint)</option><option value="15W40 (Mineral)">15W40 (Mineral)</option>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">TIPO DE ÓLEO</label>
+                        <select id="tipo_oleo" class="w-full border-2 border-slate-100 rounded-xl p-3 text-[10px] font-bold">
+                            <option>5w30 (Sintético)</option><option>10w40 (Semi-sint)</option><option>15w40 (Mineral)</option><option>20w50 (Mineral)</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Próx. Troca KM</label>
-                        <input type="tel" inputmode="numeric" id="km_troca" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-slate-700 text-center">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">PRÓX. TROCA KM</label>
+                        <input type="tel" inputmode="numeric" id="km_troca" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-center">
                     </div>
                     <div class="flex flex-col justify-end">
-                        <label class="block text-[10px] font-bold text-blue-900 uppercase mb-1">Resta p/ Troca</label>
+                        <label class="block text-[10px] font-bold text-blue-900 uppercase mb-1">RESTA P/ TROCA</label>
                         <div id="resultado_texto_saida" class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center text-xs font-black text-blue-300">--- KM</div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <div><label class="text-[10px] font-bold uppercase text-orange-600">Validade Selo</label><input type="date" id="data_selo" class="w-full border-2 border-orange-50 rounded-xl p-2 text-xs font-bold text-center"></div>
-                    <div><label class="text-[10px] font-bold uppercase text-orange-600">Cor Selo</label><select id="cor_selo" class="w-full border-2 border-orange-50 rounded-xl p-2 text-xs font-bold"><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select></div>
+                    <div><label class="text-[10px] font-bold uppercase text-orange-600">VALIDADE SELO</label><input type="date" id="data_selo" class="w-full border-2 border-orange-50 rounded-xl p-2 text-xs font-bold text-center"></div>
+                    <div><label class="text-[10px] font-bold uppercase text-orange-600">COR DO SELO</label><select id="cor_selo" class="w-full border-2 border-orange-50 rounded-xl p-2 text-xs font-bold"><option>Verde</option><option>Amarelo</option><option>Azul</option><option>Vermelho</option></select></div>
                 </div>
 
                 <button onclick="enviarDados('inicio')" class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg uppercase">Registrar Saída</button>
             </section>
         </div>
 
-        <div id="tela-retorno" class="hidden">
+        <div id="tela-retorno" class="hidden space-y-4">
             <section class="bg-white rounded-2xl shadow-md border p-4 space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[10px] font-bold text-blue-700 uppercase text-center">KM Chegada</label>
+                        <label class="block text-[10px] font-bold text-blue-700 uppercase text-center">KM CHEGADA</label>
                         <input type="tel" inputmode="numeric" id="km_final" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-blue-100 rounded-xl p-3 text-2xl font-black text-blue-800 text-center outline-none">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase text-center">Próx. Troca</label>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase text-center">PRÓX. TROCA</label>
                         <input type="tel" inputmode="numeric" id="km_troca_fim" oninput="sincronizarTroca(this)" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-center">
                     </div>
                 </div>
                 <div class="bg-blue-50 rounded-xl p-4 flex justify-between items-center border border-blue-100">
-                    <span class="text-[10px] font-black text-blue-900 uppercase">Resta:</span>
+                    <span class="text-[10px] font-black text-blue-900 uppercase">RESTA:</span>
                     <span id="resultado_texto_fim" class="text-2xl font-black text-blue-300">--- KM</span>
                 </div>
-                <textarea id="observacao" placeholder="Avarias..." class="w-full border rounded-xl p-3 text-sm h-24 bg-slate-50"></textarea>
+                <textarea id="observacao" placeholder="Avarias ou Observações..." class="w-full border rounded-xl p-3 text-sm h-24 bg-slate-50"></textarea>
                 <button onclick="enviarDados('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl shadow-xl uppercase">Finalizar Trajeto</button>
             </section>
         </div>
@@ -101,15 +111,28 @@
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
         
+        function formatarTexto(texto) {
+            if(!texto) return "Não informado";
+            return texto.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
         function mudarTela(tela) {
             document.getElementById('tela-saida').classList.toggle('hidden', tela !== 'saida');
             document.getElementById('tela-retorno').classList.toggle('hidden', tela !== 'retorno');
-            document.getElementById('btn-saida').className = tela === 'saida' ? "w-1/2 py-3 font-bold uppercase text-xs border-b-4 border-white opacity-100" : "w-1/2 py-3 font-bold uppercase text-xs opacity-60";
-            document.getElementById('btn-retorno').className = tela === 'retorno' ? "w-1/2 py-3 font-bold uppercase text-xs border-b-4 border-white opacity-100" : "w-1/2 py-3 font-bold uppercase text-xs opacity-60";
+            document.getElementById('btn-saida').className = tela === 'saida' ? "w-1/2 py-3 font-bold uppercase text-[10px] border-b-4 border-white opacity-100" : "w-1/2 py-3 font-bold uppercase text-[10px] opacity-60";
+            document.getElementById('btn-retorno').className = tela === 'retorno' ? "w-1/2 py-3 font-bold uppercase text-[10px] border-b-4 border-white opacity-100" : "w-1/2 py-3 font-bold uppercase text-[10px] opacity-60";
         }
 
-        const frota = { "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50" }, "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02" }, "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75" }, "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48" }, "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04" }, "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37" }, "TJUR 13": { v: "CAMINHONETE", p: "QVD4I38" } };
-        function preencherVeiculoPlaca() { const f = frota[document.getElementById('tag_select').value]; if(f) { document.getElementById('veiculo_input').value = f.v; document.getElementById('placa_input').value = f.p; } }
+        const frota = { "TJUR 04": { v: "Sky munck", p: "QFA1I50" }, "TJUR 06": { v: "Saveiro furgão", p: "QUJ3E02" }, "TJUR 07": { v: "Sky munck", p: "RWR3C75" }, "TJUR 08": { v: "Caminhonete hilux", p: "QVE5H48" }, "TJUR 09": { v: "Sky munck", p: "RXC6J04" }, "TJUR 10": { v: "Caminhonete", p: "PHU1I37" }, "TJUR 13": { v: "Caminhonete", p: "QVD4I38" } };
+        
+        function preencherVeiculoPlaca() { 
+            const f = frota[document.getElementById('tag_select').value]; 
+            if(f) { 
+                document.getElementById('veiculo_input').value = formatarTexto(f.v); 
+                document.getElementById('placa_input').value = f.p.toUpperCase(); 
+            } 
+        }
+
         function limparNumero(v) { return parseFloat(v.replace(/[^\d]/g, '')) || 0; }
         function sincronizarTroca(el) { document.getElementById('km_troca').value = el.value; calcularTroca(); }
 
@@ -119,7 +142,7 @@
             const kmRef = (fim > 0) ? fim : ini;
             if (kmRef > 0 && tro > 0) {
                 const resta = tro - kmRef;
-                const txt = (resta <= 0) ? "VENCIDO!" : resta.toLocaleString('pt-BR') + " KM";
+                const txt = (resta <= 0) ? "Vencido!" : resta.toLocaleString('pt-BR') + " KM";
                 const cor = (resta <= 0) ? "text-red-600" : (resta <= 500 ? "text-orange-500" : "text-green-600");
                 document.getElementById('resultado_texto_saida').innerText = txt; document.getElementById('resultado_texto_saida').className = "bg-blue-50 border border-blue-100 rounded-xl p-3 text-center text-xs font-black " + cor;
                 document.getElementById('resultado_texto_fim').innerText = txt; document.getElementById('resultado_texto_fim').className = "text-2xl font-black " + cor;
@@ -127,23 +150,28 @@
         }
 
         async function enviarDados(tipo) {
-            const btn = event.target; btn.disabled = true; btn.innerText = "ENVIANDO...";
+            const btn = event.target; btn.disabled = true; btn.innerText = "GRAVANDO...";
             const agora = new Date();
             const horaAtual = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            
+            const condutorVal = document.getElementById('nome_condutor').value.split('|');
+            const idMot = condutorVal[0];
+            const nomeMot = formatarTexto(condutorVal[1]);
 
             const dados = {
                 tipo: tipo,
                 tag: document.getElementById('tag_select').value,
-                nome: document.getElementById('nome_condutor').value,
+                id_motorista: idMot,
+                nome: nomeMot,
                 km_inicial: document.getElementById('km_inicial').value,
                 km_final: document.getElementById('km_final').value,
                 placa: document.getElementById('placa_input').value,
-                veiculo: document.getElementById('veiculo_input').value,
-                tipo_oleo: document.getElementById('tipo_oleo').value,
-                cor_selo: document.getElementById('cor_selo').value,
+                veiculo: formatarTexto(document.getElementById('veiculo_input').value),
+                tipo_oleo: formatarTexto(document.getElementById('tipo_oleo').value),
+                cor_selo: formatarTexto(document.getElementById('cor_selo').value),
                 prox_oleo: document.getElementById('km_troca').value,
                 resta_troca: document.getElementById('resultado_texto_fim').innerText,
-                obs: document.getElementById('observacao').value || "S/O",
+                obs: formatarTexto(document.getElementById('observacao').value),
                 data: agora.toLocaleDateString('pt-BR'),
                 hora_inicio: tipo === 'inicio' ? horaAtual : "",
                 hora_fim: tipo === 'fim' ? horaAtual : ""
@@ -153,12 +181,26 @@
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados)});
                 const sep = "--------------------------";
                 const titulo = tipo === 'inicio' ? "🚀 *SAÍDA DO TRAJETO*" : "🏁 *CHEGADA DO TRAJETO*";
-                const horarioZap = tipo === 'inicio' ? `🕒 *Hora Saída:* ${horaAtual}` : `🕒 *Hora Chegada:* ${horaAtual}`;
 
-                const zap = `${titulo}\n${sep}\n\n👤 *Motorista:* ${dados.nome}\n🚘 *Veículo:* ${dados.veiculo} (${dados.tag})\n🆔 *Placa:* ${dados.placa}\n\n${sep}\n\n📍 *INFO PERCURSO*\n${horarioZap}\n${tipo === 'inicio' ? '*KM Inicial:* '+dados.km_inicial : '*KM Chegada:* '+dados.km_final}\n\n${sep}\n\n🛠️ *MANUTENÇÃO*\n🛢️ *Tipo de Óleo:* ${dados.tipo_oleo}\n🏷️ *Cor do Selo:* ${dados.cor_selo}\n⚠️ *Resta p/ troca:* ${dados.resta_troca}\n\n${sep}\n\n📝 *OBS:* ${dados.obs}`;
+                const zap = `${titulo}\n${sep}\n\n` +
+                    `👤 *ID MOTORISTA:* ${dados.id_motorista}\n` +
+                    `👤 *MOTORISTA:* ${dados.nome}\n` +
+                    `🚘 *VEÍCULO:* ${dados.veiculo} (${dados.tag})\n` +
+                    `🆔 *PLACA:* ${dados.placa}\n\n` +
+                    `${sep}\n\n` +
+                    `📍 *INFO PERCURSO*\n` +
+                    `🕒 *HORA:* ${horaAtual}\n` +
+                    `${tipo === 'inicio' ? '*KM INICIAL:* '+dados.km_inicial : '*KM CHEGADA:* '+dados.km_final}\n\n` +
+                    `${sep}\n\n` +
+                    `🛠️ *MANUTENÇÃO*\n` +
+                    `🛢️ *TIPO DE ÓLEO:* ${dados.tipo_oleo}\n` +
+                    `🏷️ *COR DO SELO:* ${dados.cor_selo}\n` +
+                    `⚠️ *RESTA P/ TROCA:* ${dados.resta_troca}\n\n` +
+                    `${sep}\n\n` +
+                    `📝 *OBS:* ${dados.obs}`;
 
                 window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(zap)}`);
-                alert("Sucesso!");
+                alert("Salvo!");
                 if(tipo === 'fim') location.reload(); else mudarTela('retorno');
             } catch(e) { alert("Erro!"); btn.disabled = false; }
         }
