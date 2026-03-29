@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V17</title>
+    <title>TELEJUR CHECKLIST V20</title>
     <style>
         :root { --primary: #1a237e; --success: #2e7d32; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -15,14 +15,14 @@
         .resta-box { background: #e8eaf6; padding: 12px; border-radius: 6px; text-align: center; margin-top: 15px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); }
         .hidden { display: none; }
         #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; }
-        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 12px; max-height: 80vh; overflow-y: auto; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 12px; }
         .rev-item { border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 TELEJUR V17</h2>
+    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 TELEJUR V20</h2>
 
     <div id="secaoSaida">
         <label>Motorista Responsável</label>
@@ -37,7 +37,7 @@
                     <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
                 </select>
             </div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly></div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Busca..."></div>
         </div>
 
         <div class="grid">
@@ -69,7 +69,7 @@
 
 <div id="modal" class="hidden">
     <div class="modal-content">
-        <h3 style="margin-top:0">Confirmar Dados?</h3>
+        <h3 id="modalTitulo" style="margin-top:0">Confirmar Dados?</h3>
         <div id="listaRevisao"></div>
         <button id="btnConfirmar" onclick="confirmarEnvio()" class="btn" style="background:var(--success)">TUDO CERTO, ENVIAR!</button>
         <button onclick="fecharModal()" class="btn" style="background:#666; padding:10px; font-size:12px">VOLTAR E CORRIGIR</button>
@@ -78,12 +78,12 @@
 
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const CHAVE_STORAGE = 'TELEJUR_V20';
     let dadosTemp = {};
 
     function limparNum(v) { 
         if(!v) return 0;
-        let n = parseInt(v.toString().replace(/[\.\,\s]/g, ''));
-        return isNaN(n) ? 0 : n;
+        return parseInt(v.toString().replace(/[^0-9]/g, '')) || 0;
     }
 
     function puxarDados() {
@@ -118,12 +118,12 @@
         const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
         
         if(tipo === 'SAIDA') {
-            dadosTemp = { tipo: 'SAIDA', data: dataH, horaInic: horaH, tag: document.getElementById('tag').value, condutorID: document.getElementById('condID').value, nome: document.getElementById('nomeMot').value, kmi: document.getElementById('kmi').value, veiculo: document.getElementById('vei').value, placa: document.getElementById('pla').value, numT: document.getElementById('numT').value, proxOleo: document.getElementById('pxO').value, obs: "S/O" };
+            dadosTemp = { tipo: 'SAIDA', data: dataH, horaInic: horaH, tag: document.getElementById('tag').value, condutorID: document.getElementById('condID').value, nome: document.getElementById('nomeMot').value, kmi: document.getElementById('kmi').value, veiculo: document.getElementById('vei').value, placa: document.getElementById('pla').value, numT: document.getElementById('numT').value, proxOleo: document.getElementById('pxO').value };
         } else {
-            const salvo = JSON.parse(localStorage.getItem('tjur_v17'));
+            const salvo = JSON.parse(localStorage.getItem(CHAVE_STORAGE));
             const kmFinal = limparNum(document.getElementById('kmf').value);
             const kmInicial = limparNum(salvo.kmi);
-            if(kmFinal <= kmInicial) { alert(`Erro: KM Final (${kmFinal}) deve ser MAIOR que o Inicial (${kmInicial})`); return; }
+            if(kmFinal <= kmInicial) { alert("KM Final deve ser maior que o Inicial!"); return; }
             dadosTemp = { ...salvo, tipo: 'CHEGADA', kmf: kmFinal, horaFim: horaH };
         }
 
@@ -138,28 +138,43 @@
 
     async function confirmarEnvio() {
         const btn = document.getElementById('btnConfirmar');
-        btn.disabled = true; btn.innerText = "GRAVANDO...";
-        
-        await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dadosTemp) });
+        btn.disabled = true;
+        btn.innerText = "ENVIANDO...";
 
         const kmTroca = limparNum(dadosTemp.proxOleo);
         const kmAtual = dadosTemp.tipo === 'SAIDA' ? limparNum(dadosTemp.kmi) : limparNum(dadosTemp.kmf);
         const resta = kmTroca - kmAtual;
+        const msg = `*📋 TELEJUR ${dadosTemp.tipo}*%0A*Veículo:* ${dadosTemp.veiculo}%0A*Placa:* ${dadosTemp.placa}%0A*Motorista:* ${dadosTemp.nome}%0A*Trajeto:* ${dadosTemp.numT}%0A*KM:* ${kmAtual}%0A*Troca:* ${kmTroca}%0A*Resta:* ${resta} KM`;
 
-        let msg = `*📋 TELEJUR ${dadosTemp.tipo}*%0A*Veículo:* ${dadosTemp.veiculo}%0A*Placa:* ${dadosTemp.placa}%0A*Motorista:* ${dadosTemp.nome}%0A*Trajeto:* ${dadosTemp.numT}%0A*KM:* ${kmAtual}%0A*Próxima Troca:* ${kmTroca}%0A*Resta:* ${resta} KM`;
-        
+        // Envio com timeout de 4 segundos
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 4000);
+
+        try {
+            await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dadosTemp), signal: controller.signal });
+        } catch(e) { console.log("Timeout ou Erro de rede"); }
+
+        // WhatsApp e Limpeza de Memória
         window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        if(dadosTemp.tipo === 'SAIDA') localStorage.setItem('tjur_v17', JSON.stringify(dadosTemp));
-        else localStorage.removeItem('tjur_v17');
         
-        fecharModal();
-        setTimeout(() => location.reload(), 1000);
+        if(dadosTemp.tipo === 'SAIDA') {
+            localStorage.setItem(CHAVE_STORAGE, JSON.stringify(dadosTemp));
+        } else {
+            localStorage.removeItem(CHAVE_STORAGE);
+        }
+        
+        document.getElementById('modal').classList.add('hidden');
+        setTimeout(() => location.reload(), 800);
     }
 
-    function fecharModal() { document.getElementById('modal').classList.add('hidden'); }
+    function fecharModal() { 
+        document.getElementById('modal').classList.add('hidden');
+        document.getElementById('btnConfirmar').disabled = false;
+        document.getElementById('btnConfirmar').innerText = "TUDO CERTO, ENVIAR!";
+    }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v17');
+        const salvo = localStorage.getItem(CHAVE_STORAGE);
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
