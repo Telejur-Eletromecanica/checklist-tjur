@@ -22,7 +22,7 @@
             <div class="grid grid-cols-2 gap-3">
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Data</label>
-                    <input type="date" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+                    <input type="date" id="data_input" readonly class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none">
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">ID Condutor</label>
@@ -137,7 +137,7 @@
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Observação</label>
-                    <textarea rows="2" placeholder="S/O" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:orange-400 outline-none"></textarea>
+                    <textarea rows="2" placeholder="S/O" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none"></textarea>
                 </div>
             </div>
         </section>
@@ -149,7 +149,7 @@
     </div>
 
     <script>
-        // Banco de dados local baseado na imagem fornecida
+        // Banco de dados local
         const bancoDadosVeiculos = {
             "tjur04": { veiculo: "SKY MUNCK", placa: "QFA1I50" },
             "tjur06": { veiculo: "SAVEIRO FURGÃO", placa: "QUJ3E02" },
@@ -160,26 +160,30 @@
             "tjur13": { veiculo: "CAMINHONETE", placa: "QVD4I38" }
         };
 
+        // Função para preencher a data atual automaticamente
+        function configurarDataAtual() {
+            const inputData = document.getElementById('data_input');
+            const hoje = new Date().toISOString().split('T')[0];
+            inputData.value = hoje;
+        }
+
         function preencherVeiculoPlaca() {
-            // Pega os elementos
             const selectTag = document.getElementById('tag_select');
             const inputVeiculo = document.getElementById('veiculo_input');
             const inputPlaca = document.getElementById('placa_input');
-            
-            // Pega o valor selecionado (ex: "tjur13")
             const tagSelecionada = selectTag.value;
 
-            // Se houver uma tag selecionada, busca no banco local
             if (tagSelecionada && bancoDadosVeiculos[tagSelecionada]) {
                 const dados = bancoDadosVeiculos[tagSelecionada];
                 inputVeiculo.value = dados.veiculo;
                 inputPlaca.value = dados.placa;
-            } else {
-                // Limpa os campos se nada for selecionado
-                inputVeiculo.value = "";
-                inputPlaca.value = "";
             }
         }
+
+        // Executa ao carregar a página
+        window.onload = function() {
+            configurarDataAtual();
+        };
     </script>
 </body>
 </html>
