@@ -1,172 +1,110 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST</title>
-    <style>
-        :root { --primary: #1a237e; --success: #2e7d32; --bg: #f4f7f9; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        label { display: block; font-weight: bold; font-size: 11px; margin-top: 10px; color: #555; }
-        input, select { width: 100%; padding: 12px; margin-top: 4px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; margin-top: 20px; cursor: pointer; }
-        .resta-box { background: #e8eaf6; padding: 12px; border-radius: 6px; text-align: center; margin-top: 15px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); }
-        .resumo-visual { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #2196f3; font-size: 14px; line-height: 1.6; }
-        .hidden { display: none; }
-    </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-
-<div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0">📋 TELEJUR</h2>
-
-    <div id="secaoSaida">
-        <div id="resumoSaida" class="resumo-visual hidden"></div>
-        
-        <label>Motorista Responsável</label>
-        <select id="nomeMot" onchange="puxarDados()">
-            <option value="">-- SELECIONE --</option>
-            <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
-        </select>
-        <div class="grid">
-            <div><label>TAG</label>
-                <select id="tag" onchange="puxarDados()">
-                    <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
-                </select>
-            </div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly></div>
+<body class="bg-slate-50 p-4">
+  <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold mb-6 text-slate-700 border-b pb-2">Checklist de Trajeto</h2>
+    
+    <form id="formChecklist" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-600">TagID (Veículo)</label>
+          <select name="tag" id="tag" onchange="atualizarTrajeto()" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+            <option value="">Selecione a TAG</option>
+            <option value="TAG-01">TAG-01</option>
+            <option value="TAG-02">TAG-02</option>
+          </select>
         </div>
-        <div class="grid">
-            <div><label>KM Inicial</label><input type="number" id="kmi" oninput="calc()"></div>
-            <div><label>Próx. Troca (KM)</label><input type="number" id="pxO" oninput="calc()"></div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-600">Motorista (Nome)</label>
+          <select name="nome" id="nome" onchange="atualizarTrajeto()" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+            <option value="">Selecione o Condutor</option>
+            <option value="João Silva">João Silva</option>
+            <option value="Maria Oliveira">Maria Oliveira</option>
+          </select>
         </div>
-        <div id="restaAviso" class="resta-box">Resta para a troca: -</div>
-        <div class="grid">
-            <div><label>Veículo</label><input type="text" id="vei" readonly></div>
-            <div><label>Placa</label><input type="text" id="pla" readonly></div>
+      </div>
+
+      <div class="bg-blue-50 p-3 rounded-lg flex justify-between items-center border border-blue-100">
+        <span class="text-blue-700 font-medium">Sequência do Dia:</span>
+        <input type="text" id="trajeto_label" class="bg-transparent text-right font-bold text-blue-800 outline-none" readonly value="Selecione TAG e Nome">
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-500">KM Inicial</label>
+          <input type="number" name="km_inicial" class="w-full p-2 border rounded shadow-sm" required>
         </div>
-        <label>Nº Trajeto</label><input type="number" id="numT" value="1">
-        <label>Observações</label><input type="text" id="obsS">
-        
-        <button id="btnSaida" onclick="enviarRapido('SAIDA')" class="btn" style="background:var(--primary)">🚀 INICIAR SAÍDA</button>
-    </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-500">Hora Início</label>
+          <input type="time" name="hora_inicio" class="w-full p-2 border rounded shadow-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-500">Resta p/ Troca</label>
+          <input type="number" name="resta_troca" class="w-full p-2 border rounded shadow-sm">
+        </div>
+      </div>
 
-    <div id="secaoChegada" class="hidden">
-        <div id="resumoChegada" style="background:#fff9c4; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #fbc02d"></div>
-        <label>KM Final de Chegada</label><input type="number" id="kmf">
-        <label>Observações</label><input type="text" id="obsC">
-        <button id="btnChegada" onclick="enviarRapido('CHEGADA')" class="btn" style="background:var(--success)">🏁 CONCLUIR CHEGADA</button>
-        <button onclick="localStorage.clear();location.reload();" style="background:none; border:none; color:red; font-size:10px; width:100%; margin-top:10px; text-decoration:underline">RESETAR</button>
-    </div>
-</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-600">Status Geral</label>
+          <select name="status" class="w-full p-2 border rounded-lg">
+            <option value="OK">Tudo OK</option>
+            <option value="ALERTA">Alerta / Manutenção</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-600">Observação</label>
+          <input type="text" name="obs" class="w-full p-2 border rounded-lg">
+        </div>
+      </div>
 
-<script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const CHAVE = "TJUR_EMOJI_V1"; 
+      <div class="hidden">
+        <input type="text" name="placa" value="ABC-1234">
+        <input type="text" name="veiculo" value="Modelo do Carro">
+      </div>
 
-    function limparNum(v) { return parseInt(v.toString().replace(/\D/g, '')) || 0; }
+      <button type="submit" id="btnEnviar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition duration-200">
+        SALVAR TRAJETO
+      </button>
+    </form>
+  </div>
 
-    function puxarDados() {
-        const tag = document.getElementById('tag').value;
-        const nome = document.getElementById('nomeMot').value;
-        if(!tag || !nome) return;
-        document.getElementById('condID').value = "...";
-        const s = document.createElement('script');
-        s.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}&callback=preencher&t=${Date.now()}`;
-        document.body.appendChild(s);
+  <script>
+    function atualizarTrajeto() {
+      const tag = document.getElementById('tag').value;
+      const nome = document.getElementById('nome').value;
+      const display = document.getElementById('trajeto_label');
+
+      if (tag && nome) {
+        display.value = "Verificando...";
+        google.script.run
+          .withSuccessHandler(res => display.value = "Trajeto " + res)
+          .getProximoTrajeto(tag, nome);
+      }
     }
 
-    function preencher(d) {
-        document.getElementById('vei').value = d.veiculo; 
-        document.getElementById('pla').value = d.placa;
-        document.getElementById('kmi').value = d.kmi; 
-        document.getElementById('pxO').value = d.proxOleo;
-        document.getElementById('condID').value = d.condutorSugerido;
-        
-        // MOSTRAR RESUMO VISUAL NA SAÍDA
-        const res = document.getElementById('resumoSaida');
-        res.innerHTML = `🚗 <b>${d.veiculo}</b> | 🆔 ${d.condutorSugerido}<br>📍 TAG: ${document.getElementById('tag').value} | 🏁 Placa: ${d.placa}`;
-        res.classList.remove('hidden');
-        calc();
-    }
-
-    function calc() {
-        const k = limparNum(document.getElementById('kmi').value);
-        const p = limparNum(document.getElementById('pxO').value);
-        if(k > 0 && p > 0) document.getElementById('restaAviso').innerText = `Resta para a troca: ${p - k} KM`;
-    }
-
-    function enviarRapido(tipo) {
-        const agora = new Date();
-        const dataH = agora.toLocaleDateString('pt-BR');
-        const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-        let dados = {};
-
-        if(tipo === 'SAIDA') {
-            dados = { 
-                tipo: 'SAIDA', data: dataH, horaInic: horaH, 
-                tag: document.getElementById('tag').value, 
-                condutorID: document.getElementById('condID').value, 
-                nome: document.getElementById('nomeMot').value, 
-                kmi: document.getElementById('kmi').value, 
-                veiculo: document.getElementById('vei').value, 
-                placa: document.getElementById('pla').value, 
-                numT: document.getElementById('numT').value, 
-                proxOleo: document.getElementById('pxO').value,
-                obs: document.getElementById('obsS').value
-            };
-            localStorage.setItem(CHAVE, JSON.stringify(dados));
-        } else {
-            const salvo = JSON.parse(localStorage.getItem(CHAVE));
-            dados = { 
-                ...salvo, tipo: 'CHEGADA', 
-                kmf: document.getElementById('kmf').value, 
-                horaFim: horaH,
-                obs: document.getElementById('obsC').value
-            };
-            localStorage.removeItem(CHAVE);
-        }
-
-        const btn = tipo === 'SAIDA' ? document.getElementById('btnSaida') : document.getElementById('btnChegada');
-        btn.disabled = true; btn.innerText = "ENVIANDO...";
-
-        // FORMATAÇÃO WHATSAPP COM EMOJIS
-        const kmAt = tipo === 'SAIDA' ? limparNum(dados.kmi) : limparNum(dados.kmf);
-        const resta = limparNum(dados.proxOleo) - kmAt;
-        
-        let msg = `*📋 CHECKLIST TELEJUR - ${tipo}*%0A`;
-        msg += `---%0A`;
-        msg += `🗓️ *Data:* ${dados.data}%0A`;
-        msg += `🚗 *Veículo:* ${dados.veiculo}%0A`;
-        msg += `🔢 *Placa:* ${dados.placa}%0A`;
-        msg += `🏷️ *Tag:* ${dados.tag}%0A`;
-        msg += `🆔 *ID:* ${dados.condutorID}%0A`;
-        msg += `👤 *Motorista:* ${dados.nome}%0A`;
-        msg += `🔢 *Nº Trajeto:* ${dados.numT}%0A`;
-        msg += `---%0A`;
-        msg += `🛣️ *KM Inicial:* ${dados.kmi}%0A`;
-        if(tipo === 'CHEGADA') msg += `🏁 *KM Final:* ${dados.kmf}%0A`;
-        msg += `🔧 *Próxima Troca:* ${dados.proxOleo} KM%0A`;
-        msg += `🔧 *Resta para a troca:* ${resta} KM%0A`;
-        msg += `---%0A`;
-        msg += `💬 *Obs:* ${dados.obs || "S/O"}`;
-
-        fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
-        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        setTimeout(() => location.reload(), 1000);
-    }
-
-    window.onload = () => {
-        const salvo = localStorage.getItem(CHAVE);
-        if(salvo) {
-            const d = JSON.parse(salvo);
-            document.getElementById('secaoSaida').classList.add('hidden');
-            document.getElementById('secaoChegada').classList.remove('hidden');
-            document.getElementById('resumoChegada').innerHTML = `🚗 <b>${d.veiculo}</b> | 👤 ${d.nome}<br>🕒 Saída: ${d.horaInic} | 🛣️ KM: ${d.kmi}`;
-        }
+    document.getElementById('formChecklist').onsubmit = function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnEnviar');
+      btn.disabled = true;
+      btn.innerText = "Processando...";
+      
+      const formData = new FormData(this);
+      const dados = Object.fromEntries(formData);
+      
+      google.script.run
+        .withSuccessHandler(msg => {
+          alert(msg);
+          this.reset();
+          btn.disabled = false;
+          btn.innerText = "SALVAR TRAJETO";
+          document.getElementById('trajeto_label').value = "Selecione TAG e Nome";
+        })
+        .salvarChecklist(dados);
     };
-</script>
+  </script>
 </body>
 </html>
