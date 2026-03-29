@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V16</title>
+    <title>TELEJUR CHECKLIST V17</title>
     <style>
-        :root { --primary: #1a237e; --bg: #f4f7f9; }
+        :root { --primary: #1a237e; --success: #2e7d32; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         label { display: block; font-weight: bold; font-size: 11px; margin-top: 10px; color: #555; }
@@ -14,36 +14,36 @@
         .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; margin-top: 20px; cursor: pointer; }
         .resta-box { background: #e8eaf6; padding: 12px; border-radius: 6px; text-align: center; margin-top: 15px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); }
         .hidden { display: none; }
-        input[readonly] { background: #f9f9f9; color: #666; }
+        /* Modal de Revisão */
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 12px; }
+        .rev-item { border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 CHECKLIST TELEJUR</h2>
+    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 TELEJUR V17</h2>
 
     <div id="secaoSaida">
         <label>Motorista Responsável</label>
         <select id="nomeMot" onchange="puxarDados()">
             <option value="">-- SELECIONE --</option>
-            <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-            <option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
+            <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
         </select>
 
         <div class="grid">
             <div><label>TAG</label>
                 <select id="tag" onchange="puxarDados()">
-                    <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option>
-                    <option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option>
-                    <option>TJUR 10</option><option>TJUR 13</option>
+                    <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
                 </select>
             </div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Buscando..."></div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly></div>
         </div>
 
         <div class="grid">
-            <div><label>KM Inicial</label><input type="text" id="kmi" inputmode="numeric" oninput="calc()"></div>
-            <div><label>Próx. Troca (KM)</label><input type="text" id="pxO" inputmode="numeric" oninput="calc()"></div>
+            <div><label>KM Inicial</label><input type="number" id="kmi" oninput="calc()"></div>
+            <div><label>Próx. Troca (KM)</label><input type="number" id="pxO" oninput="calc()"></div>
         </div>
         <div id="restaAviso" class="resta-box">Resta para a troca: -</div>
 
@@ -53,37 +53,35 @@
         </div>
 
         <div class="grid">
-            <div><label>Nº Trajeto</label><input type="text" id="numT" value="1" inputmode="numeric"></div>
+            <div><label>Nº Trajeto</label><input type="number" id="numT"></div>
             <div><label>Tipo Óleo</label>
                 <select id="tpO"><option>5W30</option><option>10W40</option><option>15W40</option></select>
             </div>
         </div>
-
-        <div class="grid">
-            <div><label>Cor Selo</label>
-                <select id="corS"><option>VERDE</option><option>AZUL</option><option>AMARELO</option><option>VERMELHO</option></select>
-            </div>
-            <div><label>Validade Selo</label><input type="date" id="valS"></div>
-        </div>
-
-        <label>Observações</label><textarea id="obs" rows="2"></textarea>
-        <button onclick="enviar('SAIDA')" class="btn" style="background:var(--primary)" id="btnS">🚀 INICIAR SAÍDA</button>
+        <button onclick="revisar('SAIDA')" class="btn" style="background:var(--primary)">🚀 INICIAR SAÍDA</button>
     </div>
 
     <div id="secaoChegada" class="hidden">
-        <div id="resumo" style="background:#fff9c4; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #fbc02d; font-size: 14px;"></div>
-        <label>KM Final de Chegada</label><input type="text" id="kmf" inputmode="numeric">
-        <button onclick="enviar('CHEGADA')" class="btn" style="background:#075e54" id="btnC">🏁 CONCLUIR CHEGADA</button>
+        <div id="resumo" style="background:#fff9c4; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #fbc02d"></div>
+        <label>KM Final de Chegada</label><input type="number" id="kmf">
+        <button onclick="revisar('CHEGADA')" class="btn" style="background:var(--success)">🏁 CONCLUIR CHEGADA</button>
+    </div>
+</div>
+
+<div id="modal" class="hidden">
+    <div class="modal-content">
+        <h3 style="margin-top:0">Confirmar Dados?</h3>
+        <div id="listaRevisao"></div>
+        <button onclick="confirmarEnvio()" class="btn" style="background:var(--success)">TUDO CERTO, ENVIAR!</button>
+        <button onclick="fecharModal()" class="btn" style="background:#666; padding:10px; font-size:12px">VOLTAR E CORRIGIR</button>
     </div>
 </div>
 
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    let dadosTemp = {};
 
-    function limparNum(v) { 
-        if(!v) return 0;
-        return parseInt(v.toString().replace(/[\.\,]/g, '')) || 0; 
-    }
+    function limparNum(v) { return parseInt(v.toString().replace(/[\.\,]/g, '')) || 0; }
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
@@ -100,7 +98,8 @@
         document.getElementById('pla').value = d.placa || "";
         document.getElementById('kmi').value = d.kmi || "";
         document.getElementById('pxO').value = d.proxOleo || "";
-        document.getElementById('condID').value = d.condutorSugerido || "CONDUTOR 1";
+        document.getElementById('condID').value = d.condutorSugerido;
+        document.getElementById('numT').value = d.proximoTrajeto;
         calc();
     }
 
@@ -110,59 +109,73 @@
         if(k > 0 && p > 0) document.getElementById('restaAviso').innerText = "Resta para a troca: " + (p - k) + " KM";
     }
 
-    async function enviar(tipo) {
-        const btn = tipo === 'SAIDA' ? document.getElementById('btnS') : document.getElementById('btnC');
-        btn.disabled = true; btn.innerText = "GRAVANDO...";
+    function revisar(tipo) {
         const agora = new Date();
         const dataH = agora.toLocaleDateString('pt-BR');
         const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
         
-        let p = {};
         if(tipo === 'SAIDA') {
-            p = { tipo: 'SAIDA', data: dataH, horaInic: horaH, tag: document.getElementById('tag').value, condutorID: document.getElementById('condID').value, nome: document.getElementById('nomeMot').value, kmi: document.getElementById('kmi').value, veiculo: document.getElementById('vei').value, placa: document.getElementById('pla').value, numT: document.getElementById('numT').value, proxOleo: document.getElementById('pxO').value, tipoOleo: document.getElementById('tpO').value, corSelo: document.getElementById('corS').value, valSelo: document.getElementById('valS').value, obs: document.getElementById('obs').value || "S/O" };
-            localStorage.setItem('tjur_v16', JSON.stringify(p));
+            dadosTemp = {
+                tipo: 'SAIDA', data: dataH, horaInic: horaH,
+                tag: document.getElementById('tag').value,
+                condutorID: document.getElementById('condID').value,
+                nome: document.getElementById('nomeMot').value,
+                kmi: document.getElementById('kmi').value,
+                veiculo: document.getElementById('vei').value,
+                placa: document.getElementById('pla').value,
+                numT: document.getElementById('numT').value,
+                proxOleo: document.getElementById('pxO').value,
+                obs: document.getElementById('obs') ? document.getElementById('obs').value : "S/O"
+            };
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v16'));
-            p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
+            const salvo = JSON.parse(localStorage.getItem('tjur_v17'));
+            const kmFinal = limparNum(document.getElementById('kmf').value);
+            const kmInicial = limparNum(salvo.kmi);
+
+            // TRAVA DE SEGURANÇA: KM Final não pode ser menor que Inicial
+            if(kmFinal <= kmInicial) {
+                alert("⚠️ ERRO: O KM Final ("+kmFinal+") não pode ser menor ou igual ao KM Inicial ("+kmInicial+")!");
+                return;
+            }
+
+            dadosTemp = { ...salvo, tipo: 'CHEGADA', kmf: kmFinal, horaFim: horaH };
         }
 
-        await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-        
-        const kmInic = limparNum(p.kmi);
-        const kmFim = limparNum(p.kmf || 0);
-        const kmTroca = limparNum(p.proxOleo);
-        const restaTroca = kmTroca - (tipo === 'SAIDA' ? kmInic : kmFim);
-
-        // MENSAGEM WHATSAPP PROFISSIONAL
-        let msg = `*📋 CHECKLIST TELEJUR - ${tipo}*%0A` +
-                  `*----------------------------------*%0A` +
-                  `*🗓️ Data:* ${p.data}%0A` +
-                  `*🚗 Veículo:* ${p.veiculo}%0A` +
-                  `*🔢 Placa:* ${p.placa}%0A` +
-                  `*🏷️ Tag:* ${p.tag}%0A` +
-                  `*🆔 ID:* ${p.condutorID}%0A` +
-                  `*👤 Motorista:* ${p.nome}%0A` +
-                  `*🔢 Nº Trajeto:* ${p.numT}%0A` +
-                  `*----------------------------------*%0A` +
-                  `*🛣️ KM Inicial:* ${kmInic}%0A` +
-                  (tipo === 'CHEGADA' ? `*🏁 KM Final:* ${kmFim}%0A` : '') +
-                  `*🛠️ Próxima Troca:* ${kmTroca} KM%0A` +
-                  `*🔧 Resta para a troca:* ${restaTroca} KM%0A` +
-                  `*----------------------------------*%0A` +
-                  `*💬 Obs:* ${p.obs}`;
-
-        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v16');
-        setTimeout(() => location.reload(), 1500);
+        let html = "";
+        for(let key in dadosTemp) { 
+            if(["tipo","data"].includes(key)) continue;
+            html += `<div class="rev-item"><b>${key.toUpperCase()}:</b> <span>${dadosTemp[key]}</span></div>`;
+        }
+        document.getElementById('listaRevisao').innerHTML = html;
+        document.getElementById('modal').classList.remove('hidden');
     }
 
+    async function confirmarEnvio() {
+        document.getElementById('modal').innerHTML = "<h2 style='text-align:center'>GRAVANDO...</h2>";
+        await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dadosTemp) });
+
+        const kmTroca = limparNum(dadosTemp.proxOleo);
+        const kmAtual = dadosTemp.tipo === 'SAIDA' ? limparNum(dadosTemp.kmi) : limparNum(dadosTemp.kmf);
+        const resta = kmTroca - kmAtual;
+
+        let msg = `*📋 TELEJUR ${dadosTemp.tipo}*%0A*Veículo:* ${dadosTemp.veiculo}%0A*Placa:* ${dadosTemp.placa}%0A*Motorista:* ${dadosTemp.nome}%0A*Trajeto:* ${dadosTemp.numT}%0A*KM:* ${kmAtual}%0A*Próxima Troca:* ${kmTroca}%0A*Resta:* ${resta} KM`;
+        
+        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+        if(dadosTemp.tipo === 'SAIDA') localStorage.setItem('tjur_v17', JSON.stringify(dadosTemp));
+        else localStorage.removeItem('tjur_v17');
+        
+        setTimeout(() => location.reload(), 1000);
+    }
+
+    function fecharModal() { document.getElementById('modal').classList.add('hidden'); }
+
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v16');
+        const salvo = localStorage.getItem('tjur_v17');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
             document.getElementById('secaoChegada').classList.remove('hidden');
-            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 <b>Motorista:</b> ${d.nome}<br>🕒 <b>Saída:</b> ${d.horaInic}<br>🛣️ <b>KM Saída:</b> ${d.kmi}`;
+            document.getElementById('resumo').innerHTML = `🚗 <b>${d.veiculo}</b><br>👤 ${d.nome}<br>🕒 Saída: ${d.horaInic}<br>🛣️ KM Saída: ${d.kmi}`;
         }
     };
 </script>
