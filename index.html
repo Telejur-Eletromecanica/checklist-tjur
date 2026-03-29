@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Frota Telejur</title>
-    <style>
-        .aba-ativa { border-bottom: 4px solid white; opacity: 1; }
-        .aba-inativa { opacity: 0.6; }
-    </style>
 </head>
 <body class="bg-slate-100 pb-10 font-sans text-slate-800">
 
@@ -16,13 +12,13 @@
         <div class="p-4 text-center border-b border-blue-700">
             <h1 class="font-bold text-lg uppercase tracking-wider">Frota Telejur</h1>
         </div>
-        <div class="flex justify-around">
-            <button onclick="mudarTela('saida')" id="btn-saida" class="w-1/2 py-3 font-bold uppercase text-xs aba-ativa">1. Saída Trajeto</button>
-            <button onclick="mudarTela('retorno')" id="btn-retorno" class="w-1/2 py-3 font-bold uppercase text-xs aba-inativa">2. Chegada Trajeto</button>
+        <div class="flex justify-around bg-blue-900">
+            <button onclick="mudarTela('saida')" id="btn-saida" class="w-1/2 py-3 font-bold uppercase text-xs border-b-4 border-white opacity-100">1. Saída Trajeto</button>
+            <button onclick="mudarTela('retorno')" id="btn-retorno" class="w-1/2 py-3 font-bold uppercase text-xs opacity-60">2. Chegada Trajeto</button>
         </div>
     </header>
 
-    <div class="max-w-md mx-auto p-4">
+    <div class="max-w-md mx-auto p-4 space-y-4">
         
         <div id="tela-saida" class="space-y-4">
             <section class="bg-white rounded-2xl shadow-sm border p-4 space-y-4">
@@ -54,9 +50,8 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tipo de Óleo</label>
-                        <select id="tipo_oleo" class="w-full border-2 border-slate-100 rounded-xl p-3 text-[10px] font-bold text-slate-700 outline-none bg-white">
-                            <option value="NÃO INFORMADO">SELECIONE...</option>
-                            <option value="5W30 (Sintético)">5W30 (Sintético)</option><option value="5W40 (Sintético)">5W40 (Sintético)</option><option value="10W30 (Semi-sint)">10W30 (Semi-sint)</option><option value="10W40 (Semi-sint)">10W40 (Semi-sint)</option><option value="15W40 (Mineral)">15W40 (Mineral)</option><option value="20W50 (Mineral)">20W50 (Mineral)</option>
+                        <select id="tipo_oleo" class="w-full border-2 border-slate-100 rounded-xl p-3 text-[10px] font-bold text-slate-700 outline-none">
+                            <option value="5W30 (Sintético)">5W30 (Sintético)</option><option value="10W40 (Semi-sint)">10W40 (Semi-sint)</option><option value="15W40 (Mineral)">15W40 (Mineral)</option>
                         </select>
                     </div>
                 </div>
@@ -64,7 +59,7 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Próx. Troca KM</label>
-                        <input type="tel" inputmode="numeric" id="km_troca" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-slate-700 text-center outline-none">
+                        <input type="tel" inputmode="numeric" id="km_troca" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-slate-700 text-center">
                     </div>
                     <div class="flex flex-col justify-end">
                         <label class="block text-[10px] font-bold text-blue-900 uppercase mb-1">Resta p/ Troca</label>
@@ -73,24 +68,15 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] font-bold text-orange-600 uppercase mb-1">Validade Selo</label>
-                        <input type="date" id="data_selo" class="w-full border-2 border-orange-50 rounded-xl p-3 text-xs font-bold text-orange-700 outline-none bg-orange-50 text-center">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-orange-600 uppercase mb-1">Cor do Selo</label>
-                        <select id="cor_selo" class="w-full border-2 border-orange-50 rounded-xl p-3 text-xs font-bold text-orange-700 outline-none bg-orange-50">
-                            <option value="NÃO INFORMADO">COR...</option>
-                            <option value="VERDE">VERDE</option><option value="AMARELO">AMARELO</option><option value="AZUL">AZUL</option><option value="VERMELHO">VERMELHO</option>
-                        </select>
-                    </div>
+                    <div><label class="text-[10px] font-bold uppercase text-orange-600">Validade Selo</label><input type="date" id="data_selo" class="w-full border-2 border-orange-50 rounded-xl p-2 text-xs font-bold text-center"></div>
+                    <div><label class="text-[10px] font-bold uppercase text-orange-600">Cor Selo</label><select id="cor_selo" class="w-full border-2 border-orange-50 rounded-xl p-2 text-xs font-bold"><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select></div>
                 </div>
 
-                <button onclick="enviarDados('inicio')" class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg active:scale-95 transition-all uppercase">Registrar Saída</button>
+                <button onclick="enviarDados('inicio')" class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg uppercase">Registrar Saída</button>
             </section>
         </div>
 
-        <div id="tela-retorno" class="hidden space-y-4">
+        <div id="tela-retorno" class="hidden">
             <section class="bg-white rounded-2xl shadow-md border p-4 space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -98,19 +84,16 @@
                         <input type="tel" inputmode="numeric" id="km_final" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-blue-100 rounded-xl p-3 text-2xl font-black text-blue-800 text-center outline-none">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase text-center">Próx. Troca Óleo</label>
-                        <input type="tel" inputmode="numeric" id="km_troca_fim" oninput="sincronizarTroca(this)" placeholder="000.000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-slate-700 text-center outline-none">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase text-center">Próx. Troca</label>
+                        <input type="tel" inputmode="numeric" id="km_troca_fim" oninput="sincronizarTroca(this)" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-center">
                     </div>
                 </div>
-                
                 <div class="bg-blue-50 rounded-xl p-4 flex justify-between items-center border border-blue-100">
-                    <span class="text-[10px] font-black text-blue-900 uppercase">Resta para a troca:</span>
+                    <span class="text-[10px] font-black text-blue-900 uppercase">Resta:</span>
                     <span id="resultado_texto_fim" class="text-2xl font-black text-blue-300">--- KM</span>
                 </div>
-                
-                <textarea id="observacao" placeholder="Avarias ou observações..." class="w-full border rounded-xl p-3 text-sm h-24 outline-none focus:border-blue-500 bg-slate-50"></textarea>
-                
-                <button onclick="enviarDados('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-all uppercase tracking-widest text-lg">Finalizar Trajeto</button>
+                <textarea id="observacao" placeholder="Avarias..." class="w-full border rounded-xl p-3 text-sm h-24 bg-slate-50"></textarea>
+                <button onclick="enviarDados('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl shadow-xl uppercase">Finalizar Trajeto</button>
             </section>
         </div>
     </div>
@@ -121,56 +104,32 @@
         function mudarTela(tela) {
             document.getElementById('tela-saida').classList.toggle('hidden', tela !== 'saida');
             document.getElementById('tela-retorno').classList.toggle('hidden', tela !== 'retorno');
-            document.getElementById('btn-saida').className = tela === 'saida' ? "w-1/2 py-3 font-bold uppercase text-xs aba-ativa" : "w-1/2 py-3 font-bold uppercase text-xs aba-inativa";
-            document.getElementById('btn-retorno').className = tela === 'retorno' ? "w-1/2 py-3 font-bold uppercase text-xs aba-ativa" : "w-1/2 py-3 font-bold uppercase text-xs aba-inativa";
+            document.getElementById('btn-saida').className = tela === 'saida' ? "w-1/2 py-3 font-bold uppercase text-xs border-b-4 border-white opacity-100" : "w-1/2 py-3 font-bold uppercase text-xs opacity-60";
+            document.getElementById('btn-retorno').className = tela === 'retorno' ? "w-1/2 py-3 font-bold uppercase text-xs border-b-4 border-white opacity-100" : "w-1/2 py-3 font-bold uppercase text-xs opacity-60";
         }
 
-        const frota = {
-            "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50" }, "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02" },
-            "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75" }, "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48" },
-            "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04" }, "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37" },
-            "TJUR 13": { v: "CAMINHONETE", p: "QVD4I38" }
-        };
-
-        function preencherVeiculoPlaca() {
-            const f = frota[document.getElementById('tag_select').value];
-            if(f) { 
-                document.getElementById('veiculo_input').value = f.v; 
-                document.getElementById('placa_input').value = f.p; 
-            }
-        }
-
-        function limparNumero(valor) {
-            return parseFloat(valor.replace(/[^\d]/g, '')) || 0;
-        }
-
-        function sincronizarTroca(el) {
-            document.getElementById('km_troca').value = el.value;
-            calcularTroca();
-        }
+        const frota = { "TJUR 04": { v: "SKY MUNCK", p: "QFA1I50" }, "TJUR 06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02" }, "TJUR 07": { v: "SKY MUNCK", p: "RWR3C75" }, "TJUR 08": { v: "CAMINHONETE HILUX", p: "QVE5H48" }, "TJUR 09": { v: "SKY MUNCK", p: "RXC6J04" }, "TJUR 10": { v: "CAMINHONETE", p: "PHU1I37" }, "TJUR 13": { v: "CAMINHONETE", p: "QVD4I38" } };
+        function preencherVeiculoPlaca() { const f = frota[document.getElementById('tag_select').value]; if(f) { document.getElementById('veiculo_input').value = f.v; document.getElementById('placa_input').value = f.p; } }
+        function limparNumero(v) { return parseFloat(v.replace(/[^\d]/g, '')) || 0; }
+        function sincronizarTroca(el) { document.getElementById('km_troca').value = el.value; calcularTroca(); }
 
         function calcularTroca() {
-            const ini = limparNumero(document.getElementById('km_inicial').value);
-            const fim = limparNumero(document.getElementById('km_final').value);
-            const tro = limparNumero(document.getElementById('km_troca').value);
+            const ini = limparNumero(document.getElementById('km_inicial').value), fim = limparNumero(document.getElementById('km_final').value), tro = limparNumero(document.getElementById('km_troca').value);
             document.getElementById('km_troca_fim').value = document.getElementById('km_troca').value;
-
-            const resS = document.getElementById('resultado_texto_saida');
-            const resF = document.getElementById('resultado_texto_fim');
-            let kmRef = (fim > 0) ? fim : ini;
-
+            const kmRef = (fim > 0) ? fim : ini;
             if (kmRef > 0 && tro > 0) {
                 const resta = tro - kmRef;
                 const txt = (resta <= 0) ? "VENCIDO!" : resta.toLocaleString('pt-BR') + " KM";
                 const cor = (resta <= 0) ? "text-red-600" : (resta <= 500 ? "text-orange-500" : "text-green-600");
-                resS.innerText = txt; resS.className = "bg-blue-50 border border-blue-100 rounded-xl p-3 text-center text-xs font-black " + cor;
-                resF.innerText = txt; resF.className = "text-2xl font-black " + cor;
+                document.getElementById('resultado_texto_saida').innerText = txt; document.getElementById('resultado_texto_saida').className = "bg-blue-50 border border-blue-100 rounded-xl p-3 text-center text-xs font-black " + cor;
+                document.getElementById('resultado_texto_fim').innerText = txt; document.getElementById('resultado_texto_fim').className = "text-2xl font-black " + cor;
             }
         }
 
         async function enviarDados(tipo) {
-            const btn = event.target;
-            btn.disabled = true; btn.innerText = "ENVIANDO...";
+            const btn = event.target; btn.disabled = true; btn.innerText = "ENVIANDO...";
+            const agora = new Date();
+            const horaAtual = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
 
             const dados = {
                 tipo: tipo,
@@ -185,37 +144,22 @@
                 prox_oleo: document.getElementById('km_troca').value,
                 resta_troca: document.getElementById('resultado_texto_fim').innerText,
                 obs: document.getElementById('observacao').value || "S/O",
-                data: new Date().toLocaleDateString('pt-BR')
+                data: agora.toLocaleDateString('pt-BR'),
+                hora_inicio: tipo === 'inicio' ? horaAtual : "",
+                hora_fim: tipo === 'fim' ? horaAtual : ""
             };
 
             try {
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados)});
-                
                 const sep = "--------------------------";
                 const titulo = tipo === 'inicio' ? "🚀 *SAÍDA DO TRAJETO*" : "🏁 *CHEGADA DO TRAJETO*";
-                const kmMsg = tipo === 'inicio' ? `*KM Inicial:* ${dados.km_inicial}` : `*KM Inicial:* ${dados.km_inicial}\n*KM Final:* ${dados.km_final}`;
+                const horarioZap = tipo === 'inicio' ? `🕒 *Hora Saída:* ${horaAtual}` : `🕒 *Hora Chegada:* ${horaAtual}`;
 
-                const zap = 
-                    `${titulo}\n` +
-                    `${sep}\n\n` +
-                    `👤 *Motorista:* ${dados.nome}\n` +
-                    `🚘 *Veículo:* ${dados.veiculo} (${dados.tag})\n` +
-                    `🆔 *Placa:* ${dados.placa}\n\n` +
-                    `${sep}\n\n` +
-                    `📍 *INFO PERCURSO*\n` +
-                    `${kmMsg}\n\n` +
-                    `${sep}\n\n` +
-                    `🛠️ *MANUTENÇÃO*\n` +
-                    `🛢️ *Tipo de Óleo:* ${dados.tipo_oleo}\n` +
-                    `🏷️ *Cor do Selo:* ${dados.cor_selo}\n` +
-                    `⚠️ *Resta p/ troca:* ${dados.resta_troca}\n\n` +
-                    `${sep}\n\n` +
-                    `📝 *OBS:* ${dados.obs}`;
+                const zap = `${titulo}\n${sep}\n\n👤 *Motorista:* ${dados.nome}\n🚘 *Veículo:* ${dados.veiculo} (${dados.tag})\n🆔 *Placa:* ${dados.placa}\n\n${sep}\n\n📍 *INFO PERCURSO*\n${horarioZap}\n${tipo === 'inicio' ? '*KM Inicial:* '+dados.km_inicial : '*KM Chegada:* '+dados.km_final}\n\n${sep}\n\n🛠️ *MANUTENÇÃO*\n🛢️ *Tipo de Óleo:* ${dados.tipo_oleo}\n🏷️ *Cor do Selo:* ${dados.cor_selo}\n⚠️ *Resta p/ troca:* ${dados.resta_troca}\n\n${sep}\n\n📝 *OBS:* ${dados.obs}`;
 
                 window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(zap)}`);
-                
-                alert("Salvo!");
-                if(tipo === 'fim') { location.reload(); } else { mudarTela('retorno'); btn.disabled = false; btn.innerText = "Registrar Saída"; }
+                alert("Sucesso!");
+                if(tipo === 'fim') location.reload(); else mudarTela('retorno');
             } catch(e) { alert("Erro!"); btn.disabled = false; }
         }
     </script>
