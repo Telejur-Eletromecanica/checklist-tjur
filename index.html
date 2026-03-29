@@ -27,7 +27,7 @@
         <div id="tela-saida" class="space-y-4">
             <section class="bg-white rounded-2xl shadow-sm border p-4 space-y-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tag do Veículo</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Veículo (TAG)</label>
                     <select id="tag_select" onchange="preencherVeiculoPlaca()" class="w-full border-2 border-blue-50 rounded-xl p-3 font-black text-blue-700 bg-blue-50 outline-none">
                         <option value="" disabled selected>ESCOLHA A TAG...</option>
                         <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
@@ -47,8 +47,8 @@
                     <input type="time" id="hora_inicio_input" class="border rounded-lg p-2 text-xs font-bold bg-slate-50">
                 </div>
 
-                <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold bg-white outline-none">
-                    <option disabled selected>Selecione o Motorista...</option>
+                <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold bg-white">
+                    <option disabled selected>Motorista...</option>
                     <option>ADRIANO NASCIMENTO</option><option>FRACIVALDO COSTA</option><option>JOELCINEI GUIMARÃES</option><option>FRACINILDO TEIXEIRA</option><option>EZEQUIEL SILVA</option><option>REGINALDO PEREIRA</option><option>LAFAIETE BATISTA</option><option>WALTER GONÇALVES</option>
                 </select>
 
@@ -58,8 +58,19 @@
                         <input type="tel" inputmode="numeric" id="km_inicial" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-green-100 rounded-xl p-3 text-xl font-black text-green-700 text-center outline-none">
                     </div>
                     <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Próx. Troca Óleo</label>
+                        <input type="tel" inputmode="numeric" id="km_troca" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-slate-700 text-center outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 items-end">
+                    <div>
                         <label class="block text-[10px] font-bold text-orange-600 uppercase mb-1">Validade Selo</label>
                         <input type="date" id="data_selo" class="w-full border-2 border-orange-50 rounded-xl p-3 text-xs font-bold text-orange-700 outline-none bg-orange-50">
+                    </div>
+                    <div class="bg-blue-50 rounded-xl p-2 border border-blue-100 text-center">
+                        <span class="block text-[8px] font-black text-blue-900 uppercase">Resta p/ Troca:</span>
+                        <span id="resultado_texto_saida" class="text-sm font-black text-blue-300">--- KM</span>
                     </div>
                 </div>
 
@@ -76,13 +87,13 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase text-center">Próx. Troca Óleo</label>
-                        <input type="tel" inputmode="numeric" id="km_troca" oninput="calcularTroca()" placeholder="000.000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-slate-700 text-center outline-none">
+                        <input type="tel" inputmode="numeric" id="km_troca_fim" oninput="sincronizarTroca(this)" placeholder="000.000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-slate-700 text-center outline-none">
                     </div>
                 </div>
                 
                 <div class="bg-blue-50 rounded-xl p-4 flex justify-between items-center border border-blue-100">
                     <span class="text-[10px] font-black text-blue-900 uppercase">Resta p/ Troca:</span>
-                    <span id="resultado_texto" class="text-2xl font-black text-blue-300">--- KM</span>
+                    <span id="resultado_texto_fim" class="text-2xl font-black text-blue-300">--- KM</span>
                 </div>
                 
                 <textarea id="observacao" placeholder="Alguma observação ou avaria?" class="w-full border rounded-xl p-3 text-sm h-20 outline-none focus:border-blue-500 bg-slate-50"></textarea>
@@ -97,17 +108,10 @@
         const scriptURL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
         
         function mudarTela(tela) {
-            if(tela === 'saida') {
-                document.getElementById('tela-saida').classList.remove('hidden');
-                document.getElementById('tela-retorno').classList.add('hidden');
-                document.getElementById('btn-saida').className = "w-1/2 py-3 font-bold uppercase text-xs aba-ativa";
-                document.getElementById('btn-retorno').className = "w-1/2 py-3 font-bold uppercase text-xs aba-inativa";
-            } else {
-                document.getElementById('tela-saida').classList.add('hidden');
-                document.getElementById('tela-retorno').classList.remove('hidden');
-                document.getElementById('btn-saida').className = "w-1/2 py-3 font-bold uppercase text-xs aba-inativa";
-                document.getElementById('btn-retorno').className = "w-1/2 py-3 font-bold uppercase text-xs aba-ativa";
-            }
+            document.getElementById('tela-saida').classList.toggle('hidden', tela !== 'saida');
+            document.getElementById('tela-retorno').classList.toggle('hidden', tela !== 'retorno');
+            document.getElementById('btn-saida').className = tela === 'saida' ? "w-1/2 py-3 font-bold uppercase text-xs aba-ativa" : "w-1/2 py-3 font-bold uppercase text-xs aba-inativa";
+            document.getElementById('btn-retorno').className = tela === 'retorno' ? "w-1/2 py-3 font-bold uppercase text-xs aba-ativa" : "w-1/2 py-3 font-bold uppercase text-xs aba-inativa";
         }
 
         const frota = {
@@ -129,19 +133,36 @@
             return parseFloat(valor.replace(/[^\d]/g, '')) || 0;
         }
 
+        // Sincroniza o KM da Troca entre as telas
+        function sincronizarTroca(el) {
+            const val = el.value;
+            document.getElementById('km_troca').value = val;
+            document.getElementById('km_troca_fim').value = val;
+            calcularTroca();
+        }
+
         function calcularTroca() {
             const ini = limparNumero(document.getElementById('km_inicial').value);
             const fim = limparNumero(document.getElementById('km_final').value);
             const tro = limparNumero(document.getElementById('km_troca').value);
-            const res = document.getElementById('resultado_texto');
+            
+            // Atualiza KM Troca no outro campo
+            document.getElementById('km_troca_fim').value = document.getElementById('km_troca').value;
+
+            const resSaida = document.getElementById('resultado_texto_saida');
+            const resFim = document.getElementById('resultado_texto_fim');
+
             let kmRef = (fim > 0) ? fim : ini;
 
             if (kmRef > 0 && tro > 0) {
                 const resta = tro - kmRef;
-                res.innerText = (resta <= 0) ? "VENCIDO!" : resta.toLocaleString('pt-BR') + " KM";
-                res.className = (resta <= 0) ? "text-2xl font-black text-red-600" : (resta <= 500 ? "text-2xl font-black text-orange-500" : "text-2xl font-black text-green-600");
+                const texto = (resta <= 0) ? "VENCIDO!" : resta.toLocaleString('pt-BR') + " KM";
+                const cor = (resta <= 0) ? "text-red-600" : (resta <= 500 ? "text-orange-500" : "text-green-600");
+                
+                resSaida.innerText = texto; resSaida.className = "text-sm font-black " + cor;
+                resFim.innerText = texto; resFim.className = "text-2xl font-black " + cor;
             } else {
-                res.innerText = "--- KM"; res.className = "text-2xl font-black text-slate-300";
+                resSaida.innerText = "--- KM"; resFim.innerText = "--- KM";
             }
         }
 
@@ -165,28 +186,22 @@
                 val_selo: document.getElementById('data_selo').value,
                 placa: document.getElementById('placa_input').value,
                 veiculo: document.getElementById('veiculo_input').value,
-                resta_troca: document.getElementById('resultado_texto').innerText
+                resta_troca: document.getElementById('resultado_texto_fim').innerText
             };
 
             try {
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados)});
-                const zap = `*TELEJUR*\n*${dados.status}*\n*Motorista:* ${dados.nome}\n*Veículo:* ${dados.tag}\n*KM:* ${tipo === 'inicio' ? dados.km_inicial : dados.km_final}\n*Óleo:* ${dados.resta_troca}`;
+                
+                // MENSAGEM WHATSAPP ATUALIZADA
+                const kmMsg = tipo === 'inicio' ? `*KM Inicial:* ${dados.km_inicial}` : `*KM Inicial:* ${dados.km_inicial}\n*KM Final:* ${dados.km_final}`;
+                const zap = `*TELEJUR*\n*${dados.status}*\n*Motorista:* ${dados.nome}\n*Veículo:* ${dados.tag}\n${kmMsg}\n*Resta para a troca:* ${dados.resta_troca}`;
+                
                 window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(zap)}`);
                 
                 alert("Salvo com sucesso!");
-                
-                if(tipo === 'fim') {
-                    // RESET COMPLETO AO FINALIZAR
-                    location.reload(); 
-                } else {
-                    mudarTela('retorno');
-                    btn.disabled = false;
-                    btn.innerText = "Registrar Saída";
-                }
-            } catch(e) { 
-                alert("Erro ao salvar!"); 
-                btn.disabled = false;
-            }
+                if(tipo === 'fim') { location.reload(); } 
+                else { mudarTela('retorno'); btn.disabled = false; btn.innerText = "Registrar Saída"; }
+            } catch(e) { alert("Erro ao salvar!"); btn.disabled = false; }
         }
 
         window.onload = () => {
