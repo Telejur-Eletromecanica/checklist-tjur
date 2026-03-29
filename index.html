@@ -67,6 +67,19 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-orange-600 uppercase mb-1">VAL. SELO</label>
+                        <input type="date" id="val_selo" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-orange-600 uppercase mb-1">COR SELO</label>
+                        <select id="cor_selo" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold outline-none">
+                            <option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-2 border-t pt-4">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">PRÓX. TROCA KM</label>
@@ -76,11 +89,6 @@
                         <label class="block text-[10px] font-bold text-blue-900 uppercase mb-1">RESTA</label>
                         <div id="res_resta" class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center text-xs font-black text-blue-500 uppercase">--- KM</div>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 border-t pt-2">
-                    <div><label class="block text-[10px] font-bold text-orange-600 uppercase mb-1 text-[8px]">VAL. SELO</label><input type="date" id="val_selo" class="w-full border border-slate-100 rounded-lg p-2 text-[10px] font-bold"></div>
-                    <div><label class="block text-[10px] font-bold text-orange-600 uppercase mb-1 text-[8px]">COR SELO</label><select id="cor_selo" class="w-full border border-slate-100 rounded-lg p-2 text-[10px] font-bold"><option>VERDE</option><option>AMARELO</option><option>AZUL</option><option>VERMELHO</option></select></div>
                 </div>
 
                 <button onclick="enviarDados('inicio')" class="w-full bg-green-600 text-white font-black py-5 rounded-xl shadow-lg uppercase text-lg">Registrar Saída</button>
@@ -104,7 +112,7 @@
     </div>
 
     <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+        const scriptURL = "SUA_URL_DO_APPS_SCRIPT_AQUI"; 
         const frota = { "TJUR 04": { v: "Sky munck", p: "QFA1I50" }, "TJUR 06": { v: "Saveiro furgão", p: "QUJ3E02" }, "TJUR 07": { v: "Sky munck", p: "RWR3C75" }, "TJUR 08": { v: "Caminhonete hilux", p: "QVE5H48" }, "TJUR 09": { v: "Sky munck", p: "RXC6J04" }, "TJUR 10": { v: "Caminhonete", p: "PHU1I37" }, "TJUR 13": { v: "Caminhonete", p: "QVD4I38" } };
 
         function formatarTexto(t) { return t ? t.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : "S/O"; }
@@ -112,7 +120,6 @@
         function mudarTela(t) { document.getElementById('tela-saida').classList.toggle('hidden', t !== 'saida'); document.getElementById('tela-retorno').classList.toggle('hidden', t !== 'retorno'); document.getElementById('btn-saida').style.opacity = t === 'saida' ? "1" : "0.6"; document.getElementById('btn-retorno').style.opacity = t === 'retorno' ? "1" : "0.6"; }
 
         function calcularTroca() {
-            // Limpa qualquer ponto ou vírgula e garante número inteiro sem frações
             const limpar = (id) => parseInt(document.getElementById(id).value.replace(/[\.\,]/g, '')) || 0;
             const ini = limpar('km_inicial');
             const fim = limpar('km_final');
