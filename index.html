@@ -2,122 +2,40 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Telejur V22 - Controle de Frota</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Completo - Telejur V22</title>
     <style>
-        :root {
-            --primary: #1a73e8;
-            --danger: #d93025;
-            --bg: #f8f9fa;
-            --text: #202124;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .container {
-            background: white;
-            width: 100%;
-            max-width: 450px;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-        }
-
-        h2 {
-            text-align: center;
-            color: var(--primary);
-            margin-bottom: 25px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: bold;
-            color: #5f6368;
-            margin-top: 15px;
-            margin-bottom: 5px;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #dadce0;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-            outline: none;
-            color: var(--text);
-        }
-
-        input[readonly] {
-            background-color: #f1f3f4;
-            color: #5f6368;
-            border-color: #e8eaed;
-        }
-
-        .row {
-            display: flex;
-            gap: 12px;
-        }
-
+        body { background: #f4f7f6; color: #333; font-family: sans-serif; padding: 10px; margin: 0; }
+        .container { background: white; max-width: 500px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #004080; font-size: 1.2rem; margin-bottom: 20px; border-bottom: 2px solid #004080; padding-bottom: 10px; }
+        
+        .section-title { background: #e9ecef; padding: 5px 10px; font-weight: bold; font-size: 0.8rem; margin-top: 15px; border-radius: 4px; color: #495057; }
+        
+        label { font-size: 0.7rem; font-weight: bold; color: #666; display: block; margin-top: 10px; text-transform: uppercase; }
+        select, input { width: 100%; padding: 12px; margin-top: 4px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; box-sizing: border-box; }
+        input[readonly] { background: #f8f9fa; color: #212529; font-weight: bold; }
+        
+        .grid { display: flex; gap: 8px; }
         .col { flex: 1; }
-
-        .info-panel {
-            background: #e8f0fe;
-            border: 1px solid #d2e3fc;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            text-align: center;
-            font-weight: 500;
-            color: var(--primary);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 12px;
-            color: white;
-            transition: filter 0.2s;
-        }
-
-        .btn:active { filter: brightness(0.8); }
-
-        .btn-saida { background-color: var(--primary); margin-top: 30px; }
-        .btn-chegada { background-color: var(--danger); }
-
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
+        
+        .btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; font-size: 1rem; color: white; }
+        .btn-saida { background: #0056b3; margin-top: 20px; }
+        .btn-chegada { background: #bd2130; }
+        
+        #msgBusca { text-align: center; font-size: 0.8rem; color: #0056b3; margin-top: 5px; height: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Telejur V22</h2>
+    <h2>CHECKLIST DE TRAJETO</h2>
+    <div id="msgBusca"></div>
 
-    <form id="fleetForm">
-        <label>Motorista Responsável</label>
-        <select id="nome" name="nome" onchange="autoBusca()" required>
-            <option value="">-- SELECIONE --</option>
+    <form id="formTelejur">
+        <div class="section-title">IDENTIFICAÇÃO</div>
+        <label>Motorista (Nome)</label>
+        <select name="nome" id="nome" onchange="chamarBusca()" required>
+            <option value="">-- Selecione o Condutor --</option>
             <option value="Adriano Nascimento">Adriano Nascimento</option>
             <option value="Fracivaldo Costa">Fracivaldo Costa</option>
             <option value="Lafaiete Batista">Lafaiete Batista</option>
@@ -126,11 +44,11 @@
             <option value="Ezequeil Silva">Ezequeil Silva</option>
         </select>
 
-        <div class="row">
+        <div class="grid">
             <div class="col">
-                <label>TAG</label>
-                <select id="tag" name="tag" onchange="autoBusca()" required>
-                    <option value="">--</option>
+                <label>TagID (Veículo)</label>
+                <select name="tag" id="tag" onchange="chamarBusca()" required>
+                    <option value="">-- Selecione --</option>
                     <option value="TJUR 04">TJUR 04</option>
                     <option value="TJUR 06">TJUR 06</option>
                     <option value="TJUR 07">TJUR 07</option>
@@ -141,109 +59,156 @@
                 </select>
             </div>
             <div class="col">
-                <label>ID Condutor</label>
-                <input type="text" id="condutorID" name="condutorID" readonly placeholder="...">
+                <label>ID (Sequência)</label>
+                <input type="text" name="condutorID" id="condutorID" readonly placeholder="Auto">
             </div>
         </div>
 
-        <div id="veiculoDisplay" class="info-panel">Aguardando seleção...</div>
+        <div class="section-title">DADOS DO VEÍCULO</div>
+        <div class="grid">
+            <div class="col">
+                <label>Veículo</label>
+                <input type="text" name="veiculo" id="veiculo" readonly>
+            </div>
+            <div class="col">
+                <label>Placa</label>
+                <input type="text" name="placa" id="placa" readonly>
+            </div>
+        </div>
 
-        <div class="row">
+        <div class="grid">
+            <div class="col">
+                <label>Cor do Selo</label>
+                <input type="text" name="corSelo" id="corSelo" readonly>
+            </div>
+            <div class="col">
+                <label>Validade Selo</label>
+                <input type="text" name="validadeSelo" id="validadeSelo" readonly>
+            </div>
+        </div>
+
+        <div class="section-title">KM E MANUTENÇÃO</div>
+        <div class="grid">
             <div class="col">
                 <label>KM Inicial</label>
-                <input type="number" id="kmi" name="kmi" readonly>
+                <input type="number" name="kmi" id="kmi" readonly>
             </div>
             <div class="col">
                 <label>KM Final</label>
-                <input type="number" id="kmf" name="kmf" placeholder="Chegada">
+                <input type="number" name="kmf" id="kmf" placeholder="Só na chegada">
             </div>
         </div>
 
-        <label>Observações</label>
-        <input type="text" id="obs" name="obs" placeholder="Ex: Pneu baixo, limpeza...">
+        <div class="grid">
+            <div class="col">
+                <label>Próx. Troca Óleo</label>
+                <input type="number" name="proxOleo" id="proxOleo" readonly>
+            </div>
+            <div class="col">
+                <label>Tipo de Óleo</label>
+                <input type="text" name="tipoOleo" id="tipoOleo" readonly>
+            </div>
+        </div>
 
-        <input type="hidden" id="veiculo" name="veiculo">
-        <input type="hidden" id="placa" name="placa">
-        <input type="hidden" id="proxOleo" name="proxOleo">
-        <input type="hidden" id="numT" name="numT">
+        <label>Resta para a troca (KM)</label>
+        <input type="text" name="restaTroca" id="restaTroca" readonly>
 
-        <button type="button" id="btnSaida" onclick="enviar('SAIDA')" class="btn btn-saida">🚀 INICIAR SAÍDA</button>
-        <button type="button" id="btnChegada" onclick="enviar('CHEGADA')" class="btn btn-chegada">🏁 FINALIZAR CHEGADA</button>
+        <div class="section-title">STATUS DO TRAJETO</div>
+        <div class="grid">
+            <div class="col">
+                <label>Status Geral</label>
+                <select name="status" id="status">
+                    <option value="Tudo OK">Tudo OK</option>
+                    <option value="Pneu Baixo">Pneu Baixo</option>
+                    <option value="Limpeza Necessária">Limpeza Necessária</option>
+                    <option value="Avaria Encontrada">Avaria Encontrada</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>Nº Trajeto</label>
+                <input type="number" name="numT" id="numT" readonly>
+            </div>
+        </div>
+
+        <label>Observação</label>
+        <input type="text" name="obs" id="obs" placeholder="Descreva aqui se houver algo...">
+
+        <input type="hidden" name="data" id="data">
+        <input type="hidden" name="horaInic" id="horaInic">
+        <input type="hidden" name="horaFim" id="horaFim">
+
+        <button type="button" onclick="enviar('SAIDA')" class="btn btn-saida">🚀 SALVAR SAÍDA</button>
+        <button type="button" onclick="enviar('CHEGADA')" class="btn btn-chegada">🏁 SALVAR CHEGADA</button>
     </form>
 </div>
 
 <script>
-    // IMPORTANTE: Insira a URL que o Google Apps Script gerou no "Implantar"
-    const WEB_APP_URL = "SUA_URL_DA_IMPLANTACAO_AQUI";
+    const URL_SCRIPT = "SUA_URL_AQUI"; // COLOQUE SUA URL DE IMPLANTAÇÃO AQUI
 
-    function autoBusca() {
+    function chamarBusca() {
         const tag = document.getElementById('tag').value;
         const nome = document.getElementById('nome').value;
-
-        if (tag && nome) {
-            document.getElementById('veiculoDisplay').innerText = "Carregando dados...";
+        if(tag && nome) {
+            document.getElementById('msgBusca').innerText = "Buscando dados na planilha...";
             const script = document.createElement('script');
-            // JSONP para evitar erro de CORS no GitHub Pages
-            script.src = `${WEB_APP_URL}?callback=preencherForm&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}`;
+            script.src = `${URL_SCRIPT}?callback=preencher&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}`;
             document.body.appendChild(script);
         }
     }
 
-    function preencherForm(res) {
-        if (res.erro) {
-            alert("Erro: " + res.erro);
-            return;
-        }
-        document.getElementById('condutorID').value = res.condutorSugerido || "";
-        document.getElementById('kmi').value = res.kmi || "";
-        document.getElementById('veiculo').value = res.veiculo || "";
-        document.getElementById('placa').value = res.placa || "";
-        document.getElementById('proxOleo').value = res.proxOleo || "";
-        document.getElementById('numT').value = "1"; // Valor padrão para numT se não vier do script
+    function preencher(r) {
+        document.getElementById('msgBusca').innerText = "";
+        if(r.erro) { alert("Erro: " + r.erro); return; }
+
+        // Preenchimento dos campos com base no seu doGet
+        document.getElementById('condutorID').value = r.condutorSugerido || "";
+        document.getElementById('kmi').value = r.kmi || 0;
+        document.getElementById('veiculo').value = r.veiculo || "";
+        document.getElementById('placa').value = r.placa || "";
+        document.getElementById('proxOleo').value = r.proxOleo || 0;
+        document.getElementById('numT').value = r.numT || 1;
         
-        document.getElementById('veiculoDisplay').innerText = `${res.veiculo || 'N/A'} - ${res.placa || 'N/A'}`;
+        // Campos adicionais (se o seu GS buscar eles, eles aparecem aqui)
+        document.getElementById('corSelo').value = r.corSelo || "Verificar";
+        document.getElementById('validadeSelo').value = r.validadeSelo || "Verificar";
+        document.getElementById('tipoOleo').value = r.tipoOleo || "Padrão";
+        
+        // Cálculo rápido do resta para troca
+        const resta = r.proxOleo - r.kmi;
+        document.getElementById('restaTroca').value = resta + " KM";
     }
 
     function enviar(tipo) {
-        const form = document.getElementById('fleetForm');
-        const btn = tipo === 'SAIDA' ? document.getElementById('btnSaida') : document.getElementById('btnChegada');
-        
-        if (tipo === 'CHEGADA' && !document.getElementById('kmf').value) {
-            alert("Por favor, informe o KM Final para encerrar.");
-            return;
+        const form = document.getElementById('formTelejur');
+        const btn = event.target;
+        const originalText = btn.innerText;
+
+        if(!document.getElementById('tag').value || !document.getElementById('nome').value) {
+            alert("Selecione TAG e Motorista!"); return;
         }
 
-        if (!document.getElementById('tag').value || !document.getElementById('nome').value) {
-            alert("Selecione o motorista e a TAG.");
-            return;
-        }
+        btn.innerText = "GRAVANDO...";
+        btn.disabled = true;
 
-        btn.classList.add('loading');
-        btn.innerText = "ENVIANDO...";
-
-        const payload = Object.fromEntries(new FormData(form));
+        const dados = Object.fromEntries(new FormData(form));
         const agora = new Date();
         
-        payload.tipo = tipo;
-        payload.data = agora.toLocaleDateString('pt-BR');
-        const hora = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+        dados.tipo = tipo;
+        dados.data = agora.toLocaleDateString('pt-BR');
+        const hora = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
         
-        if (tipo === 'SAIDA') payload.horaInic = hora;
-        else payload.horaFim = hora;
+        if(tipo === "SAIDA") dados.horaInic = hora;
+        else dados.horaFim = hora;
 
-        fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        })
-        .then(r => r.text())
-        .then(res => {
-            alert("Sucesso! Registro de " + tipo + " gravado.");
+        fetch(URL_SCRIPT, { method: 'POST', body: JSON.stringify(dados) })
+        .then(() => {
+            alert(tipo + " salvo com sucesso!");
             location.reload();
         })
-        .catch(err => {
-            alert("Erro ao conectar com a planilha.");
-            btn.classList.remove('loading');
-            btn.innerText = tipo === 'SAIDA' ? "🚀 INICIAR SAÍDA" : "🏁 FINALIZAR CHEGADA";
+        .catch(() => {
+            alert("Erro ao salvar!");
+            btn.innerText = originalText;
+            btn.disabled = false;
         });
     }
 </script>
