@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR V24</title>
+    <title>TELEJUR CHECKLIST</title>
     <style>
         :root { --primary: #1a237e; --success: #2e7d32; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -13,6 +13,7 @@
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; margin-top: 20px; cursor: pointer; }
         .resta-box { background: #e8eaf6; padding: 12px; border-radius: 6px; text-align: center; margin-top: 15px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); }
+        .resumo-visual { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #2196f3; font-size: 14px; line-height: 1.6; }
         .hidden { display: none; }
     </style>
 </head>
@@ -22,6 +23,8 @@
     <h2 style="text-align:center; color:var(--primary); margin:0 0 15px 0">📋 TELEJUR</h2>
 
     <div id="secaoSaida">
+        <div id="resumoSaida" class="resumo-visual hidden"></div>
+        
         <label>Motorista Responsável</label>
         <select id="nomeMot" onchange="puxarDados()">
             <option value="">-- SELECIONE --</option>
@@ -44,13 +47,16 @@
             <div><label>Veículo</label><input type="text" id="vei" readonly></div>
             <div><label>Placa</label><input type="text" id="pla" readonly></div>
         </div>
-        <label>Nº Trajeto</label><input type="number" id="numT">
+        <label>Nº Trajeto</label><input type="number" id="numT" value="1">
+        <label>Observações</label><input type="text" id="obsS">
+        
         <button id="btnSaida" onclick="enviarRapido('SAIDA')" class="btn" style="background:var(--primary)">🚀 INICIAR SAÍDA</button>
     </div>
 
     <div id="secaoChegada" class="hidden">
-        <div id="resumo" style="background:#fff9c4; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #fbc02d"></div>
+        <div id="resumoChegada" style="background:#fff9c4; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #fbc02d"></div>
         <label>KM Final de Chegada</label><input type="number" id="kmf">
+        <label>Observações</label><input type="text" id="obsC">
         <button id="btnChegada" onclick="enviarRapido('CHEGADA')" class="btn" style="background:var(--success)">🏁 CONCLUIR CHEGADA</button>
         <button onclick="localStorage.clear();location.reload();" style="background:none; border:none; color:red; font-size:10px; width:100%; margin-top:10px; text-decoration:underline">RESETAR</button>
     </div>
@@ -58,7 +64,7 @@
 
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-    const CHAVE = "TJUR_DIR_V24"; 
+    const CHAVE = "TJUR_EMOJI_V1"; 
 
     function limparNum(v) { return parseInt(v.toString().replace(/\D/g, '')) || 0; }
 
@@ -73,10 +79,17 @@
     }
 
     function preencher(d) {
-        document.getElementById('vei').value = d.veiculo; document.getElementById('pla').value = d.placa;
-        document.getElementById('kmi').value = d.kmi; document.getElementById('pxO').value = d.proxOleo;
+        document.getElementById('vei').value = d.veiculo; 
+        document.getElementById('pla').value = d.placa;
+        document.getElementById('kmi').value = d.kmi; 
+        document.getElementById('pxO').value = d.proxOleo;
         document.getElementById('condID').value = d.condutorSugerido;
-        document.getElementById('numT').value = 1; calc();
+        
+        // MOSTRAR RESUMO VISUAL NA SAÍDA
+        const res = document.getElementById('resumoSaida');
+        res.innerHTML = `🚗 <b>${d.veiculo}</b> | 🆔 ${d.condutorSugerido}<br>📍 TAG: ${document.getElementById('tag').value} | 🏁 Placa: ${d.placa}`;
+        res.classList.remove('hidden');
+        calc();
     }
 
     function calc() {
@@ -92,19 +105,53 @@
         let dados = {};
 
         if(tipo === 'SAIDA') {
-            dados = { tipo: 'SAIDA', data: dataH, horaInic: horaH, tag: document.getElementById('tag').value, condutorID: document.getElementById('condID').value, nome: document.getElementById('nomeMot').value, kmi: document.getElementById('kmi').value, veiculo: document.getElementById('vei').value, placa: document.getElementById('pla').value, numT: document.getElementById('numT').value, proxOleo: document.getElementById('pxO').value };
+            dados = { 
+                tipo: 'SAIDA', data: dataH, horaInic: horaH, 
+                tag: document.getElementById('tag').value, 
+                condutorID: document.getElementById('condID').value, 
+                nome: document.getElementById('nomeMot').value, 
+                kmi: document.getElementById('kmi').value, 
+                veiculo: document.getElementById('vei').value, 
+                placa: document.getElementById('pla').value, 
+                numT: document.getElementById('numT').value, 
+                proxOleo: document.getElementById('pxO').value,
+                obs: document.getElementById('obsS').value
+            };
             localStorage.setItem(CHAVE, JSON.stringify(dados));
         } else {
             const salvo = JSON.parse(localStorage.getItem(CHAVE));
-            dados = { ...salvo, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
+            dados = { 
+                ...salvo, tipo: 'CHEGADA', 
+                kmf: document.getElementById('kmf').value, 
+                horaFim: horaH,
+                obs: document.getElementById('obsC').value
+            };
             localStorage.removeItem(CHAVE);
         }
 
         const btn = tipo === 'SAIDA' ? document.getElementById('btnSaida') : document.getElementById('btnChegada');
-        btn.disabled = true; btn.innerText = "ABRINDO WHATSAPP...";
+        btn.disabled = true; btn.innerText = "ENVIANDO...";
 
-        const kmAt = tipo==='SAIDA' ? limparNum(dados.kmi) : limparNum(dados.kmf);
-        const msg = `*📋 TELEJUR ${tipo}*%0A*🚗 Carro:* ${dados.veiculo}%0A*👤 Motorista:* ${dados.nome}%0A*🛣️ KM:* ${kmAt}%0A*🔧 Resta:* ${limparNum(dados.proxOleo) - kmAt} KM`;
+        // FORMATAÇÃO WHATSAPP COM EMOJIS
+        const kmAt = tipo === 'SAIDA' ? limparNum(dados.kmi) : limparNum(dados.kmf);
+        const resta = limparNum(dados.proxOleo) - kmAt;
+        
+        let msg = `*📋 CHECKLIST TELEJUR - ${tipo}*%0A`;
+        msg += `---%0A`;
+        msg += `🗓️ *Data:* ${dados.data}%0A`;
+        msg += `🚗 *Veículo:* ${dados.veiculo}%0A`;
+        msg += `🔢 *Placa:* ${dados.placa}%0A`;
+        msg += `🏷️ *Tag:* ${dados.tag}%0A`;
+        msg += `🆔 *ID:* ${dados.condutorID}%0A`;
+        msg += `👤 *Motorista:* ${dados.nome}%0A`;
+        msg += `🔢 *Nº Trajeto:* ${dados.numT}%0A`;
+        msg += `---%0A`;
+        msg += `🛣️ *KM Inicial:* ${dados.kmi}%0A`;
+        if(tipo === 'CHEGADA') msg += `🏁 *KM Final:* ${dados.kmf}%0A`;
+        msg += `🔧 *Próxima Troca:* ${dados.proxOleo} KM%0A`;
+        msg += `🔧 *Resta para a troca:* ${resta} KM%0A`;
+        msg += `---%0A`;
+        msg += `💬 *Obs:* ${dados.obs || "S/O"}`;
 
         fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
         window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
@@ -117,7 +164,7 @@
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
             document.getElementById('secaoChegada').classList.remove('hidden');
-            document.getElementById('resumo').innerHTML = `🚗 <b>${d.veiculo}</b> | 👤 ${d.nome}<br>🕒 Saída: ${d.horaInic} | 🛣️ KM: ${d.kmi}`;
+            document.getElementById('resumoChegada').innerHTML = `🚗 <b>${d.veiculo}</b> | 👤 ${d.nome}<br>🕒 Saída: ${d.horaInic} | 🛣️ KM: ${d.kmi}`;
         }
     };
 </script>
