@@ -1,28 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background-color: #121212; color: #e0e0e0; font-family: sans-serif; }
-    .card { background-color: #1e1e1e; border-radius: 8px; border: 1px solid #333; }
-    input, select { background-color: #2c2c2c !important; color: white !important; border: 1px solid #444 !important; }
-    .modal { background: rgba(0,0,0,0.85); display: none; }
+    body { background-color: #000; color: #fff; }
+    .card { background-color: #111; border: 1px solid #222; }
+    input, select { background-color: #1a1a1a !important; color: white !important; border: 1px solid #333 !important; }
+    .modal { background: rgba(0,0,0,0.9); display: none; }
   </style>
 </head>
 <body class="p-4">
   <div class="max-w-md mx-auto">
-    
-    <div class="flex items-center justify-center gap-2 mb-6">
-      <span class="text-2xl">📋</span>
-      <h1 class="text-xl font-bold tracking-widest text-gray-300">TELEJUR V22</h1>
+    <div class="text-center mb-6">
+      <h1 class="text-xl font-bold tracking-widest text-gray-400">📋 TELEJUR V22</h1>
     </div>
 
     <form id="formPrincipal" class="space-y-4">
-      <div class="card p-4 space-y-4">
+      <div class="card p-4 rounded-lg space-y-4">
         <div>
-          <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Motorista Responsável</label>
-          <select name="nome" id="nome" onchange="buscarDados()" class="w-full p-3 rounded-lg outline-none" required>
+          <label class="block text-[10px] uppercase font-bold text-gray-600">Motorista Responsável</label>
+          <select name="nome" id="nome" onchange="buscar()" class="w-full p-3 rounded-md outline-none" required>
             <option value="">-- SELECIONE --</option>
             <option value="Adriano Nascimento">Adriano Nascimento</option>
             <option value="Fracivaldo Costa">Fracivaldo Costa</option>
@@ -35,109 +33,92 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">TAG</label>
-            <select name="tag" id="tag" onchange="buscarDados()" class="w-full p-3 rounded-lg outline-none" required>
+            <label class="block text-[10px] uppercase font-bold text-gray-600">TAG</label>
+            <select name="tag" id="tag" onchange="buscar()" class="w-full p-3 rounded-md" required>
               <option value="">--</option>
-              <option value="TJUR 04">TJUR 04</option>
-              <option value="TJUR 06">TJUR 06</option>
-              <option value="TJUR 07">TJUR 07</option>
-              <option value="TJUR 08">TJUR 08</option>
-              <option value="TJUR 09">TJUR 09</option>
-              <option value="TJUR 10">TJUR 10</option>
-              <option value="TJUR 13">TJUR 13</option>
+              <option value="TJUR 04">04</option>
+              <option value="TJUR 06">06</option>
+              <option value="TJUR 07">07</option>
+              <option value="TJUR 08">08</option>
+              <option value="TJUR 09">09</option>
+              <option value="TJUR 10">10</option>
+              <option value="TJUR 13">13</option>
             </select>
           </div>
           <div>
-            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">ID DO DIA</label>
-            <input type="text" name="idCondutor" id="idCondutor" class="w-full p-3 rounded-lg text-center font-bold text-pink-500" readonly>
+            <label class="block text-[10px] uppercase font-bold text-gray-600">ID DO DIA</label>
+            <input type="text" name="idCondutor" id="idCondutor" class="w-full p-3 rounded-md text-center font-bold text-pink-600" readonly>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">KM Inicial</label>
-            <input type="number" name="kmi" id="kmi" class="w-full p-3 rounded-lg" required>
+            <label class="block text-[10px] uppercase font-bold text-gray-600">KM Inicial</label>
+            <input type="number" name="kmi" id="kmi" class="w-full p-3 rounded-md" required>
           </div>
           <div>
-            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Próx. Troca (KM)</label>
-            <input type="number" name="proxOleo" id="proxOleo" class="w-full p-3 rounded-lg text-yellow-500" readonly>
+            <label class="block text-[10px] uppercase font-bold text-gray-600">Próx. Troca (KM)</label>
+            <input type="number" name="proxOleo" id="proxOleo" class="w-full p-3 rounded-md text-yellow-500" readonly>
           </div>
         </div>
       </div>
 
-      <input type="hidden" name="veiculo" id="veiculo">
-      <input type="hidden" name="placa" id="placa">
-      <input type="hidden" name="numT" id="numT">
-      <input type="hidden" name="seloVal" id="seloVal">
-      <input type="hidden" name="seloCor" id="seloCor">
-      <input type="hidden" name="oleoTipo" id="oleoTipo">
-      <input type="hidden" name="data" id="data_envio">
-      <input type="hidden" name="horaInic" id="hora_envio">
+      <input type="hidden" name="veiculo" id="veiculo"><input type="hidden" name="placa" id="placa">
+      <input type="hidden" name="numT" id="numT"><input type="hidden" name="seloVal" id="seloVal">
+      <input type="hidden" name="seloCor" id="seloCor"><input type="hidden" name="oleoTipo" id="oleoTipo">
+      <input type="hidden" name="data" id="d_env"><input type="hidden" name="horaInic" id="h_env">
 
-      <button type="button" onclick="abrirConfirmacao()" class="w-full bg-[#0a0a2a] border border-blue-900 text-gray-400 font-bold py-4 rounded-lg flex items-center justify-center gap-2">
+      <button type="button" onclick="document.getElementById('mConf').style.display='flex'" class="w-full bg-[#05051a] border border-blue-900 text-gray-500 font-bold py-4 rounded-lg">
         🚀 INICIAR SAÍDA
       </button>
     </form>
   </div>
 
-  <div id="modalConfirm" class="modal fixed inset-0 z-50 flex items-center justify-center p-6">
-    <div class="bg-white rounded-2xl w-full max-w-sm p-6 overflow-hidden shadow-2xl">
+  <div id="mConf" class="modal fixed inset-0 z-50 flex items-center justify-center p-6">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
       <h3 class="text-black text-xl font-bold mb-8">Confirmar Dados?</h3>
-      <div class="space-y-3">
-        <button id="btnFinalizar" onclick="enviarTudo()" class="w-full bg-green-700 text-white font-bold py-5 rounded-xl uppercase text-sm tracking-widest">
-          OK...
-        </button>
-        <button onclick="fecharModal()" class="w-full bg-gray-500 text-white font-bold py-3 rounded-xl uppercase text-sm">
-          Voltar
-        </button>
-      </div>
+      <button id="btnOK" onclick="enviar()" class="w-full bg-green-700 text-white font-bold py-5 rounded-xl uppercase mb-3">OK...</button>
+      <button onclick="document.getElementById('mConf').style.display='none'" class="w-full bg-gray-500 text-white font-bold py-3 rounded-xl uppercase">Voltar</button>
     </div>
   </div>
 
   <script>
-    const scriptURL = `https://script.google.com/macros/s/${SS_ID}/exec`;
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz...SUA_URL_AQUI/exec";
 
-    function buscarDados() {
+    function buscar() {
       const tag = document.getElementById('tag').value;
       const nome = document.getElementById('nome').value;
       if (tag && nome) {
-        const script = document.createElement('script');
-        script.src = `${scriptURL}?callback=preencher&acao=buscarDadosVei&tag=${tag}&nome=${nome}`;
-        document.body.appendChild(script);
+        const s = document.createElement('script');
+        s.src = `${SCRIPT_URL}?callback=preencher&acao=buscarDadosVei&tag=${tag}&nome=${nome}`;
+        document.body.appendChild(s);
       }
     }
 
-    function preencher(res) {
-      document.getElementById('idCondutor').value = res.idCondutor;
-      document.getElementById('numT').value = res.numT;
-      document.getElementById('kmi').value = res.kmi;
-      document.getElementById('proxOleo').value = res.proxOleo;
-      document.getElementById('placa').value = res.placa;
-      document.getElementById('veiculo').value = res.veiculo;
-      document.getElementById('seloVal').value = res.seloVal;
-      document.getElementById('seloCor').value = res.seloCor;
-      document.getElementById('oleoTipo').value = res.oleoTipo;
+    function preencher(r) {
+      document.getElementById('idCondutor').value = r.idCondutor;
+      document.getElementById('numT').value = r.numT;
+      document.getElementById('kmi').value = r.kmi;
+      document.getElementById('proxOleo').value = r.proxOleo;
+      document.getElementById('placa').value = r.placa;
+      document.getElementById('veiculo').value = r.veiculo;
+      document.getElementById('seloVal').value = r.seloVal;
+      document.getElementById('seloCor').value = r.seloCor;
+      document.getElementById('oleoTipo').value = r.oleoTipo;
     }
 
-    function abrirConfirmacao() { document.getElementById('modalConfirm').style.display = 'flex'; }
-    function fecharModal() { document.getElementById('modalConfirm').style.display = 'none'; }
-
-    function enviarTudo() {
-      const btn = document.getElementById('btnFinalizar');
-      btn.innerText = "ENVIANDO...";
-      btn.disabled = true;
-
+    function enviar() {
+      const btn = document.getElementById('btnOK');
+      btn.innerText = "ENVIANDO..."; btn.disabled = true;
       const agora = new Date();
-      document.getElementById('data_envio').value = agora.toLocaleDateString('pt-BR');
-      document.getElementById('hora_envio').value = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
-
-      const form = document.getElementById('formPrincipal');
-      const dados = Object.fromEntries(new FormData(form));
-
+      document.getElementById('d_env').value = agora.toLocaleDateString('pt-BR');
+      document.getElementById('h_env').value = agora.getHours().toString().padStart(2,'0')+":"+agora.getMinutes().toString().padStart(2,'0');
+      
+      const dados = Object.fromEntries(new FormData(document.getElementById('formPrincipal')));
       google.script.run.withSuccessHandler(res => {
         window.open(res.url, '_blank');
         location.reload();
-      }).salvarEEnviarWhats(dados);
+      }).salvarSaida(dados);
     }
   </script>
 </body>
