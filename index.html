@@ -3,211 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frota Telejur V22</title>
-    <style>
-        :root { --blue: #1a73e8; --red: #d93025; --gray: #f8f9fa; --border: #dadce0; }
-        body { background: #f0f2f5; font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 480px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { text-align: center; color: var(--blue); margin-top: 0; border-bottom: 2px solid var(--blue); padding-bottom: 10px; font-size: 1.2rem; }
-        
-        .sec { background: var(--gray); padding: 8px; font-size: 0.75rem; font-weight: bold; color: #5f6368; margin: 15px 0 8px; border-radius: 4px; text-transform: uppercase; }
-        label { font-size: 0.75rem; font-weight: bold; color: #3c4043; display: block; margin-top: 10px; }
-        
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid var(--border); font-size: 1rem; box-sizing: border-box; }
-        input[readonly] { background: #f1f3f4; color: #5f6368; }
-        
-        .grid { display: flex; gap: 10px; } .col { flex: 1; }
-        
-        .resumo-box { background: #e8f0fe; padding: 15px; border-radius: 8px; border-left: 5px solid var(--blue); margin-top: 15px; font-size: 0.9rem; display: none; }
-        #msg { text-align: center; font-weight: bold; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; display: none; }
-        
-        .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 15px; cursor: pointer; color: white; font-size: 1rem; }
-        .btn-s { background: var(--blue); } 
-        .btn-c { background: var(--red); }
-        .btn-clear { background: #5f6368; margin-top: 10px; font-size: 0.8rem; padding: 10px; }
-        
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--blue); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden { display: none; }
-    </style>
+    <title>Checklist Frota V2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-100 p-4 font-sans">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-blue-700 text-center border-b-2 border-blue-100 pb-3 mb-6">CHECKLIST TELEJUR</h2>
+        
+        <div id="statusMsg" class="hidden mb-4 p-3 rounded-lg text-sm font-medium text-center"></div>
 
-<div class="card">
-    <h2>CHECKLIST TELEJUR</h2>
-    
-    <div id="msg"></div>
-
-    <form id="mainForm">
-        <div class="sec">1. Identificação</div>
-        <label>Motorista</label>
-        <select name="nome" id="nome" onchange="sincronizar()" required>
-            <option value="">-- Selecione o Motorista --</option>
-            <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
-            <option value="FRACIVALDO COSTA">FRACIVALDO COSTA</option>
-            <option value="REGINALDO">REGINALDO</option>
-            <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
-        </select>
-
-        <div class="grid">
-            <div class="col">
-                <label>TAG</label>
-                <select name="tag" id="tag" onchange="sincronizar()" required>
-                    <option value="">-- TAG --</option>
-                    <option value="TJUR 04">TJUR 04</option>
-                    <option value="TJUR 06">TJUR 06</option>
-                    <option value="TJUR 13">TJUR 13</option>
+        <form id="frotaForm" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase">Motorista</label>
+                <select name="nome" id="nome" onchange="sync()" class="w-full p-3 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                    <option value="">-- Selecione --</option>
+                    <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
+                    <option value="FRACIVALDO COSTA">FRACIVALDO COSTA</option>
+                    <option value="REGINALDO">REGINALDO</option>
                 </select>
             </div>
-            <div class="col">
-                <label>ID Sequência</label>
-                <input type="text" name="condutorID" id="condutorID" readonly placeholder="...">
-            </div>
-        </div>
 
-        <div id="formContent" class="hidden">
-            <div class="sec">2. Dados do Veículo</div>
-            <label>Veículo / Placa</label>
-            <input type="text" id="veiculoDisplay" readonly>
-            
-            <div class="grid">
-                <div class="col"><label>Trajeto Nº</label><input type="text" name="numTrajeto" id="numTrajeto" readonly></div>
-                <div class="col"><label>Modo</label><input type="text" id="statusModo" readonly style="font-weight: bold; color: var(--blue);"></div>
-            </div>
-
-            <div class="sec">3. Controle de KM</div>
-            <div class="grid">
-                <div class="col">
-                    <label>KM Inicial</label>
-                    <input type="number" name="kmi" id="kmi" readonly>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase">TAG</label>
+                    <select name="tag" id="tag" onchange="sync()" class="w-full p-3 bg-slate-50 border rounded-lg outline-none" required>
+                        <option value="">--</option>
+                        <option value="TJUR 04">TJUR 04</option>
+                        <option value="TJUR 13">TJUR 13</option>
+                    </select>
                 </div>
-                <div class="col" id="colKMFinal">
-                    <label>KM Final</label>
-                    <input type="number" name="kmf" id="kmf" placeholder="000000" style="border: 2px solid var(--blue);">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase">ID Seq.</label>
+                    <input type="text" name="condutorID" id="condutorID" class="w-full p-3 bg-gray-100 border rounded-lg text-gray-600" readonly>
                 </div>
             </div>
 
-            <div class="grid">
-                <div class="col"><label>Próx. Troca Óleo</label><input type="text" name="proxOleo" id="proxOleo" readonly></div>
-                <div class="col"><label>Tipo de Óleo</label><input type="text" name="tipoOleo" id="tipoOleo" readonly></div>
+            <div id="detalhes" class="hidden space-y-4 border-t pt-4">
+                <div class="bg-blue-50 p-3 rounded-lg">
+                    <p class="text-xs text-blue-600 font-bold uppercase">Veículo Identificado</p>
+                    <p id="txtVeiculo" class="text-lg font-bold text-slate-800"></p>
+                    <p id="txtPlaca" class="text-sm text-slate-500"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">KM Inicial</label>
+                        <input type="number" name="kmi" id="kmi" class="w-full p-3 bg-gray-100 border rounded-lg" readonly>
+                    </div>
+                    <div id="boxKMFinal" class="hidden">
+                        <label class="block text-xs font-bold text-blue-600 uppercase">KM Final</label>
+                        <input type="number" name="kmf" id="kmf" class="w-full p-3 border-2 border-blue-400 rounded-lg">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase">Observação</label>
+                    <input type="text" name="obs" id="obs" value="S/O" class="w-full p-3 bg-slate-50 border rounded-lg">
+                </div>
+
+                <button type="button" id="btnAcao" onclick="salvar()" class="w-full py-4 rounded-xl font-bold text-white transition-all transform active:scale-95 shadow-md"></button>
             </div>
+        </form>
+    </div>
 
-            <div class="sec">4. Observações</div>
-            <label>Observação / Status do Carro</label>
-            <input type="text" name="obs" id="obs" value="S/O">
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+        let modoAtual = "SAIDA";
 
-            <div id="resumoFinal" class="resumo-box"></div>
-
-            <button type="button" id="btnSaida" onclick="enviar('SAIDA')" class="btn btn-s hidden">🚀 REGISTRAR SAÍDA</button>
-            <button type="button" id="btnChegada" onclick="enviar('CHEGADA')" class="btn btn-c hidden">🏁 REGISTRAR CHEGADA</button>
-        </div>
-
-        <button type="button" onclick="location.reload()" class="btn btn-clear">♻️ REINICIAR / LIMPAR TUDO</button>
-
-        <input type="hidden" name="veiculo" id="veiculo"><input type="hidden" name="placa" id="placa">
-        <input type="hidden" name="valSelo" id="valSelo"><input type="hidden" name="corSelo" id="corSelo">
-    </form>
-</div>
-
-<script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-
-    function sincronizar() {
-        const tag = document.getElementById('tag').value;
-        const nome = document.getElementById('nome').value;
-        const msg = document.getElementById('msg');
-
-        if(tag && nome) {
-            msg.style.display = "block";
-            msg.style.background = "#eee";
-            msg.innerHTML = '<div class="loader"></div> Verificando status...';
+        function sync() {
+            const tag = document.getElementById('tag').value, nome = document.getElementById('nome').value;
+            if(!tag || !nome) return;
             
-            const old = document.getElementById('scr-sync'); if(old) old.remove();
+            showMsg("⏳ Sincronizando...", "bg-amber-100 text-amber-700");
             const s = document.createElement('script');
-            s.id = 'scr-sync';
-            s.src = `${SCRIPT_URL}?callback=cb&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}&t=${Date.now()}`;
+            s.src = `${API}?callback=render&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}&t=${Date.now()}`;
             document.body.appendChild(s);
         }
-    }
 
-    function cb(r) {
-        const msg = document.getElementById('msg');
-        const content = document.getElementById('formContent');
-        
-        if(r.bloqueado) {
-            msg.style.background = "#fce8e6";
-            msg.style.color = "#d93025";
-            msg.innerText = r.msg;
-            content.classList.add('hidden');
-            return;
-        }
-
-        msg.style.background = "#e6f4ea";
-        msg.style.color = "#137333";
-        msg.innerText = `✅ Pronto para registrar ${r.modo}`;
-        content.classList.remove('hidden');
-
-        // Preencher Campos
-        document.getElementById('condutorID').value = r.condutorID;
-        document.getElementById('kmi').value = r.kmi;
-        document.getElementById('veiculo').value = r.veiculo;
-        document.getElementById('placa').value = r.placa;
-        document.getElementById('veiculoDisplay').value = `${r.veiculo} (${r.placa})`;
-        document.getElementById('numTrajeto').value = r.numTrajeto;
-        document.getElementById('proxOleo').value = r.proxOleo;
-        document.getElementById('tipoOleo').value = r.tipoOleo;
-        document.getElementById('statusModo').value = r.modo;
-        document.getElementById('valSelo').value = r.valSelo;
-        document.getElementById('corSelo').value = r.corSelo;
-
-        // Lógica de Visibilidade dos Botões
-        const isSaida = (r.modo === 'SAIDA');
-        document.getElementById('btnSaida').classList.toggle('hidden', !isSaida);
-        document.getElementById('btnChegada').classList.toggle('hidden', isSaida);
-        document.getElementById('colKMFinal').classList.toggle('hidden', isSaida);
-
-        // Resumo para correção
-        const resumo = document.getElementById('resumoFinal');
-        resumo.style.display = "block";
-        resumo.innerHTML = `<b>CONFERIR:</b> ${r.modo} de <b>${document.getElementById('nome').value}</b> com a TAG <b>${document.getElementById('tag').value}</b>.`;
-        
-        if(!isSaida) document.getElementById('kmf').focus();
-    }
-
-    function enviar(tipo) {
-        if(tipo === 'CHEGADA' && !document.getElementById('kmf').value) {
-            alert("KM Final é obrigatório!"); return;
-        }
-
-        const btn = event.target;
-        btn.disabled = true; btn.innerText = "GRAVANDO...";
-
-        const d = Object.fromEntries(new FormData(document.getElementById('mainForm')));
-        d.tipo = tipo;
-        d.data = new Date().toLocaleDateString('pt-BR');
-        const h = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-        if(tipo === 'SAIDA') d.horaInic = h; else d.horaFim = h;
-
-        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) })
-        .then(() => {
-            const fone = "5593981162453";
-            const kmRef = tipo === 'SAIDA' ? d.kmi : d.kmf;
-            const resta = parseInt(d.proxOleo.toString().replace(/\D/g,'')) - kmRef;
+        function render(r) {
+            if(r.bloqueado) return showMsg(r.msg, "bg-red-100 text-red-700");
             
-            let txt = `📋 *CHECKLIST TELEJUR - ${tipo}*\n---\n`;
-            txt += `👤 *Motorista:* ${d.nome}\n`;
-            txt += `🚗 *Veículo:* ${d.veiculo} (${d.placa})\n`;
-            txt += `🏷️ *Tag:* ${d.tag} | 🆔 *ID:* ${d.condutorID}\n`;
-            txt += `🔢 *Trajeto:* ${d.numTrajeto}\n---\n`;
-            txt += `🛣️ *KM:* ${kmRef}\n`;
-            txt += `🛢️ *Resta Troca:* ${resta} KM\n`;
-            txt += `💬 *Obs:* ${d.obs}`;
+            document.getElementById('detalhes').classList.remove('hidden');
+            document.getElementById('txtVeiculo').innerText = r.veiculo;
+            document.getElementById('txtPlaca').innerText = r.placa;
+            document.getElementById('kmi').value = r.kmi;
+            document.getElementById('condutorID').value = r.condutorID;
+            modoAtual = r.modo;
 
-            window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(txt)}`, '_blank');
-            location.reload();
-        });
-    }
-</script>
+            const btn = document.getElementById('btnAcao');
+            if(modoAtual === "SAIDA") {
+                btn.innerText = "🚀 REGISTRAR SAÍDA";
+                btn.className = "w-full py-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700";
+                document.getElementById('boxKMFinal').classList.add('hidden');
+            } else {
+                btn.innerText = "🏁 REGISTRAR CHEGADA";
+                btn.className = "w-full py-4 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700";
+                document.getElementById('boxKMFinal').classList.remove('hidden');
+            }
+            showMsg(`Modo ${modoAtual} Ativo`, "bg-green-100 text-green-700");
+            
+            // Salva dados ocultos para o POST
+            window.dadosVei = r;
+        }
 
+        async function salvar() {
+            const btn = document.getElementById('btnAcao');
+            if(modoAtual === "CHEGADA" && !document.getElementById('kmf').value) return alert("Informe o KM Final!");
+            
+            btn.disabled = true; btn.innerText = "💾 GRAVANDO...";
+            
+            const fd = new FormData(document.getElementById('frotaForm'));
+            const data = Object.fromEntries(fd);
+            data.tipo = modoAtual;
+            data.data = new Date().toLocaleDateString('pt-BR');
+            const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            
+            if(modoAtual === "SAIDA") data.horaInic = hora; else data.horaFim = hora;
+            // Mescla dados do veículo vindo do sync
+            Object.assign(data, window.dadosVei);
+
+            try {
+                const resp = await fetch(API, { method: 'POST', body: JSON.stringify(data) });
+                if(resp.ok) {
+                    const km = modoAtual === "SAIDA" ? data.kmi : data.kmf;
+                    const resta = parseInt(data.proxOleo.toString().replace(/\D/g,'')) - km;
+                    let txt = `📋 *CHECKLIST TELEJUR - ${modoAtual}*\n---\n👤 *Motorista:* ${data.nome}\n🚗 *Veículo:* ${data.veiculo}\n🏷️ *Tag:* ${data.tag}\n🆔 *ID:* ${data.condutorID}\n🛣️ *KM:* ${km}\n🛢️ *Resta:* ${resta} KM\n💬 *Obs:* ${data.obs}`;
+                    window.open(`https://api.whatsapp.com/send?phone=5593981162453&text=${encodeURIComponent(txt)}`, '_blank');
+                    location.reload();
+                }
+            } catch (e) {
+                alert("Erro ao salvar! Tente novamente.");
+                btn.disabled = false; btn.innerText = "TENTAR NOVAMENTE";
+            }
+        }
+
+        function showMsg(m, c) {
+            const el = document.getElementById('statusMsg');
+            el.className = `mb-4 p-3 rounded-lg text-sm font-medium text-center ${c}`;
+            el.innerText = m; el.classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
