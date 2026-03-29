@@ -5,29 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frota Telejur V22</title>
     <style>
-        body { background: #fdfdfd; color: #333; font-family: sans-serif; padding: 10px; margin: 0; }
-        .card { background: white; max-width: 480px; margin: auto; padding: 15px; border: 1px solid #ccc; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a73e8; font-size: 1.1rem; margin-top: 0; border-bottom: 2px solid #1a73e8; padding-bottom: 8px; }
-        .sec { background: #eee; padding: 5px 10px; margin: 12px 0 5px 0; border-radius: 4px; font-weight: bold; font-size: 0.7rem; color: #444; }
-        label { font-size: 0.65rem; font-weight: bold; color: #666; display: block; margin-top: 8px; text-transform: uppercase; }
-        select, input { width: 100%; padding: 14px; margin-top: 4px; border-radius: 6px; border: 1px solid #bbb; font-size: 1rem; box-sizing: border-box; }
-        input[readonly] { background: #f0f0f0; border: 1px solid #ddd; color: #666; }
-        .editavel { background: #fff !important; border: 2px solid #1a73e8 !important; color: #000 !important; }
-        .grid { display: flex; gap: 8px; }
+        body { background: #fdfdfd; font-family: sans-serif; padding: 10px; margin: 0; }
+        .card { background: white; max-width: 450px; margin: auto; padding: 15px; border: 1px solid #ccc; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 8px; margin-top: 0; }
+        .sec { background: #eee; padding: 5px; margin-top: 15px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; color: #555; text-transform: uppercase; }
+        label { font-size: 0.7rem; font-weight: bold; color: #888; display: block; margin-top: 10px; }
+        select, input { width: 100%; padding: 12px; margin-top: 4px; border-radius: 6px; border: 1px solid #bbb; font-size: 1rem; box-sizing: border-box; }
+        input[readonly] { background: #f9f9f9; color: #666; }
+        .edit { border: 2px solid #1a73e8 !important; background: #fff !important; }
+        .grid { display: flex; gap: 10px; }
         .col { flex: 1; }
-        .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; color: white; font-size: 1rem; }
-        .btn-saida { background: #1a73e8; margin-top: 20px; }
+        .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 15px; cursor: pointer; color: white; font-size: 1rem; }
+        .btn-saida { background: #1a73e8; }
         .btn-chegada { background: #d93025; }
-        #statusMsg { text-align: center; color: #1a73e8; font-weight: bold; font-size: 0.8rem; margin: 5px 0; min-height: 1rem; }
+        #statusMsg { text-align: center; color: #1a73e8; font-weight: bold; height: 1.2rem; margin: 5px; }
     </style>
 </head>
 <body>
-
 <div class="card">
     <h2>TELEJUR - FROTA</h2>
-    <div id="statusMsg">Aguardando seleção...</div>
+    <div id="statusMsg"></div>
     <form id="formApp">
-        <div class="sec">1. Identificação</div>
         <label>Motorista</label>
         <select name="nome" id="nome" onchange="sincronizar()" required>
             <option value="">-- Selecione --</option>
@@ -38,17 +36,25 @@
             <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
             <option value="EZEQUEIL SILVA">EZEQUEIL SILVA</option>
         </select>
-        <div class="grid"><div class="col"><label>TAG</label><select name="tag" id="tag" onchange="sincronizar()" required><option value="">--</option><option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option><option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option><option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option><option value="TJUR 13">TJUR 13</option></select></div><div class="col"><label>ID Sequência</label><input type="text" name="condutorID" id="condutorID" readonly></div></div>
-        <div class="sec">2. Dados do Veículo</div>
-        <div class="grid"><div class="col"><label>Veículo</label><input type="text" name="veiculo" id="veiculo" readonly></div><div class="col"><label>Placa</label><input type="text" name="placa" id="placa" readonly></div></div>
-        <div class="grid"><div class="col"><label>KM Inicial</label><input type="number" name="kmi" id="kmi" readonly></div><div class="col"><label>KM Final (Chegada)</label><input type="number" name="kmf" id="kmf" class="editavel" placeholder="Digite o KM"></div></div>
-        <div class="sec">3. Manutenção</div>
-        <div class="grid"><div class="col"><label>Validade Selo</label><input type="text" id="valSelo" readonly></div><div class="col"><label>Cor do Selo</label><input type="text" id="corSelo" readonly></div></div>
+        <div class="grid">
+            <div class="col"><label>TAG</label><select name="tag" id="tag" onchange="sincronizar()" required><option value="">--</option><option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option><option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option><option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option><option value="TJUR 13">TJUR 13</option></select></div>
+            <div class="col"><label>ID</label><input type="text" name="condutorID" id="condutorID" readonly></div>
+        </div>
+        <div class="sec">Dados do Veículo</div>
+        <div class="grid">
+            <div class="col"><label>KM Inicial</label><input type="number" name="kmi" id="kmi" readonly></div>
+            <div class="col"><label>KM Final</label><input type="number" name="kmf" id="kmf" class="edit" placeholder="000000"></div>
+        </div>
         <label>Observação</label>
-        <input type="text" name="obs" id="obs" class="editavel" placeholder="Tudo OK?">
-        <input type="hidden" name="proxOleo" id="proxOleo"><input type="hidden" name="tipoOleo" id="tipoOleo"><input type="hidden" name="numT" id="numT">
-        <button type="button" onclick="salvar('SAIDA')" class="btn btn-saida">🚀 REGISTRAR SAÍDA</button>
-        <button type="button" onclick="salvar('CHEGADA')" class="btn btn-chegada">🏁 REGISTRAR CHEGADA</button>
+        <input type="text" name="obs" id="obs" class="edit" placeholder="Tudo OK?">
+        
+        <input type="hidden" name="veiculo" id="veiculo"><input type="hidden" name="placa" id="placa">
+        <input type="hidden" name="proxOleo" id="proxOleo"><input type="hidden" name="valSelo" id="valSelo">
+        <input type="hidden" name="corSelo" id="corSelo"><input type="hidden" name="tipoOleo" id="tipoOleo">
+        <input type="hidden" name="numT" id="numT">
+
+        <button type="button" onclick="salvar('SAIDA')" class="btn btn-saida">🚀 INICIAR SAÍDA</button>
+        <button type="button" onclick="salvar('CHEGADA')" class="btn btn-chegada">🏁 FINALIZAR CHEGADA</button>
     </form>
 </div>
 
@@ -60,19 +66,19 @@
         const nome = document.getElementById('nome').value;
         if(tag && nome) {
             document.getElementById('statusMsg').innerText = "🔄 Sincronizando...";
-            const old = document.getElementById('sync-script'); if(old) old.remove();
-            const s = document.createElement('script'); s.id = 'sync-script';
-            s.src = `${SCRIPT_URL}?callback=callbackSync&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&t=${Date.now()}`;
+            const old = document.getElementById('sc-sync'); if(old) old.remove();
+            const s = document.createElement('script'); s.id = 'sc-sync';
+            s.src = `${SCRIPT_URL}?callback=cb&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}&t=${Date.now()}`;
             document.body.appendChild(s);
         }
     }
 
-    function callbackSync(r) {
-        document.getElementById('statusMsg').innerText = "✅ Sincronizado";
+    function cb(r) {
+        document.getElementById('statusMsg').innerText = "✅ Pronto";
         document.getElementById('condutorID').value = r.condutorSugerido;
+        document.getElementById('kmi').value = r.kmi;
         document.getElementById('veiculo').value = r.veiculo;
         document.getElementById('placa').value = r.placa;
-        document.getElementById('kmi').value = r.kmi;
         document.getElementById('proxOleo').value = r.proxOleo;
         document.getElementById('tipoOleo').value = r.tipoOleo;
         document.getElementById('valSelo').value = r.valSelo;
@@ -81,35 +87,28 @@
     }
 
     function salvar(tipo) {
-        const btn = event.target;
-        if(tipo === 'CHEGADA' && !document.getElementById('kmf').value) { alert("⚠️ Informe o KM FINAL!"); return; }
-        btn.disabled = true; btn.innerText = "GRAVANDO...";
+        if(tipo === 'CHEGADA' && !document.getElementById('kmf').value) { alert("Informe o KM Final!"); return; }
+        const btn = event.target; btn.disabled = true; btn.innerText = "GRAVANDO...";
         const dados = Object.fromEntries(new FormData(document.getElementById('formApp')));
         dados.tipo = tipo; dados.data = new Date().toLocaleDateString('pt-BR');
-        const hora = new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+        const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
         if(tipo === 'SAIDA') dados.horaInic = hora; else dados.horaFim = hora;
 
         fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(dados) })
         .then(() => {
-            alert("Salvo na planilha! Abrindo WhatsApp...");
-            enviarZap(dados, tipo, hora);
-            location.reload();
-        }).catch(() => { alert("Erro ao salvar!"); btn.disabled = false; });
+            enviarWhatsApp(dados, tipo, hora);
+            alert("Sucesso!"); location.reload();
+        }).catch(() => { alert("Erro!"); btn.disabled = false; });
     }
 
-    function enviarZap(d, tipo, hora) {
-        const fone = "5599999999999"; // <-- COLOQUE O NÚMERO DO GESTOR AQUI (COM DDD)
-        let msg = `*CHECKLIST TELEJUR V22 - ${tipo}*\n\n`;
-        msg += `📅 *Data:* ${d.data}\n`;
-        msg += `🕒 *Hora:* ${hora}\n`;
+    function enviarWhatsApp(d, tipo, hora) {
+        const fone = "5599999999999"; // <-- COLOQUE O SEU NÚMERO AQUI
+        let msg = `*CHECKLIST TELEJUR - ${tipo}*\n\n`;
         msg += `👤 *Motorista:* ${d.nome}\n`;
-        msg += `🏷️ *TAG:* ${d.tag} | ${d.condutorID}\n`;
-        msg += `🚗 *Veículo:* ${d.veiculo} (${d.placa})\n`;
+        msg += `🏷️ *ID:* ${d.condutorID} | *TAG:* ${d.tag}\n`;
         msg += `📟 *KM:* ${tipo === 'SAIDA' ? d.kmi : d.kmf}\n`;
         msg += `📝 *Obs:* ${d.obs || 'Nenhuma'}`;
-        
-        const urlZap = `https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(msg)}`;
-        window.open(urlZap, '_blank');
+        window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(msg)}`, '_blank');
     }
 </script>
 </body>
