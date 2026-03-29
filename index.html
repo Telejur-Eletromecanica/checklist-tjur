@@ -1,124 +1,144 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background-color: #0f172a; color: white; }
-    input, select { font-size: 16px !important; }
-    .card { background-color: #1e293b; border-radius: 1rem; border: 1px solid #334155; }
+    body { background-color: #121212; color: #e0e0e0; font-family: sans-serif; }
+    .card { background-color: #1e1e1e; border-radius: 8px; border: 1px solid #333; }
+    input, select { background-color: #2c2c2c !important; color: white !important; border: 1px solid #444 !important; }
+    .modal { background: rgba(0,0,0,0.85); display: none; }
   </style>
 </head>
-<body class="p-3">
+<body class="p-4">
   <div class="max-w-md mx-auto">
     
-    <div class="text-center py-4">
-      <h1 class="text-xl font-bold tracking-tighter text-indigo-400">TELEJUR V22</h1>
-      <p class="text-[10px] text-slate-500 uppercase tracking-widest">Saída de Veículo</p>
+    <div class="flex items-center justify-center gap-2 mb-6">
+      <span class="text-2xl">📋</span>
+      <h1 class="text-xl font-bold tracking-widest text-gray-300">TELEJUR V22</h1>
     </div>
 
-    <form id="formMaster" class="space-y-4">
-      <div class="card p-4 space-y-3">
+    <form id="formPrincipal" class="space-y-4">
+      <div class="card p-4 space-y-4">
         <div>
-          <label class="text-[10px] font-bold text-slate-400 uppercase">Motorista</label>
-          <select name="nome" id="nome" onchange="buscarDados()" class="w-full bg-slate-800 p-3 rounded-lg mt-1 border-none outline-none" required>
+          <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Motorista Responsável</label>
+          <select name="nome" id="nome" onchange="buscarDados()" class="w-full p-3 rounded-lg outline-none" required>
             <option value="">-- SELECIONE --</option>
-            <option value="Adriano Fracivaldo Costa">Adriano Fracivaldo Costa</option>
+            <option value="Adriano Nascimento">Adriano Nascimento</option>
+            <option value="Fracivaldo Costa">Fracivaldo Costa</option>
             <option value="Lafaiete Batista">Lafaiete Batista</option>
             <option value="Reginaldo">Reginaldo</option>
             <option value="Walter Gonçalves">Walter Gonçalves</option>
+            <option value="Ezequeil Silva">Ezequeil Silva</option>
           </select>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-[10px] font-bold text-slate-400 uppercase">TAG</label>
-            <select name="tag" id="tag" onchange="buscarDados()" class="w-full bg-slate-800 p-3 rounded-lg mt-1 border-none outline-none" required>
+            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">TAG</label>
+            <select name="tag" id="tag" onchange="buscarDados()" class="w-full p-3 rounded-lg outline-none" required>
               <option value="">--</option>
-              <option value="TAG-01">01</option>
-              <option value="TAG-02">02</option>
-              <option value="TAG-03">03</option>
+              <option value="TJUR 04">TJUR 04</option>
+              <option value="TJUR 06">TJUR 06</option>
+              <option value="TJUR 07">TJUR 07</option>
+              <option value="TJUR 08">TJUR 08</option>
+              <option value="TJUR 09">TJUR 09</option>
+              <option value="TJUR 10">TJUR 10</option>
+              <option value="TJUR 13">TJUR 13</option>
             </select>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Trajeto</label>
-            <input type="text" name="numT" id="numT" class="w-full bg-slate-700 p-3 rounded-lg mt-1 text-yellow-400 font-bold text-center border-none" readonly>
+            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">ID DO DIA</label>
+            <input type="text" name="idCondutor" id="idCondutor" class="w-full p-3 rounded-lg text-center font-bold text-pink-500" readonly>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">KM Inicial</label>
+            <input type="number" name="kmi" id="kmi" class="w-full p-3 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Próx. Troca (KM)</label>
+            <input type="number" name="proxOleo" id="proxOleo" class="w-full p-3 rounded-lg text-yellow-500" readonly>
           </div>
         </div>
       </div>
 
-      <div class="card p-4 grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-[10px] font-bold text-slate-400 uppercase">KM Inicial</label>
-          <input type="number" name="kmi" id="kmi" class="w-full bg-transparent border-b-2 border-slate-600 p-1 text-lg outline-none focus:border-indigo-500" required>
-        </div>
-        <div>
-          <label class="text-[10px] font-bold text-slate-400 uppercase">Resta Troca</label>
-          <input type="text" id="resta_label" class="w-full bg-transparent border-b-2 border-slate-600 p-1 text-lg text-indigo-300" readonly>
-        </div>
-      </div>
-
-      <input type="hidden" name="proxOleo" id="proxOleo">
-      <input type="hidden" name="placa" id="placa">
       <input type="hidden" name="veiculo" id="veiculo">
+      <input type="hidden" name="placa" id="placa">
+      <input type="hidden" name="numT" id="numT">
       <input type="hidden" name="seloVal" id="seloVal">
       <input type="hidden" name="seloCor" id="seloCor">
       <input type="hidden" name="oleoTipo" id="oleoTipo">
-      <input type="hidden" name="data" id="data_form">
-      <input type="hidden" name="horaInic" id="hora_form">
+      <input type="hidden" name="data" id="data_envio">
+      <input type="hidden" name="horaInic" id="hora_envio">
 
-      <div class="px-2">
-        <label class="text-[10px] font-bold text-slate-400 uppercase">Observação</label>
-        <textarea name="obs" class="w-full bg-slate-800 p-3 rounded-lg mt-1 border-none text-sm" rows="2"></textarea>
-      </div>
-
-      <button type="submit" id="btn" class="w-full bg-indigo-600 py-4 rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-all">
-        REGISTRAR SAÍDA 🚀
+      <button type="button" onclick="abrirConfirmacao()" class="w-full bg-[#0a0a2a] border border-blue-900 text-gray-400 font-bold py-4 rounded-lg flex items-center justify-center gap-2">
+        🚀 INICIAR SAÍDA
       </button>
     </form>
   </div>
 
+  <div id="modalConfirm" class="modal fixed inset-0 z-50 flex items-center justify-center p-6">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-6 overflow-hidden shadow-2xl">
+      <h3 class="text-black text-xl font-bold mb-8">Confirmar Dados?</h3>
+      <div class="space-y-3">
+        <button id="btnFinalizar" onclick="enviarTudo()" class="w-full bg-green-700 text-white font-bold py-5 rounded-xl uppercase text-sm tracking-widest">
+          OK...
+        </button>
+        <button onclick="fecharModal()" class="w-full bg-gray-500 text-white font-bold py-3 rounded-xl uppercase text-sm">
+          Voltar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    const scriptURL = `https://script.google.com/macros/s/${SS_ID}/exec`;
+
     function buscarDados() {
       const tag = document.getElementById('tag').value;
       const nome = document.getElementById('nome').value;
       if (tag && nome) {
-        const url = `https://script.google.com/macros/s/${SS_ID}/exec?callback=retorno&acao=buscarDadosVei&tag=${tag}&nome=${nome}`;
-        // Aqui você usa o método que já tem para chamar o JSONP
         const script = document.createElement('script');
-        script.src = url;
+        script.src = `${scriptURL}?callback=preencher&acao=buscarDadosVei&tag=${tag}&nome=${nome}`;
         document.body.appendChild(script);
       }
     }
 
-    function retorno(res) {
+    function preencher(res) {
+      document.getElementById('idCondutor').value = res.idCondutor;
       document.getElementById('numT').value = res.numT;
       document.getElementById('kmi').value = res.kmi;
+      document.getElementById('proxOleo').value = res.proxOleo;
       document.getElementById('placa').value = res.placa;
       document.getElementById('veiculo').value = res.veiculo;
-      document.getElementById('proxOleo').value = res.proxOleo;
       document.getElementById('seloVal').value = res.seloVal;
       document.getElementById('seloCor').value = res.seloCor;
       document.getElementById('oleoTipo').value = res.oleoTipo;
-      
-      if(res.proxOleo) {
-        document.getElementById('resta_label').value = (res.proxOleo - res.kmi) + " KM";
-      }
     }
 
-    document.getElementById('formMaster').onsubmit = function(e) {
-      e.preventDefault();
+    function abrirConfirmacao() { document.getElementById('modalConfirm').style.display = 'flex'; }
+    function fecharModal() { document.getElementById('modalConfirm').style.display = 'none'; }
+
+    function enviarTudo() {
+      const btn = document.getElementById('btnFinalizar');
+      btn.innerText = "ENVIANDO...";
+      btn.disabled = true;
+
       const agora = new Date();
-      document.getElementById('data_form').value = agora.toLocaleDateString('pt-BR');
-      document.getElementById('hora_form').value = agora.getHours() + ":" + agora.getMinutes();
-      
-      const dados = Object.fromEntries(new FormData(this));
-      
+      document.getElementById('data_envio').value = agora.toLocaleDateString('pt-BR');
+      document.getElementById('hora_envio').value = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
+
+      const form = document.getElementById('formPrincipal');
+      const dados = Object.fromEntries(new FormData(form));
+
       google.script.run.withSuccessHandler(res => {
-        window.open(res.url, '_blank'); // Abre o WhatsApp
+        window.open(res.url, '_blank');
         location.reload();
       }).salvarEEnviarWhats(dados);
-    };
+    }
   </script>
 </body>
 </html>
