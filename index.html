@@ -60,11 +60,11 @@
 
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Veículo</label>
-                    <input type="text" id="veiculo_input" readonly placeholder="Selecionar TAG" class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none">
+                    <input type="text" id="veiculo_input" readonly placeholder="TAG" class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none">
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Placa</label>
-                    <input type="text" id="placa_input" readonly placeholder="Selecionar TAG" class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none uppercase font-mono">
+                    <input type="text" id="placa_input" readonly placeholder="TAG" class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none uppercase font-mono">
                 </div>
             </div>
         </section>
@@ -88,7 +88,7 @@
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">KM Inicial</label>
-                    <input type="number" placeholder="0" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-mono">
+                    <input type="number" id="km_inicial_input" oninput="calcularTrocaOleo()" placeholder="0" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-mono font-bold">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">KM Final</label>
@@ -116,12 +116,14 @@
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Próx. Troca Óleo</label>
-                    <input type="number" placeholder="Ex: 55000" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none font-mono">
+                    <input type="number" id="km_troca_input" oninput="calcularTrocaOleo()" placeholder="Ex: 55000" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none font-mono font-bold">
                 </div>
-                <div class="col-span-2 bg-orange-50 p-2 rounded border border-orange-100">
-                    <label class="block text-[10px] text-orange-700 uppercase font-black">Resta para a troca (Cálculo)</label>
-                    <span class="text-lg font-bold text-orange-600">-- KM</span>
+                
+                <div id="container_resta" class="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-200 transition-colors duration-300">
+                    <label class="block text-[10px] text-gray-500 uppercase font-black">Resta para a troca</label>
+                    <span id="resta_valor" class="text-xl font-black text-gray-400">--- KM</span>
                 </div>
+
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">Cor do Selo</label>
                     <select class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none">
@@ -161,12 +163,7 @@
 
         function configurarDataHoraAtual() {
             const agora = new Date();
-            
-            // Preenche Data
-            const inputData = document.getElementById('data_input');
-            inputData.value = agora.toISOString().split('T')[0];
-
-            // Preenche Hora Início
+            document.getElementById('data_input').value = agora.toISOString().split('T')[0];
             const inputHora = document.getElementById('hora_inicio_input');
             const horas = String(agora.getHours()).padStart(2, '0');
             const minutos = String(agora.getMinutes()).padStart(2, '0');
@@ -186,9 +183,8 @@
             }
         }
 
-        window.onload = function() {
-            configurarDataHoraAtual();
-        };
-    </script>
-</body>
-</html>
+        // NOVA FUNÇÃO: CÁLCULO DE TROCA DE ÓLEO
+        function calcularTrocaOleo() {
+            const kmInicial = parseInt(document.getElementById('km_inicial_input').value);
+            const kmTroca = parseInt(document.getElementById('km_troca_input').value);
+            const displayResta = document
