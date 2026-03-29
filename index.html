@@ -62,7 +62,10 @@
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">TIPO DE ÓLEO</label>
                         <select id="tipo_oleo" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold uppercase outline-none">
-                            <option>5w30</option><option>5w40</option><option>10w40</option><option>15w40</option><option>20w50</option>
+                            <option value="5w30">5w30</option>
+                            <option value="5w40">5w40</option>
+                            <option value="10w40">10w40</option>
+                            <option value="15w40" selected>15w40</option> <option value="20w50">20w50</option>
                         </select>
                     </div>
                 </div>
@@ -112,7 +115,7 @@
     </div>
 
     <script>
-        const scriptURL = "SUA_URL_DO_APPS_SCRIPT_AQUI"; 
+        const scriptURL = "INSIRA_AQUI_SUA_URL_DO_GOOGLE_SCRIPT"; 
         const frota = { "TJUR 04": { v: "Sky munck", p: "QFA1I50" }, "TJUR 06": { v: "Saveiro furgão", p: "QUJ3E02" }, "TJUR 07": { v: "Sky munck", p: "RWR3C75" }, "TJUR 08": { v: "Caminhonete hilux", p: "QVE5H48" }, "TJUR 09": { v: "Sky munck", p: "RXC6J04" }, "TJUR 10": { v: "Caminhonete", p: "PHU1I37" }, "TJUR 13": { v: "Caminhonete", p: "QVD4I38" } };
 
         function formatarTexto(t) { return t ? t.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : "S/O"; }
