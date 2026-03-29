@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V15</title>
+    <title>TELEJUR CHECKLIST V16</title>
     <style>
         :root { --primary: #1a237e; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
@@ -19,7 +19,7 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 CHECKLIST V15</h2>
+    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 CHECKLIST TELEJUR</h2>
 
     <div id="secaoSaida">
         <label>Motorista Responsável</label>
@@ -34,14 +34,14 @@
                     <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
                 </select>
             </div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Aguardando..."></div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Buscando..."></div>
         </div>
 
         <div class="grid">
             <div><label>KM Inicial</label><input type="number" id="kmi" oninput="calc()"></div>
             <div><label>Próx. Troca (KM)</label><input type="number" id="pxO" oninput="calc()"></div>
         </div>
-        <div id="restaAviso" class="resta-box">Resta para troca: -</div>
+        <div id="restaAviso" class="resta-box">Resta para a troca: -</div>
 
         <div class="grid">
             <div><label>Veículo</label><input type="text" id="vei" readonly></div>
@@ -76,6 +76,8 @@
 <script>
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
 
+    function limparNum(v) { return parseInt(v.toString().replace(/[\.\,]/g, '')) || 0; }
+
     function puxarDados() {
         const tag = document.getElementById('tag').value;
         const nome = document.getElementById('nomeMot').value;
@@ -96,9 +98,11 @@
     }
 
     function calc() {
-        const k = parseInt(document.getElementById('kmi').value) || 0;
-        const p = parseInt(document.getElementById('pxO').value) || 0;
-        if(k > 0 && p > 0) document.getElementById('restaAviso').innerText = "Resta para troca: " + (p - k) + " KM";
+        const k = limparNum(document.getElementById('kmi').value);
+        const p = limparNum(document.getElementById('pxO').value);
+        if(k > 0 && p > 0) {
+            document.getElementById('restaAviso').innerText = "Resta para a troca: " + (p - k) + " KM";
+        }
     }
 
     async function enviar(tipo) {
@@ -110,32 +114,63 @@
         
         let p = {};
         if(tipo === 'SAIDA') {
-            p = { tipo: 'SAIDA', data: dataH, horaInic: horaH, tag: document.getElementById('tag').value, condutorID: document.getElementById('condID').value, nome: document.getElementById('nomeMot').value, kmi: document.getElementById('kmi').value, veiculo: document.getElementById('vei').value, placa: document.getElementById('pla').value, numT: document.getElementById('numT').value, proxOleo: document.getElementById('pxO').value, tipoOleo: document.getElementById('tpO').value, corSelo: document.getElementById('corS').value, valSelo: document.getElementById('valS').value, obs: document.getElementById('obs').value || "S/O" };
-            localStorage.setItem('tjur_v15', JSON.stringify(p));
+            p = { 
+                tipo: 'SAIDA', data: dataH, horaInic: horaH, 
+                tag: document.getElementById('tag').value, 
+                condutorID: document.getElementById('condID').value, 
+                nome: document.getElementById('nomeMot').value, 
+                kmi: document.getElementById('kmi').value, 
+                veiculo: document.getElementById('vei').value, 
+                placa: document.getElementById('pla').value, 
+                numT: document.getElementById('numT').value, 
+                proxOleo: document.getElementById('pxO').value, 
+                tipoOleo: document.getElementById('tpO').value, 
+                corSelo: document.getElementById('corS').value, 
+                valSelo: document.getElementById('valS').value, 
+                obs: document.getElementById('obs').value || "S/O" 
+            };
+            localStorage.setItem('tjur_v16', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v15'));
+            const d = JSON.parse(localStorage.getItem('tjur_v16'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
         
-        let kmAtual = tipo === 'SAIDA' ? p.kmi : p.kmf;
-        let restaF = (parseInt(p.proxOleo) || 0) - (parseInt(kmAtual) || 0);
-        
-        // WhatsApp com 18 dados resumidos
-        let msg = `*TELEJUR ${tipo}*%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Mot:* ${p.nome}%0A*KM:* ${kmAtual}%0A*Veículo:* ${p.veiculo}%0A*Resta:* ${restaF} KM`;
+        const kmInic = limparNum(p.kmi);
+        const kmFim = limparNum(p.kmf || 0);
+        const kmTroca = limparNum(p.proxOleo);
+        const kmAtual = tipo === 'SAIDA' ? kmInic : kmFim;
+        const restaTroca = kmTroca - kmAtual;
+
+        // WhatsApp Profissional Formatado
+        let msg = `*📋 CHECKLIST TELEJUR - ${tipo}*%0A` +
+                  `*----------------------------------*%0A` +
+                  `*🗓️ Data:* ${p.data}%0A` +
+                  `*🚗 Veículo:* ${p.veiculo} (${p.tag})%0A` +
+                  `*🆔 ID:* ${p.condutorID}%0A` +
+                  `*👤 Motorista:* ${p.nome}%0A` +
+                  `*🔢 Nº Trajeto:* ${p.numT}%0A` +
+                  `*----------------------------------*%0A` +
+                  `*🛣️ KM Inicial:* ${kmInic}%0A` +
+                  (tipo === 'CHEGADA' ? `*🏁 KM Final:* ${kmFim}%0A` : '') +
+                  `*🔧 Resta para a troca:* ${restaTroca} KM%0A` +
+                  `*----------------------------------*%0A` +
+                  `*💬 Obs:* ${p.obs}`;
+
         window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v15');
+        
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v16');
         setTimeout(() => location.reload(), 1000);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v15');
+        const salvo = localStorage.getItem('tjur_v16');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
             document.getElementById('secaoChegada').classList.remove('hidden');
-            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome}<br>🕒 Saída: ${d.horaInic}`;
+            document.getElementById('resumo').innerHTML = `🚗 <b>${d.tag}</b> (${d.condutorID})<br>👤 ${d.nome}<br>🕒 Saída: ${d.horaInic}<br>🛣️ KM Saída: ${d.kmi}`;
         }
     };
 </script>
