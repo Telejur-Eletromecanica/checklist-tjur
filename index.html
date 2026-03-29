@@ -5,120 +5,209 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frota Telejur V22</title>
     <style>
-        body { background: #f4f7f6; font-family: sans-serif; padding: 10px; margin: 0; }
-        .card { background: white; max-width: 480px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; }
-        .sec { background: #f8f9fa; padding: 8px; font-size: 0.75rem; font-weight: bold; color: #666; margin: 15px 0 5px; border-radius: 4px; }
-        label { font-size: 0.7rem; font-weight: bold; color: #444; display: block; margin-top: 8px; }
-        select, input { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; box-sizing: border-box; }
-        input[readonly] { background: #eee; color: #666; }
+        :root { --blue: #1a73e8; --red: #d93025; --gray: #f8f9fa; --border: #dadce0; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 480px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { text-align: center; color: var(--blue); margin-top: 0; border-bottom: 2px solid var(--blue); padding-bottom: 10px; font-size: 1.2rem; }
+        
+        .sec { background: var(--gray); padding: 8px; font-size: 0.75rem; font-weight: bold; color: #5f6368; margin: 15px 0 8px; border-radius: 4px; text-transform: uppercase; }
+        label { font-size: 0.75rem; font-weight: bold; color: #3c4043; display: block; margin-top: 10px; }
+        
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid var(--border); font-size: 1rem; box-sizing: border-box; }
+        input[readonly] { background: #f1f3f4; color: #5f6368; }
+        
         .grid { display: flex; gap: 10px; } .col { flex: 1; }
-        .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 20px; cursor: pointer; color: white; font-size: 1rem; }
-        .btn-s { background: #1a73e8; } .btn-c { background: #d93025; }
-        #msg { text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: none; }
+        
+        .resumo-box { background: #e8f0fe; padding: 15px; border-radius: 8px; border-left: 5px solid var(--blue); margin-top: 15px; font-size: 0.9rem; display: none; }
+        #msg { text-align: center; font-weight: bold; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; display: none; }
+        
+        .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 15px; cursor: pointer; color: white; font-size: 1rem; }
+        .btn-s { background: var(--blue); } 
+        .btn-c { background: var(--red); }
+        .btn-clear { background: #5f6368; margin-top: 10px; font-size: 0.8rem; padding: 10px; }
+        
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--blue); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
+
 <div class="card">
     <h2>CHECKLIST TELEJUR</h2>
+    
     <div id="msg"></div>
-    <form id="f">
-        <div class="sec">1. IDENTIFICAÇÃO</div>
+
+    <form id="mainForm">
+        <div class="sec">1. Identificação</div>
         <label>Motorista</label>
-        <select name="nome" id="nome" onchange="sync()">
-            <option value="">-- Selecione --</option>
+        <select name="nome" id="nome" onchange="sincronizar()" required>
+            <option value="">-- Selecione o Motorista --</option>
             <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
             <option value="FRACIVALDO COSTA">FRACIVALDO COSTA</option>
             <option value="REGINALDO">REGINALDO</option>
+            <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
         </select>
+
         <div class="grid">
-            <div class="col"><label>TAG</label><select name="tag" id="tag" onchange="sync()"><option value="">--</option><option value="TJUR 04">TJUR 04</option><option value="TJUR 13">TJUR 13</option></select></div>
-            <div class="col"><label>ID Seq.</label><input type="text" name="condutorID" id="condutorID" readonly></div>
+            <div class="col">
+                <label>TAG</label>
+                <select name="tag" id="tag" onchange="sincronizar()" required>
+                    <option value="">-- TAG --</option>
+                    <option value="TJUR 04">TJUR 04</option>
+                    <option value="TJUR 06">TJUR 06</option>
+                    <option value="TJUR 13">TJUR 13</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>ID Sequência</label>
+                <input type="text" name="condutorID" id="condutorID" readonly placeholder="...">
+            </div>
         </div>
 
-        <div class="sec">2. VEÍCULO</div>
-        <label>Carro</label><input type="text" name="veiculo" id="veiculo" readonly>
-        <div class="grid">
-            <div class="col"><label>Placa</label><input type="text" name="placa" id="placa" readonly></div>
-            <div class="col"><label>Trajeto Nº</label><input type="text" name="numTrajeto" id="numTrajeto" readonly></div>
+        <div id="formContent" class="hidden">
+            <div class="sec">2. Dados do Veículo</div>
+            <label>Veículo / Placa</label>
+            <input type="text" id="veiculoDisplay" readonly>
+            
+            <div class="grid">
+                <div class="col"><label>Trajeto Nº</label><input type="text" name="numTrajeto" id="numTrajeto" readonly></div>
+                <div class="col"><label>Modo</label><input type="text" id="statusModo" readonly style="font-weight: bold; color: var(--blue);"></div>
+            </div>
+
+            <div class="sec">3. Controle de KM</div>
+            <div class="grid">
+                <div class="col">
+                    <label>KM Inicial</label>
+                    <input type="number" name="kmi" id="kmi" readonly>
+                </div>
+                <div class="col" id="colKMFinal">
+                    <label>KM Final</label>
+                    <input type="number" name="kmf" id="kmf" placeholder="000000" style="border: 2px solid var(--blue);">
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="col"><label>Próx. Troca Óleo</label><input type="text" name="proxOleo" id="proxOleo" readonly></div>
+                <div class="col"><label>Tipo de Óleo</label><input type="text" name="tipoOleo" id="tipoOleo" readonly></div>
+            </div>
+
+            <div class="sec">4. Observações</div>
+            <label>Observação / Status do Carro</label>
+            <input type="text" name="obs" id="obs" value="S/O">
+
+            <div id="resumoFinal" class="resumo-box"></div>
+
+            <button type="button" id="btnSaida" onclick="enviar('SAIDA')" class="btn btn-s hidden">🚀 REGISTRAR SAÍDA</button>
+            <button type="button" id="btnChegada" onclick="enviar('CHEGADA')" class="btn btn-c hidden">🏁 REGISTRAR CHEGADA</button>
         </div>
 
-        <div class="sec">3. MANUTENÇÃO / KM</div>
-        <div class="grid">
-            <div class="col"><label>KM Inicial</label><input type="number" name="kmi" id="kmi" readonly></div>
-            <div class="col"><label>KM Final</label><input type="number" name="kmf" id="kmf" style="border:2px solid #1a73e8"></div>
-        </div>
-        <div class="grid">
-            <div class="col"><label>Próx. Troca</label><input type="text" name="proxOleo" id="proxOleo" readonly></div>
-            <div class="col"><label>Selo</label><input type="text" id="selo" readonly></div>
-        </div>
-        
-        <label>Observação / Status</label>
-        <input type="text" name="obs" id="obs" value="S/O">
+        <button type="button" onclick="location.reload()" class="btn btn-clear">♻️ REINICIAR / LIMPAR TUDO</button>
 
-        <input type="hidden" name="valSelo" id="valSelo"><input type="hidden" name="corSelo" id="corSelo"><input type="hidden" name="tipoOleo" id="tipoOleo">
-
-        <div id="botoes">
-            <button type="button" id="btnS" onclick="enviar('SAIDA')" class="btn btn-s" style="display:none">🚀 REGISTRAR SAÍDA</button>
-            <button type="button" id="btnC" onclick="enviar('CHEGADA')" class="btn btn-c" style="display:none">🏁 REGISTRAR CHEGADA</button>
-        </div>
-        
-        <button type="button" onclick="location.reload()" class="btn" style="background:#666; font-size:0.8rem; margin-top:10px">♻️ LIMPAR TUDO</button>
+        <input type="hidden" name="veiculo" id="veiculo"><input type="hidden" name="placa" id="placa">
+        <input type="hidden" name="valSelo" id="valSelo"><input type="hidden" name="corSelo" id="corSelo">
     </form>
 </div>
 
 <script>
-    const URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
 
-    function sync() {
-        const t = document.getElementById('tag').value, n = document.getElementById('nome').value;
-        if(t && n) {
-            const m = document.getElementById('msg'); m.style.display="block"; m.innerText="Sincronizando..."; m.style.background="#eee";
-            const old = document.getElementById('sync-s'); if(old) old.remove();
-            const s = document.createElement('script'); s.id = 'sync-s';
-            s.src = `${URL}?callback=cb&acao=buscarDadosVei&tag=${encodeURIComponent(t)}&nome=${encodeURIComponent(n)}&t=${Date.now()}`;
+    function sincronizar() {
+        const tag = document.getElementById('tag').value;
+        const nome = document.getElementById('nome').value;
+        const msg = document.getElementById('msg');
+
+        if(tag && nome) {
+            msg.style.display = "block";
+            msg.style.background = "#eee";
+            msg.innerHTML = '<div class="loader"></div> Verificando status...';
+            
+            const old = document.getElementById('scr-sync'); if(old) old.remove();
+            const s = document.createElement('script');
+            s.id = 'scr-sync';
+            s.src = `${SCRIPT_URL}?callback=cb&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}&t=${Date.now()}`;
             document.body.appendChild(s);
         }
     }
 
     function cb(r) {
-        const m = document.getElementById('msg');
-        if(r.bloqueado) { m.style.background="#fce8e6"; m.innerText=r.msg; return; }
+        const msg = document.getElementById('msg');
+        const content = document.getElementById('formContent');
         
-        m.style.background="#e6f4ea"; m.innerText = `Pronto para ${r.modo}`;
+        if(r.bloqueado) {
+            msg.style.background = "#fce8e6";
+            msg.style.color = "#d93025";
+            msg.innerText = r.msg;
+            content.classList.add('hidden');
+            return;
+        }
+
+        msg.style.background = "#e6f4ea";
+        msg.style.color = "#137333";
+        msg.innerText = `✅ Pronto para registrar ${r.modo}`;
+        content.classList.remove('hidden');
+
+        // Preencher Campos
         document.getElementById('condutorID').value = r.condutorID;
         document.getElementById('kmi').value = r.kmi;
         document.getElementById('veiculo').value = r.veiculo;
         document.getElementById('placa').value = r.placa;
+        document.getElementById('veiculoDisplay').value = `${r.veiculo} (${r.placa})`;
         document.getElementById('numTrajeto').value = r.numTrajeto;
         document.getElementById('proxOleo').value = r.proxOleo;
-        document.getElementById('selo').value = `${r.valSelo} (${r.corSelo})`;
+        document.getElementById('tipoOleo').value = r.tipoOleo;
+        document.getElementById('statusModo').value = r.modo;
         document.getElementById('valSelo').value = r.valSelo;
         document.getElementById('corSelo').value = r.corSelo;
-        document.getElementById('tipoOleo').value = r.tipoOleo;
 
-        // Mostra o botão certo conforme o modo identificado
-        document.getElementById('btnS').style.display = (r.modo === 'SAIDA') ? 'block' : 'none';
-        document.getElementById('btnC').style.display = (r.modo === 'CHEGADA') ? 'block' : 'none';
+        // Lógica de Visibilidade dos Botões
+        const isSaida = (r.modo === 'SAIDA');
+        document.getElementById('btnSaida').classList.toggle('hidden', !isSaida);
+        document.getElementById('btnChegada').classList.toggle('hidden', isSaida);
+        document.getElementById('colKMFinal').classList.toggle('hidden', isSaida);
+
+        // Resumo para correção
+        const resumo = document.getElementById('resumoFinal');
+        resumo.style.display = "block";
+        resumo.innerHTML = `<b>CONFERIR:</b> ${r.modo} de <b>${document.getElementById('nome').value}</b> com a TAG <b>${document.getElementById('tag').value}</b>.`;
+        
+        if(!isSaida) document.getElementById('kmf').focus();
     }
 
     function enviar(tipo) {
-        if(tipo === 'CHEGADA' && !document.getElementById('kmf').value) return alert("KM Final obrigatório!");
-        const b = event.target; b.disabled = true; b.innerText = "GRAVANDO...";
-        const d = Object.fromEntries(new FormData(document.getElementById('f')));
-        d.tipo = tipo; d.data = new Date().toLocaleDateString('pt-BR');
+        if(tipo === 'CHEGADA' && !document.getElementById('kmf').value) {
+            alert("KM Final é obrigatório!"); return;
+        }
+
+        const btn = event.target;
+        btn.disabled = true; btn.innerText = "GRAVANDO...";
+
+        const d = Object.fromEntries(new FormData(document.getElementById('mainForm')));
+        d.tipo = tipo;
+        d.data = new Date().toLocaleDateString('pt-BR');
         const h = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
         if(tipo === 'SAIDA') d.horaInic = h; else d.horaFim = h;
 
-        fetch(URL, { method: 'POST', body: JSON.stringify(d) }).then(() => {
+        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) })
+        .then(() => {
             const fone = "5593981162453";
-            const km = tipo === 'SAIDA' ? d.kmi : d.kmf;
-            const resta = parseInt(d.proxOleo.replace(/\D/g,'')) - km;
-            let txt = `📋 *CHECKLIST TELEJUR - ${tipo}*\n---\n👤 *Motorista:* ${d.nome}\n🚗 *Veículo:* ${d.veiculo} (${d.placa})\n🏷️ *Tag:* ${d.tag} | 🆔 *ID:* ${d.condutorID}\n🔢 *Trajeto:* ${d.numTrajeto}\n---\n🛣️ *KM:* ${km}\n🛢️ *Resta Troca:* ${resta} KM\n💬 *Obs:* ${d.obs}`;
+            const kmRef = tipo === 'SAIDA' ? d.kmi : d.kmf;
+            const resta = parseInt(d.proxOleo.toString().replace(/\D/g,'')) - kmRef;
+            
+            let txt = `📋 *CHECKLIST TELEJUR - ${tipo}*\n---\n`;
+            txt += `👤 *Motorista:* ${d.nome}\n`;
+            txt += `🚗 *Veículo:* ${d.veiculo} (${d.placa})\n`;
+            txt += `🏷️ *Tag:* ${d.tag} | 🆔 *ID:* ${d.condutorID}\n`;
+            txt += `🔢 *Trajeto:* ${d.numTrajeto}\n---\n`;
+            txt += `🛣️ *KM:* ${kmRef}\n`;
+            txt += `🛢️ *Resta Troca:* ${resta} KM\n`;
+            txt += `💬 *Obs:* ${d.obs}`;
+
             window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(txt)}`, '_blank');
             location.reload();
         });
     }
 </script>
+
 </body>
 </html>
