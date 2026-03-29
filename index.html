@@ -4,139 +4,120 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Ajuste para inputs não darem zoom no iPhone */
-    input, select, textarea { font-size: 16px !important; }
-    .bg-dark-card { background-color: #1e293b; }
+    body { background-color: #0f172a; color: white; }
+    input, select { font-size: 16px !important; }
+    .card { background-color: #1e293b; border-radius: 1rem; border: 1px solid #334155; }
   </style>
 </head>
-<body class="bg-slate-900 text-white p-2 sm:p-4">
-  <div class="max-w-md mx-auto bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
+<body class="p-3">
+  <div class="max-w-md mx-auto">
     
-    <div class="bg-indigo-700 p-4 text-center">
-      <h2 class="text-lg font-bold tracking-widest uppercase">Checklist de Trajeto</h2>
-      <p class="text-xs text-indigo-200">TELEJUR V22 - GESTÃO DE FROTA</p>
+    <div class="text-center py-4">
+      <h1 class="text-xl font-bold tracking-tighter text-indigo-400">TELEJUR V22</h1>
+      <p class="text-[10px] text-slate-500 uppercase tracking-widest">Saída de Veículo</p>
     </div>
 
-    <form id="formChecklist" class="p-5 space-y-4">
-      
-      <div class="space-y-3">
+    <form id="formMaster" class="space-y-4">
+      <div class="card p-4 space-y-3">
         <div>
-          <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Motorista</label>
-          <select name="nome" id="nome" onchange="atualizarTrajeto()" class="w-full bg-slate-700 border-none p-3 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 appearance-none" required>
-            <option value="">-- SELECIONE O CONDUTOR --</option>
-            <option value="João Silva">João Silva</option>
-            <option value="Maria Oliveira">Maria Oliveira</option>
+          <label class="text-[10px] font-bold text-slate-400 uppercase">Motorista</label>
+          <select name="nome" id="nome" onchange="buscarDados()" class="w-full bg-slate-800 p-3 rounded-lg mt-1 border-none outline-none" required>
+            <option value="">-- SELECIONE --</option>
+            <option value="Adriano Fracivaldo Costa">Adriano Fracivaldo Costa</option>
+            <option value="Lafaiete Batista">Lafaiete Batista</option>
+            <option value="Reginaldo">Reginaldo</option>
+            <option value="Walter Gonçalves">Walter Gonçalves</option>
           </select>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Veículo (TAG)</label>
-            <select name="tag" id="tag" onchange="atualizarTrajeto()" class="w-full bg-slate-700 border-none p-3 rounded-lg text-white appearance-none" required>
-              <option value="">-- TAG --</option>
-              <option value="TAG-01">TAG-01</option>
-              <option value="TAG-02">TAG-02</option>
+            <label class="text-[10px] font-bold text-slate-400 uppercase">TAG</label>
+            <select name="tag" id="tag" onchange="buscarDados()" class="w-full bg-slate-800 p-3 rounded-lg mt-1 border-none outline-none" required>
+              <option value="">--</option>
+              <option value="TAG-01">01</option>
+              <option value="TAG-02">02</option>
+              <option value="TAG-03">03</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Nº Trajeto</label>
-            <input type="text" id="trajeto_label" name="numT" class="w-full bg-slate-600 border-none p-3 rounded-lg text-yellow-400 font-bold text-center" readonly value="-">
+            <label class="text-[10px] font-bold text-slate-400 uppercase">Trajeto</label>
+            <input type="text" name="numT" id="numT" class="w-full bg-slate-700 p-3 rounded-lg mt-1 text-yellow-400 font-bold text-center border-none" readonly>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 bg-slate-700/50 p-3 rounded-xl">
+      <div class="card p-4 grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-[10px] font-bold text-slate-400 uppercase">KM Inicial</label>
-          <input type="number" name="kmi" id="kmi" class="w-full bg-transparent border-b border-slate-500 py-1 text-lg font-semibold outline-none focus:border-indigo-400" required>
+          <label class="text-[10px] font-bold text-slate-400 uppercase">KM Inicial</label>
+          <input type="number" name="kmi" id="kmi" class="w-full bg-transparent border-b-2 border-slate-600 p-1 text-lg outline-none focus:border-indigo-500" required>
         </div>
         <div>
-          <label class="block text-[10px] font-bold text-slate-400 uppercase">Resta p/ Troca</label>
-          <input type="number" name="resta_troca" id="resta_troca" class="w-full bg-transparent border-b border-slate-500 py-1 text-lg font-semibold outline-none focus:border-indigo-400" readonly>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Hora Início</label>
-          <input type="time" name="horaInic" id="horaInic" class="w-full bg-slate-700 border-none p-2 rounded-lg text-sm">
-        </div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Status</label>
-          <select name="status" class="w-full bg-slate-700 border-none p-2 rounded-lg text-sm">
-            <option value="OK">Tudo OK</option>
-            <option value="ALERTA">Alerta</option>
-          </select>
+          <label class="text-[10px] font-bold text-slate-400 uppercase">Resta Troca</label>
+          <input type="text" id="resta_label" class="w-full bg-transparent border-b-2 border-slate-600 p-1 text-lg text-indigo-300" readonly>
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs text-slate-400 mb-1">Observação</label>
-        <textarea name="obs" rows="2" class="w-full bg-slate-700 border-none p-2 rounded-lg text-sm placeholder-slate-500" placeholder="Alguma avaria ou detalhe?"></textarea>
-      </div>
-
+      <input type="hidden" name="proxOleo" id="proxOleo">
       <input type="hidden" name="placa" id="placa">
       <input type="hidden" name="veiculo" id="veiculo">
-      <input type="hidden" name="proxOleo" id="proxOleo">
-      <input type="hidden" name="tipo" value="SAIDA">
-      <input type="hidden" name="data" id="data_atual">
+      <input type="hidden" name="seloVal" id="seloVal">
+      <input type="hidden" name="seloCor" id="seloCor">
+      <input type="hidden" name="oleoTipo" id="oleoTipo">
+      <input type="hidden" name="data" id="data_form">
+      <input type="hidden" name="horaInic" id="hora_form">
 
-      <button type="submit" id="btnEnviar" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg transform active:scale-95 transition-all">
-        CONFIRMAR SAÍDA 🚀
+      <div class="px-2">
+        <label class="text-[10px] font-bold text-slate-400 uppercase">Observação</label>
+        <textarea name="obs" class="w-full bg-slate-800 p-3 rounded-lg mt-1 border-none text-sm" rows="2"></textarea>
+      </div>
+
+      <button type="submit" id="btn" class="w-full bg-indigo-600 py-4 rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-all">
+        REGISTRAR SAÍDA 🚀
       </button>
     </form>
   </div>
 
   <script>
-    // Define a data atual no formato brasileiro ao carregar
-    window.onload = () => {
-      const hoje = new Date();
-      document.getElementById('data_atual').value = hoje.toLocaleDateString('pt-BR');
-      document.getElementById('horaInic').value = hoje.getHours().toString().padStart(2, '0') + ':' + hoje.getMinutes().toString().padStart(2, '0');
-    };
-
-    function atualizarTrajeto() {
+    function buscarDados() {
       const tag = document.getElementById('tag').value;
       const nome = document.getElementById('nome').value;
-      const display = document.getElementById('trajeto_label');
-
       if (tag && nome) {
-        display.value = "...";
-        // Chama a função buscarDadosVei que já existe no seu Code.gs
-        google.script.run
-          .withSuccessHandler(res => {
-            display.value = res.numTrajeto;
-            document.getElementById('kmi').value = res.kmi;
-            document.getElementById('placa').value = res.placa;
-            document.getElementById('veiculo').value = res.veiculo;
-            document.getElementById('proxOleo').value = res.proxOleo;
-            
-            if(res.proxOleo && res.kmi) {
-              document.getElementById('resta_troca').value = res.proxOleo - res.kmi;
-            }
-          })
-          .getDadosVei(tag, nome); // Note: Ajuste o nome da função no GS para coincidir
+        const url = `https://script.google.com/macros/s/${SS_ID}/exec?callback=retorno&acao=buscarDadosVei&tag=${tag}&nome=${nome}`;
+        // Aqui você usa o método que já tem para chamar o JSONP
+        const script = document.createElement('script');
+        script.src = url;
+        document.body.appendChild(script);
       }
     }
 
-    document.getElementById('formChecklist').onsubmit = function(e) {
+    function retorno(res) {
+      document.getElementById('numT').value = res.numT;
+      document.getElementById('kmi').value = res.kmi;
+      document.getElementById('placa').value = res.placa;
+      document.getElementById('veiculo').value = res.veiculo;
+      document.getElementById('proxOleo').value = res.proxOleo;
+      document.getElementById('seloVal').value = res.seloVal;
+      document.getElementById('seloCor').value = res.seloCor;
+      document.getElementById('oleoTipo').value = res.oleoTipo;
+      
+      if(res.proxOleo) {
+        document.getElementById('resta_label').value = (res.proxOleo - res.kmi) + " KM";
+      }
+    }
+
+    document.getElementById('formMaster').onsubmit = function(e) {
       e.preventDefault();
-      const btn = document.getElementById('btnEnviar');
-      btn.disabled = true;
-      btn.innerHTML = "SALVANDO...";
+      const agora = new Date();
+      document.getElementById('data_form').value = agora.toLocaleDateString('pt-BR');
+      document.getElementById('hora_form').value = agora.getHours() + ":" + agora.getMinutes();
       
       const dados = Object.fromEntries(new FormData(this));
       
-      google.script.run
-        .withSuccessHandler(msg => {
-          alert("Sucesso! Trajeto registrado.");
-          location.reload(); 
-        })
-        .withFailureHandler(err => {
-          alert("Erro: " + err);
-          btn.disabled = false;
-        })
-        .salvarChecklist(dados);
+      google.script.run.withSuccessHandler(res => {
+        window.open(res.url, '_blank'); // Abre o WhatsApp
+        location.reload();
+      }).salvarEEnviarWhats(dados);
     };
   </script>
 </body>
