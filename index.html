@@ -3,139 +3,165 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { background: #ffffff; color: #000000; font-family: Arial, sans-serif; padding: 15px; }
-    .main-card { max-width: 400px; margin: auto; border: 2px solid #ddd; padding: 20px; border-radius: 15px; }
-    h2 { text-align: center; color: #333; font-size: 22px; margin-bottom: 20px; }
-    label { font-size: 12px; font-weight: bold; color: #555; display: block; margin-top: 15px; text-transform: uppercase; }
-    select, input { width: 100%; padding: 14px; margin-top: 5px; border-radius: 8px; border: 1px solid #999; background: #fff; font-size: 16px; box-sizing: border-box; color: #000; }
-    input[readonly] { background: #f0f0f0; border-color: #ccc; font-weight: bold; }
+    /* Estilo Fundo Claro para melhor leitura no sol */
+    body { background: #f0f2f5; color: #1c1e21; font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+    h2 { text-align: center; color: #0056b3; margin-top: 0; font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    
+    label { font-size: 11px; font-weight: bold; color: #65676b; display: block; margin-top: 15px; text-transform: uppercase; }
+    select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ced4da; background: #fff; font-size: 16px; box-sizing: border-box; color: #000; }
+    
+    /* Campos Automáticos ficam com fundo cinza leve */
+    input[readonly] { background: #e9ecef; color: #495057; border-color: #dee2e6; font-weight: bold; }
+    
     .grid { display: flex; gap: 10px; }
-    .btn { width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: bold; margin-top: 25px; cursor: pointer; color: white; font-size: 18px; }
-    .btn-saida { background: #1a73e8; }
-    .btn-chegada { background: #d93025; }
-    .info-display { background: #e8f0fe; border: 1px solid #1a73e8; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: center; font-weight: bold; color: #1a73e8; }
+    .col { flex: 1; }
+    
+    .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; font-size: 16px; transition: opacity 0.2s; }
+    .btn-saida { background: #007bff; color: white; margin-top: 25px; }
+    .btn-chegada { background: #dc3545; color: white; }
+    
+    .status-badge { background: #e7f3ff; color: #1877f2; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: center; font-size: 14px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="main-card">
-    <h2>TELEJUR V22</h2>
-    <form id="formApp">
-      <label>Selecione o Motorista</label>
-      <select name="nome" id="nome" onchange="buscarDados()" required>
-        <option value="">-- QUEM É VOCÊ? --</option>
-        <option value="Adriano Nascimento">Adriano Nascimento</option>
-        <option value="Fracivaldo Costa">Fracivaldo Costa</option>
-        <option value="Lafaiete Batista">Lafaiete Batista</option>
-        <option value="Reginaldo">Reginaldo</option>
-        <option value="Walter Gonçalves">Walter Gonçalves</option>
-        <option value="Ezequeil Silva">Ezequeil Silva</option>
-      </select>
 
-      <div class="grid">
-        <div style="flex:1">
-          <label>TAG VEÍCULO</label>
-          <select name="tag" id="tag" onchange="buscarDados()" required>
-            <option value="">--</option>
-            <option value="TJUR 04">TJUR 04</option>
-            <option value="TJUR 06">TJUR 06</option>
-            <option value="TJUR 07">TJUR 07</option>
-            <option value="TJUR 08">TJUR 08</option>
-            <option value="TJUR 09">TJUR 09</option>
-            <option value="TJUR 10">TJUR 10</option>
-            <option value="TJUR 13">TJUR 13</option>
-          </select>
-        </div>
-        <div style="flex:1">
-          <label>ID DO DIA</label>
-          <input type="text" name="condutorID" id="condutorID" readonly>
-        </div>
+<div class="card">
+  <h2>TELEJUR V22 - CONTROLE</h2>
+  
+  <form id="formFrota">
+    <label>Motorista</label>
+    <select name="nome" id="nome" onchange="buscarDados()" required>
+      <option value="">-- SELECIONE O MOTORISTA --</option>
+      <option value="Adriano Nascimento">Adriano Nascimento</option>
+      <option value="Fracivaldo Costa">Fracivaldo Costa</option>
+      <option value="Lafaiete Batista">Lafaiete Batista</option>
+      <option value="Reginaldo">Reginaldo</option>
+      <option value="Walter Gonçalves">Walter Gonçalves</option>
+      <option value="Ezequeil Silva">Ezequeil Silva</option>
+    </select>
+
+    <div class="grid">
+      <div class="col">
+        <label>TAG</label>
+        <select name="tag" id="tag" onchange="buscarDados()" required>
+          <option value="">--</option>
+          <option value="TJUR 04">TJUR 04</option>
+          <option value="TJUR 06">TJUR 06</option>
+          <option value="TJUR 07">TJUR 07</option>
+          <option value="TJUR 08">TJUR 08</option>
+          <option value="TJUR 09">TJUR 09</option>
+          <option value="TJUR 10">TJUR 10</option>
+          <option value="TJUR 13">TJUR 13</option>
+        </select>
       </div>
-
-      <div id="veiculoInfo" class="info-display">Aguardando seleção...</div>
-
-      <div class="grid">
-        <div style="flex:1">
-          <label>KM Inicial</label>
-          <input type="number" name="kmi" id="kmi" readonly>
-        </div>
-        <div style="flex:1">
-          <label>KM Final (Chegada)</label>
-          <input type="number" name="kmf" id="kmf">
-        </div>
+      <div class="col">
+        <label>ID Condutor</label>
+        <input type="text" name="condutorID" id="condutorID" readonly placeholder="...">
       </div>
+    </div>
 
-      <label>Observação</label>
-      <input type="text" name="obs" placeholder="Alguma avaria ou aviso?">
+    <div id="displayVeiculo" class="status-badge">Selecione TAG e Motorista</div>
 
-      <input type="hidden" name="veiculo" id="veiculo">
-      <input type="hidden" name="placa" id="placa">
-      <input type="hidden" name="proxOleo" id="proxOleo">
-      <input type="hidden" name="numT" id="numT">
+    <div class="grid">
+      <div class="col">
+        <label>KM Inicial</label>
+        <input type="number" name="kmi" id="kmi" readonly>
+      </div>
+      <div class="col">
+        <label>KM Final (Chegada)</label>
+        <input type="number" name="kmf" id="kmf" placeholder="000000">
+      </div>
+    </div>
 
-      <button type="button" onclick="salvar('SAIDA')" class="btn btn-saida">🚀 INICIAR VIAGEM</button>
-      <button type="button" onclick="salvar('CHEGADA')" class="btn btn-chegada">🏁 ENCERRAR VIAGEM</button>
-    </form>
-  </div>
+    <label>Observação</label>
+    <input type="text" name="obs" placeholder="Opcional">
 
-  <script>
-    const URL_SCRIPT = "SUA_URL_AQUI"; // COLOQUE SUA URL AQUI
+    <input type="hidden" name="veiculo" id="veiculo">
+    <input type="hidden" name="placa" id="placa">
+    <input type="hidden" name="proxOleo" id="proxOleo">
+    <input type="hidden" name="numT" id="numT">
 
-    function buscarDados() {
-      const tag = document.getElementById('tag').value;
-      const nome = document.getElementById('nome').value;
-      if (tag && nome) {
-        document.getElementById('veiculoInfo').innerText = "Buscando dados...";
-        const script = document.createElement('script');
-        script.src = `${URL_SCRIPT}?callback=callbackAuto&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}`;
-        document.body.appendChild(script);
-      }
+    <button type="button" onclick="enviarDados('SAIDA')" class="btn btn-saida">🚀 INICIAR SAÍDA</button>
+    <button type="button" onclick="enviarDados('CHEGADA')" class="btn btn-chegada">🏁 REGISTRAR CHEGADA</button>
+  </form>
+</div>
+
+<script>
+  // ATENÇÃO: COLOQUE SUA URL DE IMPLANTAÇÃO AQUI
+  const SCRIPT_URL = "SUA_URL_DO_GOOGLE_SCRIPT_AQUI";
+
+  function buscarDados() {
+    const tag = document.getElementById('tag').value;
+    const nome = document.getElementById('nome').value;
+    
+    if (tag && nome) {
+      document.getElementById('displayVeiculo').innerText = "Buscando dados...";
+      const script = document.createElement('script');
+      // O callback 'autoPreencher' deve bater com a função abaixo
+      script.src = `${SCRIPT_URL}?callback=autoPreencher&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}`;
+      document.body.appendChild(script);
+    }
+  }
+
+  function autoPreencher(dados) {
+    if (dados.erro) {
+      alert("Erro ao buscar: " + dados.erro);
+      return;
+    }
+    // Preenchendo os campos automaticamente
+    document.getElementById('condutorID').value = dados.condutorSugerido || "";
+    document.getElementById('kmi').value = dados.kmi || "";
+    document.getElementById('veiculo').value = dados.veiculo || "";
+    document.getElementById('placa').value = dados.placa || "";
+    document.getElementById('proxOleo').value = dados.proxOleo || "";
+    
+    document.getElementById('displayVeiculo').innerText = (dados.veiculo || "Não cadastrado") + " | " + (dados.placa || "");
+  }
+
+  function enviarDados(tipo) {
+    const btn = event.target;
+    const originalText = btn.innerText;
+    
+    // Validação básica
+    const tag = document.getElementById('tag').value;
+    const nome = document.getElementById('nome').value;
+    if(!tag || !nome) { alert("Selecione Motorista e TAG primeiro!"); return; }
+    
+    if(tipo === "CHEGADA" && !document.getElementById('kmf').value) {
+      alert("Informe o KM Final para a chegada!"); return;
     }
 
-    function callbackAuto(r) {
-      if(r.erro) {
-        alert("Erro: " + r.erro);
-        return;
-      }
-      // PREENCHIMENTO AUTOMÁTICO
-      document.getElementById('condutorID').value = r.condutorSugerido || "";
-      document.getElementById('kmi').value = r.kmi || "";
-      document.getElementById('veiculo').value = r.veiculo || "";
-      document.getElementById('placa').value = r.placa || "";
-      document.getElementById('proxOleo').value = r.proxOleo || "";
-      document.getElementById('numT').value = r.numT || "1";
-      
-      document.getElementById('veiculoInfo').innerText = (r.veiculo || "NÃO ENCONTRADO") + " | " + (r.placa || "");
-    }
+    btn.innerText = "ENVIANDO...";
+    btn.disabled = true;
 
-    function salvar(tipo) {
-      const f = document.getElementById('formApp');
-      if(!f.checkValidity()) { alert("Preencha Motorista e Tag!"); return; }
-      
-      const b = event.target;
-      b.disabled = true; b.innerText = "SALVANDO...";
+    const formData = new FormData(document.getElementById('formFrota'));
+    const objeto = Object.fromEntries(formData);
+    
+    const agora = new Date();
+    objeto.tipo = tipo;
+    objeto.data = agora.toLocaleDateString('pt-BR');
+    const horaFormatada = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
+    
+    if (tipo === "SAIDA") objeto.horaInic = horaFormatada;
+    else objeto.horaFim = horaFormatada;
 
-      const dados = Object.fromEntries(new FormData(f));
-      dados.tipo = tipo;
-      dados.data = new Date().toLocaleDateString('pt-BR');
-      const agora = new Date();
-      const hora = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
-      
-      if(tipo === "SAIDA") dados.horaInic = hora;
-      else {
-        dados.horaFim = hora;
-        if(!dados.kmf) { alert("Informe o KM Final!"); b.disabled = false; b.innerText = "ENCERRAR VIAGEM"; return; }
-      }
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(objeto)
+    })
+    .then(res => res.text())
+    .then(txt => {
+      alert("Registro de " + tipo + " realizado!");
+      location.reload();
+    })
+    .catch(err => {
+      alert("Erro ao salvar!");
+      btn.innerText = originalText;
+      btn.disabled = false;
+    });
+  }
+</script>
 
-      fetch(URL_SCRIPT, { method: 'POST', body: JSON.stringify(dados) })
-      .then(() => {
-        alert("Sucesso! Registro de " + tipo + " enviado.");
-        location.reload();
-      }).catch(err => {
-        alert("Erro ao salvar!");
-        b.disabled = false;
-        b.innerText = tipo === "SAIDA" ? "INICIAR VIAGEM" : "ENCERRAR VIAGEM";
-      });
-    }
-  </script>
 </body>
 </html>
