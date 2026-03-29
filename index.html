@@ -14,10 +14,9 @@
         .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; margin-top: 20px; cursor: pointer; }
         .resta-box { background: #e8eaf6; padding: 12px; border-radius: 6px; text-align: center; margin-top: 15px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); }
         .hidden { display: none; }
-        /* Modal de Revisão */
-        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; }
-        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 12px; }
-        .rev-item { border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; font-size: 14px; }
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 12px; max-height: 80vh; overflow-y: auto; }
+        .rev-item { border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -72,7 +71,7 @@
     <div class="modal-content">
         <h3 style="margin-top:0">Confirmar Dados?</h3>
         <div id="listaRevisao"></div>
-        <button onclick="confirmarEnvio()" class="btn" style="background:var(--success)">TUDO CERTO, ENVIAR!</button>
+        <button id="btnConfirmar" onclick="confirmarEnvio()" class="btn" style="background:var(--success)">TUDO CERTO, ENVIAR!</button>
         <button onclick="fecharModal()" class="btn" style="background:#666; padding:10px; font-size:12px">VOLTAR E CORRIGIR</button>
     </div>
 </div>
@@ -81,7 +80,11 @@
     const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
     let dadosTemp = {};
 
-    function limparNum(v) { return parseInt(v.toString().replace(/[\.\,]/g, '')) || 0; }
+    function limparNum(v) { 
+        if(!v) return 0;
+        let n = parseInt(v.toString().replace(/[\.\,\s]/g, ''));
+        return isNaN(n) ? 0 : n;
+    }
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
@@ -106,7 +109,7 @@
     function calc() {
         const k = limparNum(document.getElementById('kmi').value);
         const p = limparNum(document.getElementById('pxO').value);
-        if(k > 0 && p > 0) document.getElementById('restaAviso').innerText = "Resta para a troca: " + (p - k) + " KM";
+        if(k > 0 && p > 0) document.getElementById('restaAviso').innerText = `Resta para a troca: ${p - k} KM`;
     }
 
     function revisar(tipo) {
@@ -115,29 +118,12 @@
         const horaH = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
         
         if(tipo === 'SAIDA') {
-            dadosTemp = {
-                tipo: 'SAIDA', data: dataH, horaInic: horaH,
-                tag: document.getElementById('tag').value,
-                condutorID: document.getElementById('condID').value,
-                nome: document.getElementById('nomeMot').value,
-                kmi: document.getElementById('kmi').value,
-                veiculo: document.getElementById('vei').value,
-                placa: document.getElementById('pla').value,
-                numT: document.getElementById('numT').value,
-                proxOleo: document.getElementById('pxO').value,
-                obs: document.getElementById('obs') ? document.getElementById('obs').value : "S/O"
-            };
+            dadosTemp = { tipo: 'SAIDA', data: dataH, horaInic: horaH, tag: document.getElementById('tag').value, condutorID: document.getElementById('condID').value, nome: document.getElementById('nomeMot').value, kmi: document.getElementById('kmi').value, veiculo: document.getElementById('vei').value, placa: document.getElementById('pla').value, numT: document.getElementById('numT').value, proxOleo: document.getElementById('pxO').value, obs: "S/O" };
         } else {
             const salvo = JSON.parse(localStorage.getItem('tjur_v17'));
             const kmFinal = limparNum(document.getElementById('kmf').value);
             const kmInicial = limparNum(salvo.kmi);
-
-            // TRAVA DE SEGURANÇA: KM Final não pode ser menor que Inicial
-            if(kmFinal <= kmInicial) {
-                alert("⚠️ ERRO: O KM Final ("+kmFinal+") não pode ser menor ou igual ao KM Inicial ("+kmInicial+")!");
-                return;
-            }
-
+            if(kmFinal <= kmInicial) { alert(`Erro: KM Final (${kmFinal}) deve ser MAIOR que o Inicial (${kmInicial})`); return; }
             dadosTemp = { ...salvo, tipo: 'CHEGADA', kmf: kmFinal, horaFim: horaH };
         }
 
@@ -151,7 +137,9 @@
     }
 
     async function confirmarEnvio() {
-        document.getElementById('modal').innerHTML = "<h2 style='text-align:center'>GRAVANDO...</h2>";
+        const btn = document.getElementById('btnConfirmar');
+        btn.disabled = true; btn.innerText = "GRAVANDO...";
+        
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dadosTemp) });
 
         const kmTroca = limparNum(dadosTemp.proxOleo);
@@ -164,6 +152,7 @@
         if(dadosTemp.tipo === 'SAIDA') localStorage.setItem('tjur_v17', JSON.stringify(dadosTemp));
         else localStorage.removeItem('tjur_v17');
         
+        fecharModal();
         setTimeout(() => location.reload(), 1000);
     }
 
