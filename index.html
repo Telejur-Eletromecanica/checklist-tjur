@@ -1,30 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
-    body { background: #000; color: #fff; font-family: sans-serif; padding: 10px; }
-    .container { max-width: 400px; margin: auto; border: 1px solid #222; padding: 15px; border-radius: 10px; background: #111; }
-    h2 { text-align: center; color: #777; font-size: 16px; letter-spacing: 2px; margin-bottom: 20px; }
-    label { font-size: 10px; font-weight: bold; color: #444; display: block; margin-top: 10px; text-transform: uppercase; }
-    select, input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 6px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; outline: none; }
+    body { background: #000; color: #fff; font-family: sans-serif; padding: 10px; margin: 0; }
+    .container { max-width: 400px; margin: auto; border: 1px solid #222; padding: 15px; border-radius: 12px; background: #0a0a0a; }
+    h2 { text-align: center; color: #666; font-size: 16px; letter-spacing: 3px; margin: 10px 0 20px; }
+    label { font-size: 10px; font-weight: bold; color: #444; display: block; margin-top: 12px; text-transform: uppercase; }
+    select, input { width: 100%; padding: 12px; margin: 4px 0; border-radius: 8px; border: 1px solid #333; background: #151515; color: white; box-sizing: border-box; font-size: 16px; outline: none; }
     .grid { display: flex; gap: 10px; }
     .col { flex: 1; }
     .id-box { color: #ff00ff; text-align: center; font-weight: bold; }
-    .btn-acao { background: #05051a; color: #444; border: 1px solid #111; padding: 16px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 20px; font-size: 14px; cursor: pointer; }
-    /* Estilo do Modal de Confirmação das imagens 1 e 2 */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; padding: 20px; z-index: 100; }
-    .modal-content { background: white; border-radius: 15px; width: 100%; max-width: 300px; padding: 20px; text-align: center; }
-    .modal-h3 { color: black; margin-bottom: 20px; font-size: 18px; }
-    .btn-ok { background: #2e7d32; color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-    .btn-voltar { background: #757575; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; text-transform: uppercase; }
+    .btn-saida { background: #05051a; color: #444; border: 1px solid #1a1a3a; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    .btn-chegada { background: #1a0505; color: #444; border: 1px solid #3a1a1a; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; z-index: 999; }
+    .modal-content { background: white; border-radius: 20px; width: 85%; max-width: 320px; padding: 25px; text-align: center; }
+    .btn-ok { background: #1b5e20; color: white; width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 12px; font-size: 16px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>📋 TELEJUR V22</h2>
-    <form id="formMaster">
-      <label>Motorista Responsável</label>
+    <h2>TELEJUR V22</h2>
+    <form id="formPrincipal">
+      <label>Motorista</label>
       <select name="nome" id="nome" onchange="buscar()" required>
         <option value="">-- SELECIONE --</option>
         <option value="Adriano Nascimento">Adriano Nascimento</option>
@@ -40,13 +38,13 @@
           <label>TAG</label>
           <select name="tag" id="tag" onchange="buscar()" required>
             <option value="">--</option>
-            <option value="TJUR 04">04</option>
-            <option value="TJUR 06">06</option>
-            <option value="TJUR 07">07</option>
-            <option value="TJUR 08">08</option>
-            <option value="TJUR 09">09</option>
-            <option value="TJUR 10">10</option>
-            <option value="TJUR 13">13</option>
+            <option value="TJUR 04">TJUR 04</option>
+            <option value="TJUR 06">TJUR 06</option>
+            <option value="TJUR 07">TJUR 07</option>
+            <option value="TJUR 08">TJUR 08</option>
+            <option value="TJUR 09">TJUR 09</option>
+            <option value="TJUR 10">TJUR 10</option>
+            <option value="TJUR 13">TJUR 13</option>
           </select>
         </div>
         <div class="col">
@@ -58,11 +56,11 @@
       <div class="grid">
         <div class="col">
           <label>KM Inicial</label>
-          <input type="number" name="kmi" id="kmi" required>
+          <input type="number" name="kmi" id="kmi" readonly>
         </div>
         <div class="col">
-          <label>Próx. Troca (KM)</label>
-          <input type="number" name="proxOleo" id="proxOleo" style="color: #fbbf24" readonly>
+          <label>KM Final (Chegada)</label>
+          <input type="number" name="kmf" id="kmf">
         </div>
       </div>
 
@@ -72,21 +70,24 @@
       <input type="hidden" name="placa" id="placa">
       <input type="hidden" name="veiculo" id="veiculo">
       <input type="hidden" name="numT" id="numT">
+      <input type="hidden" name="proxOleo" id="proxOleo">
 
-      <button type="button" onclick="abrirModal()" class="btn-acao">🚀 INICIAR SAÍDA</button>
+      <button type="button" onclick="prepararEnvio('SAIDA')" class="btn-saida">🚀 REGISTRAR SAÍDA</button>
+      <button type="button" onclick="prepararEnvio('CHEGADA')" class="btn-chegada">🏁 REGISTRAR CHEGADA</button>
     </form>
   </div>
 
   <div id="modalConf" class="modal">
     <div class="modal-content">
-      <h3 class="modal-h3">Confirmar Dados?</h3>
-      <button id="btnFinal" onclick="enviar()" class="btn-ok">OK...</button>
-      <button onclick="fecharModal()" class="btn-voltar">Voltar</button>
+      <h3 style="color:black;" id="txtModal">Confirmar?</h3>
+      <button id="btnFinal" onclick="executarEnvio()" class="btn-ok">CONFIRMAR</button>
+      <button onclick="document.getElementById('modalConf').style.display='none'" style="background:#999; border:none; padding:10px; width:100%; border-radius:10px; color:white;">VOLTAR</button>
     </div>
   </div>
 
   <script>
-    const URL_APP = "SUA_URL_DA_NOVA_IMPLANTACAO_AQUI";
+    const URL_APP = "SUA_URL_DA_IMPLANTACAO_AQUI";
+    let acaoAtual = "";
 
     function buscar() {
       const tag = document.getElementById('tag').value;
@@ -107,26 +108,32 @@
       document.getElementById('veiculo').value = r.veiculo;
     }
 
-    function abrirModal() { document.getElementById('modalConf').style.display = 'flex'; }
-    function fecharModal() { document.getElementById('modalConf').style.display = 'none'; }
+    function prepararEnvio(tipo) {
+      acaoAtual = tipo;
+      document.getElementById('txtModal').innerText = `Confirmar ${tipo}?`;
+      document.getElementById('modalConf').style.display = 'flex';
+    }
 
-    function enviar() {
+    function executarEnvio() {
       const b = document.getElementById('btnFinal');
       b.innerText = "ENVIANDO..."; b.disabled = true;
 
-      const f = document.getElementById('formMaster');
+      const f = document.getElementById('formPrincipal');
       const dados = Object.fromEntries(new FormData(f));
       const agora = new Date();
       dados.data = agora.toLocaleDateString('pt-BR');
-      dados.horaInic = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
+      dados.tipo = acaoAtual;
+      
+      if(acaoAtual === "SAIDA") dados.horaInic = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
+      else dados.horaFim = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
 
       fetch(URL_APP, { method: 'POST', body: JSON.stringify(dados) })
       .then(() => {
-        const resta = parseInt(dados.proxOleo) - parseInt(dados.kmi);
-        const msg = `*📋 CHECKLIST TELEJUR - SAIDA*%0A🗓️ *Data:* ${dados.data}%0A🚗 *Veículo:* ${dados.veiculo}%0A🆔 *ID:* ${dados.condutorID}%0A👤 *Motorista:* ${dados.nome}%0A🛣️ *KM:* ${dados.kmi}%0A🔧 *Resta:* ${resta} KM`;
+        const resta = parseInt(dados.proxOleo) - (acaoAtual === "SAIDA" ? parseInt(dados.kmi) : parseInt(dados.kmf));
+        const msg = `*📋 TELEJUR - ${acaoAtual}*%0A*Mot:* ${dados.nome}%0A*Vei:* ${dados.veiculo}%0A*Tag:* ${dados.tag}%0A*KM:* ${acaoAtual === "SAIDA" ? dados.kmi : dados.kmf}%0A*Resta:* ${resta} KM`;
         window.open(`https://api.whatsapp.com/send?phone=55XXXXXXXXXXX&text=${msg}`, '_blank');
         location.reload();
-      }).catch(() => { alert("Erro!"); b.disabled = false; b.innerText = "OK..."; });
+      });
     }
   </script>
 </body>
