@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TELEJUR CHECKLIST V14</title>
+    <title>TELEJUR CHECKLIST V15</title>
     <style>
-        :root { --primary: #1a237e; }
-        body { font-family: sans-serif; background: #f4f7f9; padding: 10px; margin: 0; }
+        :root { --primary: #1a237e; --bg: #f4f7f9; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         label { display: block; font-weight: bold; font-size: 11px; margin-top: 10px; color: #555; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 4px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
@@ -14,37 +14,33 @@
         .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; margin-top: 20px; cursor: pointer; }
         .resta-box { background: #e8eaf6; padding: 12px; border-radius: 6px; text-align: center; margin-top: 15px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); }
         .hidden { display: none; }
-        input[readonly] { background: #f0f0f0; }
     </style>
 </head>
 <body>
+
 <div class="card">
-    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 CHECKLIST V14</h2>
-    
+    <h2 style="text-align:center; color:var(--primary); margin-top:0">📋 CHECKLIST V15</h2>
+
     <div id="secaoSaida">
-        <label>Motorista</label>
+        <label>Motorista Responsável</label>
         <select id="nomeMot" onchange="puxarDados()">
             <option value="">-- SELECIONE --</option>
-            <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option>
-            <option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
+            <option>ADRIANO NASCIMENTO</option><option>FRANCIVALDO COSTA</option><option>REGINALDO</option><option>WALTER GONÇALVES</option><option>LAFAITE BATISTA</option>
         </select>
 
         <div class="grid">
             <div><label>TAG</label>
                 <select id="tag" onchange="puxarDados()">
-                    <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option>
-                    <option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option>
-                    <option>TJUR 10</option><option>TJUR 13</option>
+                    <option value="">--</option><option>TJUR 04</option><option>TJUR 06</option><option>TJUR 07</option><option>TJUR 08</option><option>TJUR 09</option><option>TJUR 10</option><option>TJUR 13</option>
                 </select>
             </div>
-            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Buscando..."></div>
+            <div><label>ID DO DIA</label><input type="text" id="condID" readonly placeholder="Aguardando..."></div>
         </div>
 
         <div class="grid">
-            <div><label>KM Inicial</label><input type="text" id="kmi" inputmode="numeric" oninput="calcularResta()"></div>
-            <div><label>Próx. Troca (KM)</label><input type="text" id="pxO" inputmode="numeric" oninput="calcularResta()"></div>
+            <div><label>KM Inicial</label><input type="number" id="kmi" oninput="calc()"></div>
+            <div><label>Próx. Troca (KM)</label><input type="number" id="pxO" oninput="calc()"></div>
         </div>
-        
         <div id="restaAviso" class="resta-box">Resta para troca: -</div>
 
         <div class="grid">
@@ -53,45 +49,38 @@
         </div>
 
         <div class="grid">
-            <div><label>Nº Trajeto</label><input type="text" id="numT" value="1" inputmode="numeric"></div>
+            <div><label>Nº Trajeto</label><input type="number" id="numT" value="1"></div>
             <div><label>Tipo Óleo</label>
-                <select id="tpO">
-                    <option>5W30</option><option>10W40</option><option>15W40</option>
-                </select>
+                <select id="tpO"><option>5W30</option><option>10W40</option><option>15W40</option></select>
             </div>
         </div>
 
         <div class="grid">
             <div><label>Cor Selo</label>
-                <select id="corS">
-                    <option>VERDE</option><option>AZUL</option><option>AMARELO</option><option>VERMELHO</option>
-                </select>
+                <select id="corS"><option>VERDE</option><option>AZUL</option><option>AMARELO</option><option>VERMELHO</option></select>
             </div>
             <div><label>Validade Selo</label><input type="date" id="valS"></div>
         </div>
 
         <label>Observações</label><textarea id="obs" rows="2"></textarea>
-        
         <button onclick="enviar('SAIDA')" class="btn" style="background:var(--primary)" id="btnS">🚀 INICIAR SAÍDA</button>
     </div>
 
     <div id="secaoChegada" class="hidden">
         <div id="resumo" style="background:#fff9c4; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #fbc02d"></div>
-        <label>KM Final de Chegada</label>
-        <input type="text" id="kmf" inputmode="numeric">
+        <label>KM Final de Chegada</label><input type="number" id="kmf">
         <button onclick="enviar('CHEGADA')" class="btn" style="background:#075e54" id="btnC">🏁 CONCLUIR CHEGADA</button>
     </div>
 </div>
 
 <script>
-    const URL_API = "SUA_URL_DO_GOOGLE_AQUI"; // COLE SUA URL AQUI
-
-    function limparNum(v) { return parseInt(v.toString().replace(/[\.\,]/g, '')) || 0; }
+    const URL_API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
 
     function puxarDados() {
         const tag = document.getElementById('tag').value;
         const nome = document.getElementById('nomeMot').value;
         if(!tag || !nome) return;
+        document.getElementById('condID').value = "Buscando...";
         const s = document.createElement('script');
         s.src = `${URL_API}?acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}&callback=preencher&t=${Date.now()}`;
         document.body.appendChild(s);
@@ -102,14 +91,14 @@
         document.getElementById('pla').value = d.placa || "";
         document.getElementById('kmi').value = d.kmi || "";
         document.getElementById('pxO').value = d.proxOleo || "";
-        document.getElementById('condID').value = d.condutorSugerido || "CONDUTOR 1";
-        calcularResta();
+        document.getElementById('condID').value = d.condutorSugerido;
+        calc();
     }
 
-    function calcularResta() {
-        const k = limparNum(document.getElementById('kmi').value);
-        const p = limparNum(document.getElementById('pxO').value);
-        if(k && p) document.getElementById('restaAviso').innerText = "Resta para troca: " + (p - k) + " KM";
+    function calc() {
+        const k = parseInt(document.getElementById('kmi').value) || 0;
+        const p = parseInt(document.getElementById('pxO').value) || 0;
+        if(k > 0 && p > 0) document.getElementById('restaAviso').innerText = "Resta para troca: " + (p - k) + " KM";
     }
 
     async function enviar(tipo) {
@@ -121,43 +110,27 @@
         
         let p = {};
         if(tipo === 'SAIDA') {
-            p = {
-                tipo: 'SAIDA', data: dataH, horaInic: horaH,
-                tag: document.getElementById('tag').value,
-                condutorID: document.getElementById('condID').value,
-                nome: document.getElementById('nomeMot').value,
-                kmi: document.getElementById('kmi').value,
-                veiculo: document.getElementById('vei').value,
-                placa: document.getElementById('pla').value,
-                numT: document.getElementById('numT').value,
-                proxOleo: document.getElementById('pxO').value,
-                tipoOleo: document.getElementById('tpO').value,
-                corSelo: document.getElementById('corS').value,
-                valSelo: document.getElementById('valS').value,
-                obs: document.getElementById('obs').value || "S/O"
-            };
-            localStorage.setItem('tjur_v14', JSON.stringify(p));
+            p = { tipo: 'SAIDA', data: dataH, horaInic: horaH, tag: document.getElementById('tag').value, condutorID: document.getElementById('condID').value, nome: document.getElementById('nomeMot').value, kmi: document.getElementById('kmi').value, veiculo: document.getElementById('vei').value, placa: document.getElementById('pla').value, numT: document.getElementById('numT').value, proxOleo: document.getElementById('pxO').value, tipoOleo: document.getElementById('tpO').value, corSelo: document.getElementById('corS').value, valSelo: document.getElementById('valS').value, obs: document.getElementById('obs').value || "S/O" };
+            localStorage.setItem('tjur_v15', JSON.stringify(p));
         } else {
-            const d = JSON.parse(localStorage.getItem('tjur_v14'));
+            const d = JSON.parse(localStorage.getItem('tjur_v15'));
             p = { ...d, tipo: 'CHEGADA', kmf: document.getElementById('kmf').value, horaFim: horaH };
         }
 
         await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-
-        let kmAtual = tipo === 'SAIDA' ? limparNum(p.kmi) : limparNum(p.kmf);
-        let restaF = limparNum(p.proxOleo) - kmAtual;
-
-        let msg = `*CHECKLIST TELEJUR - ${tipo}*%0A` +
-                  `*Data:* ${p.data}%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Motorista:* ${p.nome}%0A` +
-                  `*KM:* ${kmAtual}%0A*Resta:* ${restaF} KM%0A*Obs:* ${p.obs}`;
-
+        
+        let kmAtual = tipo === 'SAIDA' ? p.kmi : p.kmf;
+        let restaF = (parseInt(p.proxOleo) || 0) - (parseInt(kmAtual) || 0);
+        
+        // WhatsApp com 18 dados resumidos
+        let msg = `*TELEJUR ${tipo}*%0A*Tag:* ${p.tag}%0A*ID:* ${p.condutorID}%0A*Mot:* ${p.nome}%0A*KM:* ${kmAtual}%0A*Veículo:* ${p.veiculo}%0A*Resta:* ${restaF} KM`;
         window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v14');
+        if(tipo === 'CHEGADA') localStorage.removeItem('tjur_v15');
         setTimeout(() => location.reload(), 1000);
     }
 
     window.onload = () => {
-        const salvo = localStorage.getItem('tjur_v14');
+        const salvo = localStorage.getItem('tjur_v15');
         if(salvo) {
             const d = JSON.parse(salvo);
             document.getElementById('secaoSaida').classList.add('hidden');
