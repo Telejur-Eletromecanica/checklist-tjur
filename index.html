@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frota Telejur V22</title>
     <style>
-        body { background: #ffffff; color: #222; font-family: -apple-system, sans-serif; padding: 10px; margin: 0; }
-        .card { background: white; max-width: 480px; margin: auto; padding: 15px; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h2 { text-align: center; color: #1a73e8; margin: 0 0 15px 0; font-size: 1.2rem; text-transform: uppercase; }
-        .sec { background: #f1f3f4; padding: 6px 10px; margin: 15px 0 5px 0; border-radius: 4px; font-weight: bold; font-size: 0.75rem; color: #5f6368; }
+        body { background: #ffffff; color: #222; font-family: sans-serif; padding: 10px; margin: 0; }
+        .card { background: white; max-width: 480px; margin: auto; padding: 15px; border: 1px solid #ddd; border-radius: 12px; }
+        h2 { text-align: center; color: #1a73e8; font-size: 1.2rem; margin-bottom: 15px; }
+        .sec { background: #f1f3f4; padding: 6px; margin: 15px 0 5px 0; border-radius: 4px; font-weight: bold; font-size: 0.75rem; color: #555; text-transform: uppercase; }
         label { font-size: 0.7rem; font-weight: bold; color: #888; display: block; margin-top: 10px; }
         select, input { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; box-sizing: border-box; }
-        input[readonly] { background: #f8f9fa; color: #444; border-color: #eee; font-weight: bold; }
+        input[readonly] { background: #f8f9fa; color: #444; font-weight: bold; }
         .grid { display: flex; gap: 10px; }
         .col { flex: 1; }
-        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: bold; margin-top: 12px; cursor: pointer; color: white; font-size: 1rem; transition: 0.2s; }
-        .btn-saida { background: #1a73e8; margin-top: 25px; }
+        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: bold; margin-top: 12px; cursor: pointer; color: white; font-size: 1rem; }
+        .btn-saida { background: #1a73e8; }
         .btn-chegada { background: #d93025; }
-        #statusMsg { text-align: center; color: #1a73e8; font-weight: bold; font-size: 0.85rem; height: 1.5rem; margin-top: 5px; }
+        #statusMsg { text-align: center; color: #1a73e8; font-weight: bold; font-size: 0.85rem; min-height: 1.5rem; }
     </style>
 </head>
 <body>
@@ -27,7 +27,7 @@
     <div id="statusMsg">Aguardando seleção...</div>
 
     <form id="formApp">
-        <div class="sec">1. QUEM E QUAL VEÍCULO?</div>
+        <div class="sec">1. Identificação</div>
         <label>Motorista</label>
         <select name="nome" id="nome" onchange="sincronizar()" required>
             <option value="">-- Selecione --</option>
@@ -59,7 +59,7 @@
             </div>
         </div>
 
-        <div class="sec">2. DADOS DO VEÍCULO (AUTO)</div>
+        <div class="sec">2. Dados do Veículo</div>
         <div class="grid">
             <div class="col"><label>Veículo</label><input type="text" name="veiculo" id="veiculo" readonly></div>
             <div class="col"><label>Placa</label><input type="text" name="placa" id="placa" readonly></div>
@@ -70,20 +70,16 @@
             <div class="col"><label>KM Final</label><input type="number" name="kmf" id="kmf" placeholder="000000"></div>
         </div>
 
-        <div class="sec">3. MANUTENÇÃO E SELOS</div>
+        <div class="sec">3. Manutenção</div>
         <div class="grid">
             <div class="col"><label>Validade Selo</label><input type="text" id="valSelo" readonly></div>
             <div class="col"><label>Cor do Selo</label><input type="text" id="corSelo" readonly></div>
         </div>
-
-        <div class="grid">
-            <div class="col"><label>Próx. Troca Óleo</label><input type="number" name="proxOleo" id="proxOleo" readonly></div>
-            <div class="col"><label>Resta p/ Troca</label><input type="text" id="restaTroca" readonly></div>
-        </div>
-
-        <label>Observação / Status</label>
-        <input type="text" name="obs" id="obs" placeholder="Ex: Pneu calibrado, carro limpo...">
+        
+        <input type="hidden" name="proxOleo" id="proxOleo">
         <input type="hidden" name="numT" id="numT">
+        <label>Observação</label>
+        <input type="text" name="obs" id="obs" placeholder="Alguma avaria ou observação?">
 
         <button type="button" onclick="salvar('SAIDA')" class="btn btn-saida">🚀 INICIAR SAÍDA</button>
         <button type="button" onclick="salvar('CHEGADA')" class="btn btn-chegada">🏁 FINALIZAR CHEGADA</button>
@@ -97,21 +93,18 @@
         const tag = document.getElementById('tag').value;
         const nome = document.getElementById('nome').value;
         if(tag && nome) {
-            document.getElementById('statusMsg').innerText = "🔄 Sincronizando com a Planilha...";
-            
-            // Remove script anterior para evitar cache
-            const oldScript = document.getElementById('jsonp-sync');
-            if(oldScript) oldScript.remove();
-
+            document.getElementById('statusMsg').innerText = "🔄 Sincronizando...";
+            const old = document.getElementById('sync-js');
+            if(old) old.remove();
             const script = document.createElement('script');
-            script.id = 'jsonp-sync';
-            script.src = `${SCRIPT_URL}?callback=callbackPreencher&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&t=${Date.now()}`;
+            script.id = 'sync-js';
+            script.src = `${SCRIPT_URL}?callback=callbackSync&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&t=${Date.now()}`;
             document.body.appendChild(script);
         }
     }
 
-    function callbackPreencher(r) {
-        document.getElementById('statusMsg').innerText = "✅ Sincronizado!";
+    function callbackSync(r) {
+        document.getElementById('statusMsg').innerText = "✅ Sincronizado";
         document.getElementById('condutorID').value = r.condutorSugerido;
         document.getElementById('veiculo').value = r.veiculo;
         document.getElementById('placa').value = r.placa;
@@ -119,38 +112,24 @@
         document.getElementById('proxOleo').value = r.proxOleo;
         document.getElementById('valSelo').value = r.valSelo;
         document.getElementById('corSelo').value = r.corSelo;
-        document.getElementById('restaTroca').value = r.restaTroca;
         document.getElementById('numT').value = r.numT;
-        setTimeout(() => { document.getElementById('statusMsg').innerText = "Sistema Pronto"; }, 2000);
     }
 
     function salvar(tipo) {
         const btn = event.target;
         if(tipo === 'CHEGADA' && !document.getElementById('kmf').value) {
-            alert("⚠️ Por favor, informe o KM FINAL para registrar a chegada."); return;
+            alert("Informe o KM Final!"); return;
         }
-        
         btn.disabled = true;
-        btn.innerText = "GRAVANDO...";
-
         const dados = Object.fromEntries(new FormData(document.getElementById('formApp')));
-        const agora = new Date();
         dados.tipo = tipo;
-        dados.data = agora.toLocaleDateString('pt-BR');
-        const hora = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
-        
-        if(tipo === 'SAIDA') dados.horaInic = hora;
-        else dados.horaFim = hora;
+        dados.data = new Date().toLocaleDateString('pt-BR');
+        const hora = new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+        if(tipo === 'SAIDA') dados.horaInic = hora; else dados.horaFim = hora;
 
         fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(dados) })
-        .then(() => {
-            alert("Registro de " + tipo + " concluído com sucesso!");
-            location.reload();
-        }).catch(err => {
-            alert("Erro na conexão!");
-            btn.disabled = false;
-            btn.innerText = "TENTAR NOVAMENTE";
-        });
+        .then(() => { alert("Sucesso!"); location.reload(); })
+        .catch(() => { alert("Erro!"); btn.disabled = false; });
     }
 </script>
 </body>
