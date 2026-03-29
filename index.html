@@ -1,88 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Ajuste para inputs não darem zoom no iPhone */
+    input, select, textarea { font-size: 16px !important; }
+    .bg-dark-card { background-color: #1e293b; }
+  </style>
 </head>
-<body class="bg-slate-50 p-4">
-  <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
-    <h2 class="text-2xl font-bold mb-6 text-slate-700 border-b pb-2">Checklist de Trajeto</h2>
+<body class="bg-slate-900 text-white p-2 sm:p-4">
+  <div class="max-w-md mx-auto bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
     
-    <form id="formChecklist" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-indigo-700 p-4 text-center">
+      <h2 class="text-lg font-bold tracking-widest uppercase">Checklist de Trajeto</h2>
+      <p class="text-xs text-indigo-200">TELEJUR V22 - GESTÃO DE FROTA</p>
+    </div>
+
+    <form id="formChecklist" class="p-5 space-y-4">
+      
+      <div class="space-y-3">
         <div>
-          <label class="block text-sm font-semibold text-gray-600">TagID (Veículo)</label>
-          <select name="tag" id="tag" onchange="atualizarTrajeto()" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-            <option value="">Selecione a TAG</option>
-            <option value="TAG-01">TAG-01</option>
-            <option value="TAG-02">TAG-02</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-semibold text-gray-600">Motorista (Nome)</label>
-          <select name="nome" id="nome" onchange="atualizarTrajeto()" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-            <option value="">Selecione o Condutor</option>
+          <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Motorista</label>
+          <select name="nome" id="nome" onchange="atualizarTrajeto()" class="w-full bg-slate-700 border-none p-3 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 appearance-none" required>
+            <option value="">-- SELECIONE O CONDUTOR --</option>
             <option value="João Silva">João Silva</option>
             <option value="Maria Oliveira">Maria Oliveira</option>
           </select>
         </div>
-      </div>
 
-      <div class="bg-blue-50 p-3 rounded-lg flex justify-between items-center border border-blue-100">
-        <span class="text-blue-700 font-medium">Sequência do Dia:</span>
-        <input type="text" id="trajeto_label" class="bg-transparent text-right font-bold text-blue-800 outline-none" readonly value="Selecione TAG e Nome">
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-xs font-bold uppercase text-gray-500">KM Inicial</label>
-          <input type="number" name="km_inicial" class="w-full p-2 border rounded shadow-sm" required>
-        </div>
-        <div>
-          <label class="block text-xs font-bold uppercase text-gray-500">Hora Início</label>
-          <input type="time" name="hora_inicio" class="w-full p-2 border rounded shadow-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-bold uppercase text-gray-500">Resta p/ Troca</label>
-          <input type="number" name="resta_troca" class="w-full p-2 border rounded shadow-sm">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Veículo (TAG)</label>
+            <select name="tag" id="tag" onchange="atualizarTrajeto()" class="w-full bg-slate-700 border-none p-3 rounded-lg text-white appearance-none" required>
+              <option value="">-- TAG --</option>
+              <option value="TAG-01">TAG-01</option>
+              <option value="TAG-02">TAG-02</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Nº Trajeto</label>
+            <input type="text" id="trajeto_label" name="numT" class="w-full bg-slate-600 border-none p-3 rounded-lg text-yellow-400 font-bold text-center" readonly value="-">
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-2 gap-3 bg-slate-700/50 p-3 rounded-xl">
         <div>
-          <label class="block text-sm font-semibold text-gray-600">Status Geral</label>
-          <select name="status" class="w-full p-2 border rounded-lg">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase">KM Inicial</label>
+          <input type="number" name="kmi" id="kmi" class="w-full bg-transparent border-b border-slate-500 py-1 text-lg font-semibold outline-none focus:border-indigo-400" required>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase">Resta p/ Troca</label>
+          <input type="number" name="resta_troca" id="resta_troca" class="w-full bg-transparent border-b border-slate-500 py-1 text-lg font-semibold outline-none focus:border-indigo-400" readonly>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Hora Início</label>
+          <input type="time" name="horaInic" id="horaInic" class="w-full bg-slate-700 border-none p-2 rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Status</label>
+          <select name="status" class="w-full bg-slate-700 border-none p-2 rounded-lg text-sm">
             <option value="OK">Tudo OK</option>
-            <option value="ALERTA">Alerta / Manutenção</option>
+            <option value="ALERTA">Alerta</option>
           </select>
         </div>
-        <div>
-          <label class="block text-sm font-semibold text-gray-600">Observação</label>
-          <input type="text" name="obs" class="w-full p-2 border rounded-lg">
-        </div>
       </div>
 
-      <div class="hidden">
-        <input type="text" name="placa" value="ABC-1234">
-        <input type="text" name="veiculo" value="Modelo do Carro">
+      <div>
+        <label class="block text-xs text-slate-400 mb-1">Observação</label>
+        <textarea name="obs" rows="2" class="w-full bg-slate-700 border-none p-2 rounded-lg text-sm placeholder-slate-500" placeholder="Alguma avaria ou detalhe?"></textarea>
       </div>
 
-      <button type="submit" id="btnEnviar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition duration-200">
-        SALVAR TRAJETO
+      <input type="hidden" name="placa" id="placa">
+      <input type="hidden" name="veiculo" id="veiculo">
+      <input type="hidden" name="proxOleo" id="proxOleo">
+      <input type="hidden" name="tipo" value="SAIDA">
+      <input type="hidden" name="data" id="data_atual">
+
+      <button type="submit" id="btnEnviar" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg transform active:scale-95 transition-all">
+        CONFIRMAR SAÍDA 🚀
       </button>
     </form>
   </div>
 
   <script>
+    // Define a data atual no formato brasileiro ao carregar
+    window.onload = () => {
+      const hoje = new Date();
+      document.getElementById('data_atual').value = hoje.toLocaleDateString('pt-BR');
+      document.getElementById('horaInic').value = hoje.getHours().toString().padStart(2, '0') + ':' + hoje.getMinutes().toString().padStart(2, '0');
+    };
+
     function atualizarTrajeto() {
       const tag = document.getElementById('tag').value;
       const nome = document.getElementById('nome').value;
       const display = document.getElementById('trajeto_label');
 
       if (tag && nome) {
-        display.value = "Verificando...";
+        display.value = "...";
+        // Chama a função buscarDadosVei que já existe no seu Code.gs
         google.script.run
-          .withSuccessHandler(res => display.value = "Trajeto " + res)
-          .getProximoTrajeto(tag, nome);
+          .withSuccessHandler(res => {
+            display.value = res.numTrajeto;
+            document.getElementById('kmi').value = res.kmi;
+            document.getElementById('placa').value = res.placa;
+            document.getElementById('veiculo').value = res.veiculo;
+            document.getElementById('proxOleo').value = res.proxOleo;
+            
+            if(res.proxOleo && res.kmi) {
+              document.getElementById('resta_troca').value = res.proxOleo - res.kmi;
+            }
+          })
+          .getDadosVei(tag, nome); // Note: Ajuste o nome da função no GS para coincidir
       }
     }
 
@@ -90,18 +123,18 @@
       e.preventDefault();
       const btn = document.getElementById('btnEnviar');
       btn.disabled = true;
-      btn.innerText = "Processando...";
+      btn.innerHTML = "SALVANDO...";
       
-      const formData = new FormData(this);
-      const dados = Object.fromEntries(formData);
+      const dados = Object.fromEntries(new FormData(this));
       
       google.script.run
         .withSuccessHandler(msg => {
-          alert(msg);
-          this.reset();
+          alert("Sucesso! Trajeto registrado.");
+          location.reload(); 
+        })
+        .withFailureHandler(err => {
+          alert("Erro: " + err);
           btn.disabled = false;
-          btn.innerText = "SALVAR TRAJETO";
-          document.getElementById('trajeto_label').value = "Selecione TAG e Nome";
         })
         .salvarChecklist(dados);
     };
