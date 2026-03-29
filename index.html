@@ -81,15 +81,15 @@
             <div class="grid grid-cols-2 gap-3">
                 <div class="col-span-2">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Número do Trajeto</label>
-                    <input type="number" id="num_trajeto" placeholder="00" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-bold">
+                    <input type="number" id="num_trajeto" placeholder="00" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-bold text-green-700">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">Hora Início</label>
                     <input type="time" id="hora_inicio_input" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-bold">
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 uppercase font-bold text-gray-400">Hora Fim (Retorno)</label>
-                    <input type="time" id="hora_fim" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none">
+                    <label class="block text-xs text-gray-500 uppercase font-bold text-blue-500 font-black">Hora Fim (Automática)</label>
+                    <input type="time" id="hora_fim" class="w-full bg-blue-50 border border-blue-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none font-bold text-blue-700">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold text-green-600">KM Inicial</label>
@@ -97,7 +97,7 @@
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold text-gray-500">KM Final</label>
-                    <input type="tel" id="km_final" placeholder="0" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-mono">
+                    <input type="tel" id="km_final" placeholder="0" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-mono text-lg font-bold">
                 </div>
             </div>
             
@@ -111,7 +111,7 @@
             <div class="grid grid-cols-2 gap-3">
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Tipo de Óleo</label>
-                    <input type="text" id="tipo_oleo" placeholder="5W30" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none">
+                    <input type="text" id="tipo_oleo" placeholder="5W30" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium">
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold text-orange-600">Próx. troca óleo</label>
@@ -184,8 +184,14 @@
             }
         }
 
+        // Função para pegar a hora atual formatada HH:MM
+        function getHoraAtual() {
+            const agora = new Date();
+            return `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+        }
+
         function enviarWhatsApp(tipo) {
-            const tel = "5593981162453"; // NÚMERO ATUALIZADO
+            const tel = "5593981162453"; 
             const data = document.getElementById('data_input').value;
             const id = document.getElementById('id_condutor').value;
             const nome = document.getElementById('nome_condutor').value;
@@ -208,8 +214,11 @@
                       `*KM Inicial:* ${kmIni}%0A` +
                       `*Hora Início:* ${horaIni}`;
             } else {
+                // PREENCHE A HORA FIM AUTOMATICAMENTE AO CLICAR
+                const horaFimAuto = getHoraAtual();
+                document.getElementById('hora_fim').value = horaFimAuto;
+
                 const kmFim = document.getElementById('km_final').value;
-                const horaFim = document.getElementById('hora_fim').value;
                 const resta = document.getElementById('resultado_texto').innerText;
                 const obs = document.getElementById('observacao').value || "S/O";
 
@@ -221,7 +230,7 @@
                       `*KM Inicial:* ${kmIni}%0A` +
                       `*KM Final:* ${kmFim}%0A` +
                       `*Hora Início:* ${horaIni}%0A` +
-                      `*Hora Fim:* ${horaFim}%0A%0A` +
+                      `*Hora Fim:* ${horaFimAuto}%0A%0A` +
                       `*--- MANUTENÇÃO ---*%0A` +
                       `*Resta p/ Troca:* ${resta}%0A` +
                       `*Obs:* ${obs}`;
@@ -233,7 +242,7 @@
         window.onload = function() {
             const agora = new Date();
             document.getElementById('data_input').value = agora.toISOString().split('T')[0];
-            document.getElementById('hora_inicio_input').value = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+            document.getElementById('hora_inicio_input').value = getHoraAtual();
         };
     </script>
 </body>
