@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Checklist de Frota</title>
+    <title>Checklist de Frota - Telejur</title>
 </head>
 <body class="bg-gray-100 pb-10">
 
@@ -28,6 +28,7 @@
                     <label class="block text-xs text-gray-500 uppercase font-bold">ID Condutor</label>
                     <input type="text" placeholder="Ex: CONDUTOR 1" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
                 </div>
+
                 <div class="col-span-2">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Nome Completo</label>
                     <select class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
@@ -42,17 +43,28 @@
                         <option>Walter Gonçalvez</option>
                     </select>
                 </div>
+
+                <div class="col-span-2">
+                    <label class="block text-xs text-gray-500 uppercase font-bold">Tag (Identificação)</label>
+                    <select id="tag_select" onchange="preencherVeiculoPlaca()" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none font-bold text-blue-700">
+                        <option value="" disabled selected>Selecione a TAG</option>
+                        <option value="tjur04">TJUR 04</option>
+                        <option value="tjur06">TJUR 06</option>
+                        <option value="tjur07">TJUR 07</option>
+                        <option value="tjur08">TJUR 08</option>
+                        <option value="tjur09">TJUR 09</option>
+                        <option value="tjur10">TJUR 10</option>
+                        <option value="tjur13">TJUR 13</option>
+                    </select>
+                </div>
+
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Veículo</label>
-                    <input type="text" placeholder="Ex: CAMINHONETE" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+                    <input type="text" id="veiculo_input" readonly placeholder="Selecionar TAG" class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none">
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Placa</label>
-                    <input type="text" placeholder="ABC-1234" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none uppercase">
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-xs text-gray-500 uppercase font-bold">Tag (Identificação)</label>
-                    <input type="text" placeholder="Ex: TJUR 13" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+                    <input type="text" id="placa_input" readonly placeholder="Selecionar TAG" class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none uppercase font-mono">
                 </div>
             </div>
         </section>
@@ -125,7 +137,7 @@
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Observação</label>
-                    <textarea rows="2" placeholder="S/O" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none"></textarea>
+                    <textarea rows="2" placeholder="S/O" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:orange-400 outline-none"></textarea>
                 </div>
             </div>
         </section>
@@ -135,5 +147,39 @@
         </button>
 
     </div>
+
+    <script>
+        // Banco de dados local baseado na imagem fornecida
+        const bancoDadosVeiculos = {
+            "tjur04": { veiculo: "SKY MUNCK", placa: "QFA1I50" },
+            "tjur06": { veiculo: "SAVEIRO FURGÃO", placa: "QUJ3E02" },
+            "tjur07": { veiculo: "SKY MUNCK", placa: "RWR3C75" },
+            "tjur08": { veiculo: "CAMINHONETE HILUX", placa: "QVE5H48" },
+            "tjur09": { veiculo: "SKY MUNCK", placa: "RXC6J04" },
+            "tjur10": { veiculo: "CAMINHONETE", placa: "PHU1I37" },
+            "tjur13": { veiculo: "CAMINHONETE", placa: "QVD4I38" }
+        };
+
+        function preencherVeiculoPlaca() {
+            // Pega os elementos
+            const selectTag = document.getElementById('tag_select');
+            const inputVeiculo = document.getElementById('veiculo_input');
+            const inputPlaca = document.getElementById('placa_input');
+            
+            // Pega o valor selecionado (ex: "tjur13")
+            const tagSelecionada = selectTag.value;
+
+            // Se houver uma tag selecionada, busca no banco local
+            if (tagSelecionada && bancoDadosVeiculos[tagSelecionada]) {
+                const dados = bancoDadosVeiculos[tagSelecionada];
+                inputVeiculo.value = dados.veiculo;
+                inputPlaca.value = dados.placa;
+            } else {
+                // Limpa os campos se nada for selecionado
+                inputVeiculo.value = "";
+                inputPlaca.value = "";
+            }
+        }
+    </script>
 </body>
 </html>
