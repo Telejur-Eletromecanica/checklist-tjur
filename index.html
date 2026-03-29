@@ -80,7 +80,7 @@
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">Hora Início</label>
-                    <input type="time" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none">
+                    <input type="time" id="hora_inicio_input" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">Hora Fim</label>
@@ -149,7 +149,6 @@
     </div>
 
     <script>
-        // Banco de dados local
         const bancoDadosVeiculos = {
             "tjur04": { veiculo: "SKY MUNCK", placa: "QFA1I50" },
             "tjur06": { veiculo: "SAVEIRO FURGÃO", placa: "QUJ3E02" },
@@ -160,11 +159,18 @@
             "tjur13": { veiculo: "CAMINHONETE", placa: "QVD4I38" }
         };
 
-        // Função para preencher a data atual automaticamente
-        function configurarDataAtual() {
+        function configurarDataHoraAtual() {
+            const agora = new Date();
+            
+            // Preenche Data
             const inputData = document.getElementById('data_input');
-            const hoje = new Date().toISOString().split('T')[0];
-            inputData.value = hoje;
+            inputData.value = agora.toISOString().split('T')[0];
+
+            // Preenche Hora Início
+            const inputHora = document.getElementById('hora_inicio_input');
+            const horas = String(agora.getHours()).padStart(2, '0');
+            const minutos = String(agora.getMinutes()).padStart(2, '0');
+            inputHora.value = `${horas}:${minutos}`;
         }
 
         function preencherVeiculoPlaca() {
@@ -180,9 +186,8 @@
             }
         }
 
-        // Executa ao carregar a página
         window.onload = function() {
-            configurarDataAtual();
+            configurarDataHoraAtual();
         };
     </script>
 </body>
