@@ -10,29 +10,25 @@
 
     <header class="bg-blue-600 p-4 text-white text-center shadow-md sticky top-0 z-10">
         <h1 class="font-bold text-lg">Checklist de Veículo</h1>
-        <p class="text-xs opacity-80">Preenchimento de Rotina</p>
     </header>
 
     <div class="max-w-md mx-auto p-4 space-y-4">
         
         <section class="bg-white rounded-xl shadow-sm p-4 border-t-4 border-blue-500">
-            <h2 class="text-blue-600 font-bold mb-3 flex items-center gap-2">
-                👤 Identificação
-            </h2>
+            <h2 class="text-blue-600 font-bold mb-3">👤 Identificação</h2>
             <div class="grid grid-cols-2 gap-3">
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Data</label>
-                    <input type="date" id="data_input" readonly class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none">
+                    <input type="date" id="data_input" readonly class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">ID Condutor</label>
-                    <input type="text" placeholder="Ex: CONDUTOR 1" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+                    <input type="text" placeholder="CONDUTOR 1" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
-
                 <div class="col-span-2">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Nome Completo</label>
-                    <select class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
-                        <option value="" disabled selected>Selecione o motorista</option>
+                    <select class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
+                        <option disabled selected>Selecione o motorista</option>
                         <option>Adriano Nascimento</option>
                         <option>Francivaldo Costa</option>
                         <option>Joelcinei Guimarães</option>
@@ -43,10 +39,9 @@
                         <option>Walter Gonçalvez</option>
                     </select>
                 </div>
-
                 <div class="col-span-2">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Tag (Identificação)</label>
-                    <select id="tag_select" onchange="preencherVeiculoPlaca()" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none font-bold text-blue-700">
+                    <select id="tag_select" onchange="preencherVeiculoPlaca()" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm font-bold text-blue-700 outline-none">
                         <option value="" disabled selected>Selecione a TAG</option>
                         <option value="tjur04">TJUR 04</option>
                         <option value="tjur06">TJUR 06</option>
@@ -57,134 +52,131 @@
                         <option value="tjur13">TJUR 13</option>
                     </select>
                 </div>
-
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Veículo</label>
-                    <input type="text" id="veiculo_input" readonly placeholder="TAG" class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none">
+                    <input type="text" id="veiculo_input" readonly class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Placa</label>
-                    <input type="text" id="placa_input" readonly placeholder="TAG" class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm text-gray-600 outline-none uppercase font-mono">
+                    <input type="text" id="placa_input" readonly class="w-full bg-gray-100 border border-gray-200 rounded p-2 text-sm outline-none uppercase font-mono">
                 </div>
             </div>
         </section>
 
         <section class="bg-white rounded-xl shadow-sm p-4 border-t-4 border-green-500">
-            <h2 class="text-green-600 font-bold mb-3 flex items-center gap-2">
-                🛣️ Trajeto e KM
-            </h2>
+            <h2 class="text-green-600 font-bold mb-3">🛣️ Trajeto e KM</h2>
             <div class="grid grid-cols-2 gap-3">
                 <div class="col-span-2">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Número do Trajeto</label>
-                    <input type="number" placeholder="00" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none">
+                    <input type="number" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">Hora Início</label>
-                    <input type="time" id="hora_inicio_input" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none">
+                    <input type="time" id="hora_inicio_input" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">Hora Fim</label>
-                    <input type="time" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none">
+                    <input type="time" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">KM Inicial</label>
-                    <input type="number" id="km_inicial_input" oninput="calcularTrocaOleo()" placeholder="0" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-mono font-bold">
+                    <input type="number" id="km_inicial" oninput="calcularTroca()" placeholder="0" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm font-bold outline-none">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">KM Final</label>
-                    <input type="number" placeholder="0" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none font-mono">
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-xs text-gray-500 uppercase font-bold text-center">Status da Operação</label>
-                    <select class="w-full bg-gray-50 border border-gray-200 rounded p-3 text-sm font-bold focus:ring-2 focus:ring-green-400 outline-none">
-                        <option>EM ANDAMENTO</option>
-                        <option>CONCLUÍDO</option>
-                        <option>PENDENTE</option>
-                    </select>
+                    <input type="number" id="km_final" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
             </div>
         </section>
 
         <section class="bg-white rounded-xl shadow-sm p-4 border-t-4 border-orange-500">
-            <h2 class="text-orange-600 font-bold mb-3 flex items-center gap-2">
-                🔧 Manutenção e Selos
-            </h2>
+            <h2 class="text-orange-600 font-bold mb-3">🔧 Manutenção</h2>
             <div class="grid grid-cols-2 gap-3">
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Tipo de Óleo</label>
-                    <input type="text" placeholder="Ex: 5W30" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none">
+                    <input type="text" placeholder="5W30" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs text-gray-500 uppercase font-bold">Próx. Troca Óleo</label>
-                    <input type="number" id="km_troca_input" oninput="calcularTrocaOleo()" placeholder="Ex: 55000" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none font-mono font-bold">
+                    <input type="number" id="km_troca" oninput="calcularTroca()" placeholder="Ex: 50000" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm font-bold outline-none">
                 </div>
-                
-                <div id="container_resta" class="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-200 transition-colors duration-300">
-                    <label class="block text-[10px] text-gray-500 uppercase font-black">Resta para a troca</label>
-                    <span id="resta_valor" class="text-xl font-black text-gray-400">--- KM</span>
+
+                <div id="status_caixa" class="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-200 flex justify-between items-center transition-all">
+                    <label class="text-xs text-gray-500 uppercase font-black">Resta para a troca:</label>
+                    <span id="resultado_texto" class="text-lg font-black text-gray-400">--- KM</span>
                 </div>
 
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">Cor do Selo</label>
-                    <select class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none">
-                        <option>AZUL</option>
-                        <option>VERDE</option>
-                        <option>AMARELO</option>
-                        <option>VERMELHO</option>
+                    <select class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
+                        <option>AZUL</option><option>VERDE</option><option>AMARELO</option><option>VERMELHO</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 uppercase font-bold">Validade Selo</label>
-                    <input type="date" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none">
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-xs text-gray-500 uppercase font-bold">Observação</label>
-                    <textarea rows="2" placeholder="S/O" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm focus:ring-2 focus:ring-orange-400 outline-none"></textarea>
+                    <input type="date" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-sm outline-none">
                 </div>
             </div>
         </section>
 
-        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95">
+        <button class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-transform">
             FINALIZAR CHECKLIST
         </button>
-
     </div>
 
     <script>
-        const bancoDadosVeiculos = {
-            "tjur04": { veiculo: "SKY MUNCK", placa: "QFA1I50" },
-            "tjur06": { veiculo: "SAVEIRO FURGÃO", placa: "QUJ3E02" },
-            "tjur07": { veiculo: "SKY MUNCK", placa: "RWR3C75" },
-            "tjur08": { veiculo: "CAMINHONETE HILUX", placa: "QVE5H48" },
-            "tjur09": { veiculo: "SKY MUNCK", placa: "RXC6J04" },
-            "tjur10": { veiculo: "CAMINHONETE", placa: "PHU1I37" },
-            "tjur13": { veiculo: "CAMINHONETE", placa: "QVD4I38" }
+        const veiculos = {
+            "tjur04": { v: "SKY MUNCK", p: "QFA1I50" },
+            "tjur06": { v: "SAVEIRO FURGÃO", p: "QUJ3E02" },
+            "tjur07": { v: "SKY MUNCK", p: "RWR3C75" },
+            "tjur08": { v: "CAMINHONETE HILUX", p: "QVE5H48" },
+            "tjur09": { v: "SKY MUNCK", p: "RXC6J04" },
+            "tjur10": { v: "CAMINHONETE", p: "PHU1I37" },
+            "tjur13": { v: "CAMINHONETE", p: "QVD4I38" }
         };
 
-        function configurarDataHoraAtual() {
-            const agora = new Date();
-            document.getElementById('data_input').value = agora.toISOString().split('T')[0];
-            const inputHora = document.getElementById('hora_inicio_input');
-            const horas = String(agora.getHours()).padStart(2, '0');
-            const minutos = String(agora.getMinutes()).padStart(2, '0');
-            inputHora.value = `${horas}:${minutos}`;
-        }
-
         function preencherVeiculoPlaca() {
-            const selectTag = document.getElementById('tag_select');
-            const inputVeiculo = document.getElementById('veiculo_input');
-            const inputPlaca = document.getElementById('placa_input');
-            const tagSelecionada = selectTag.value;
-
-            if (tagSelecionada && bancoDadosVeiculos[tagSelecionada]) {
-                const dados = bancoDadosVeiculos[tagSelecionada];
-                inputVeiculo.value = dados.veiculo;
-                inputPlaca.value = dados.placa;
+            const tag = document.getElementById('tag_select').value;
+            if (veiculos[tag]) {
+                document.getElementById('veiculo_input').value = veiculos[tag].v;
+                document.getElementById('placa_input').value = veiculos[tag].p;
             }
         }
 
-        // NOVA FUNÇÃO: CÁLCULO DE TROCA DE ÓLEO
-        function calcularTrocaOleo() {
-            const kmInicial = parseInt(document.getElementById('km_inicial_input').value);
-            const kmTroca = parseInt(document.getElementById('km_troca_input').value);
-            const displayResta = document
+        // FUNÇÃO DE CÁLCULO CORRIGIDA
+        function calcularTroca() {
+            const inicial = parseInt(document.getElementById('km_inicial').value);
+            const troca = parseInt(document.getElementById('km_troca').value);
+            const texto = document.getElementById('resultado_texto');
+            const caixa = document.getElementById('status_caixa');
+
+            if (!isNaN(inicial) && !isNaN(troca)) {
+                const resta = troca - inicial;
+                texto.innerText = resta + " KM";
+
+                if (resta <= 0) {
+                    texto.innerText = "VENCIDO!";
+                    caixa.className = "col-span-2 bg-red-600 p-3 rounded-lg border border-red-700 flex justify-between items-center text-white";
+                    texto.className = "text-lg font-black text-white";
+                } else if (resta <= 500) {
+                    caixa.className = "col-span-2 bg-orange-100 p-3 rounded-lg border border-orange-300 flex justify-between items-center";
+                    texto.className = "text-lg font-black text-orange-600";
+                } else {
+                    caixa.className = "col-span-2 bg-green-100 p-3 rounded-lg border border-green-300 flex justify-between items-center";
+                    texto.className = "text-lg font-black text-green-600";
+                }
+            } else {
+                texto.innerText = "--- KM";
+                caixa.className = "col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-200 flex justify-between items-center";
+                texto.className = "text-lg font-black text-gray-400";
+            }
+        }
+
+        window.onload = function() {
+            document.getElementById('data_input').value = new Date().toISOString().split('T')[0];
+            const agora = new Date();
+            document.getElementById('hora_inicio_input').value = String(agora.getHours()).padStart(2, '0') + ":" + String(agora.getMinutes()).padStart(2, '0');
+        };
+    </script>
+</body>
+</html>
