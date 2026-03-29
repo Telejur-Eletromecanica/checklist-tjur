@@ -170,7 +170,7 @@
 
         async function enviarDados(tipo) {
             const btn = event.target;
-            btn.disabled = true; btn.innerText = "GRAVANDO...";
+            btn.disabled = true; btn.innerText = "ENVIANDO...";
 
             const dados = {
                 tipo: tipo,
@@ -184,32 +184,39 @@
                 cor_selo: document.getElementById('cor_selo').value,
                 prox_oleo: document.getElementById('km_troca').value,
                 resta_troca: document.getElementById('resultado_texto_fim').innerText,
-                data: new Date().toLocaleDateString('pt-BR'),
-                hora_inicio: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+                obs: document.getElementById('observacao').value || "S/O",
+                data: new Date().toLocaleDateString('pt-BR')
             };
 
             try {
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados)});
                 
-                // FORMATAÇÃO PROFISSIONAL WHATSAPP
+                const sep = "--------------------------";
                 const titulo = tipo === 'inicio' ? "🚀 *SAÍDA DO TRAJETO*" : "🏁 *CHEGADA DO TRAJETO*";
-                const kmInfo = tipo === 'inicio' ? `*KM Inicial:* ${dados.km_inicial}` : `*KM Inicial:* ${dados.km_inicial}\n*KM Final:* ${dados.km_final}`;
-                
-                const mensagem = 
-                    `${titulo}\n\n` +
-                    `*Motorista:* ${dados.nome}\n` +
-                    `*Veículo:* ${dados.veiculo} (${dados.tag})\n` +
-                    `*Placa:* ${dados.placa}\n\n` +
-                    `${kmInfo}\n\n` +
-                    `*Tipo de Óleo:* ${dados.tipo_oleo}\n` +
-                    `*Cor do Selo:* ${dados.cor_selo}\n` +
-                    `*Resta para a troca:* ${dados.resta_troca}`;
+                const kmMsg = tipo === 'inicio' ? `*KM Inicial:* ${dados.km_inicial}` : `*KM Inicial:* ${dados.km_inicial}\n*KM Final:* ${dados.km_final}`;
 
-                window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(mensagem)}`);
+                const zap = 
+                    `${titulo}\n` +
+                    `${sep}\n\n` +
+                    `👤 *Motorista:* ${dados.nome}\n` +
+                    `🚘 *Veículo:* ${dados.veiculo} (${dados.tag})\n` +
+                    `🆔 *Placa:* ${dados.placa}\n\n` +
+                    `${sep}\n\n` +
+                    `📍 *INFO PERCURSO*\n` +
+                    `${kmMsg}\n\n` +
+                    `${sep}\n\n` +
+                    `🛠️ *MANUTENÇÃO*\n` +
+                    `🛢️ *Tipo de Óleo:* ${dados.tipo_oleo}\n` +
+                    `🏷️ *Cor do Selo:* ${dados.cor_selo}\n` +
+                    `⚠️ *Resta p/ troca:* ${dados.resta_troca}\n\n` +
+                    `${sep}\n\n` +
+                    `📝 *OBS:* ${dados.obs}`;
+
+                window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(zap)}`);
                 
-                alert("Registro salvo com sucesso!");
+                alert("Salvo!");
                 if(tipo === 'fim') { location.reload(); } else { mudarTela('retorno'); btn.disabled = false; btn.innerText = "Registrar Saída"; }
-            } catch(e) { alert("Erro de conexão!"); btn.disabled = false; }
+            } catch(e) { alert("Erro!"); btn.disabled = false; }
         }
     </script>
 </body>
