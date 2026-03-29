@@ -3,47 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frota V22</title>
+    <title>Checklist Telejur V22</title>
     <style>
-        body { background: #f0f2f5; font-family: sans-serif; padding: 10px; }
-        .card { background: white; max-width: 420px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 8px; }
-        label { font-size: 0.7rem; font-weight: bold; color: #666; display: block; margin-top: 12px; }
-        select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; box-sizing: border-box; }
-        input[readonly] { background: #f8f9fa; color: #999; }
-        .editavel { border: 2px solid #1a73e8 !important; }
-        .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 15px; cursor: pointer; color: white; font-size: 1rem; }
-        .btn-saida { background: #1a73e8; }
-        .btn-chegada { background: #d93025; }
-        #statusMsg { text-align: center; font-weight: bold; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
-        .error { background: #fce8e6; color: #d93025; }
-        .success { background: #e6f4ea; color: #1e8e3e; }
+        body { background: #f4f7f6; font-family: sans-serif; padding: 10px; margin: 0; }
+        .card { background: white; max-width: 480px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; font-size: 1.2rem; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; }
+        .sec-title { background: #f8f9fa; padding: 8px; font-size: 0.75rem; font-weight: bold; color: #666; text-transform: uppercase; margin: 15px 0 5px 0; border-radius: 4px; }
+        label { font-size: 0.7rem; font-weight: bold; color: #444; display: block; margin-top: 8px; }
+        select, input { width: 100%; padding: 12px; margin-top: 4px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; box-sizing: border-box; }
+        input[readonly] { background: #eee; color: #777; }
+        .input-active { border: 2px solid #1a73e8 !important; }
+        .grid { display: flex; gap: 10px; }
+        .col { flex: 1; }
+        .btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-weight: bold; margin-top: 20px; cursor: pointer; color: white; font-size: 1rem; }
+        .btn-saida { background: #1a73e8; } .btn-chegada { background: #d93025; }
+        #statusMsg { text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
 <div class="card">
-    <h2>TELEJUR FROTA</h2>
+    <h2>CHECKLIST TELEJUR V22</h2>
     <div id="statusMsg"></div>
     <form id="formApp">
+        <div class="sec-title">IDENTIFICAÇÃO</div>
         <label>Motorista</label>
         <select name="nome" id="nome" onchange="sincronizar()" required>
             <option value="">-- Selecione --</option>
             <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
             <option value="FRACIVALDO COSTA">FRACIVALDO COSTA</option>
             <option value="REGINALDO">REGINALDO</option>
+            <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
         </select>
-        <div style="display:flex; gap:10px">
-            <div style="flex:1"><label>TAG</label><select name="tag" id="tag" onchange="sincronizar()" required><option value="">--</option><option value="TJUR 04">TJUR 04</option><option value="TJUR 13">TJUR 13</option></select></div>
-            <div style="flex:1"><label>ID</label><input type="text" name="condutorID" id="condutorID" readonly></div>
+        <div class="grid">
+            <div class="col"><label>TAG</label><select name="tag" id="tag" onchange="sincronizar()" required><option value="">--</option><option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option><option value="TJUR 13">TJUR 13</option></select></div>
+            <div class="col"><label>ID Sequência</label><input type="text" name="condutorID" id="condutorID" readonly></div>
         </div>
-        <div style="display:flex; gap:10px">
-            <div style="flex:1"><label>KM Inicial</label><input type="number" name="kmi" id="kmi" readonly></div>
-            <div style="flex:1"><label>KM Final</label><input type="number" name="kmf" id="kmf" class="editavel"></div>
+        <div class="sec-title">VEÍCULO E MANUTENÇÃO</div>
+        <div class="grid">
+            <div class="col"><label>Veículo</label><input type="text" name="veiculo" id="veiculo" readonly></div>
+            <div class="col"><label>Placa</label><input type="text" name="placa" id="placa" readonly></div>
         </div>
-        <label>Observação</label><input type="text" name="obs" id="obs" class="editavel">
+        <div class="grid">
+            <div class="col"><label>Validade Selo</label><input type="text" name="valSelo" id="valSelo" readonly></div>
+            <div class="col"><label>Cor do Selo</label><input type="text" name="corSelo" id="corSelo" readonly></div>
+        </div>
+        <div class="grid">
+            <div class="col"><label>KM Inicial</label><input type="number" name="kmi" id="kmi" readonly></div>
+            <div class="col"><label>KM Final</label><input type="number" name="kmf" id="kmf" class="input-active" placeholder="000000"></div>
+        </div>
+        <div class="grid">
+            <div class="col"><label>Próx. Troca Óleo</label><input type="text" name="proxOleo" id="proxOleo" readonly></div>
+            <div class="col"><label>Tipo de Óleo</label><input type="text" name="tipoOleo" id="tipoOleo" readonly></div>
+        </div>
+        <label>Observação / Status</label>
+        <input type="text" name="obs" id="obs" class="input-active" placeholder="Ex: Pneu baixo, luz acesa...">
         
-        <button type="button" id="btnS" onclick="salvar('SAIDA')" class="btn btn-saida">🚀 INICIAR SAÍDA</button>
-        <button type="button" id="btnC" onclick="salvar('CHEGADA')" class="btn btn-chegada">🏁 FINALIZAR CHEGADA</button>
+        <button type="button" id="btnS" onclick="salvar('SAIDA')" class="btn btn-saida">🚀 REGISTRAR SAÍDA</button>
+        <button type="button" id="btnC" onclick="salvar('CHEGADA')" class="btn btn-chegada">🏁 REGISTRAR CHEGADA</button>
     </form>
 </div>
 
@@ -54,8 +70,8 @@
         const tag = document.getElementById('tag').value;
         const nome = document.getElementById('nome').value;
         if(tag && nome) {
-            document.getElementById('statusMsg').className = "";
-            document.getElementById('statusMsg').innerText = "🔄 Verificando fila...";
+            document.getElementById('statusMsg').style.display = "block";
+            document.getElementById('statusMsg').innerText = "Sincronizando dados...";
             const old = document.getElementById('scr-sync'); if(old) old.remove();
             const s = document.createElement('script'); s.id = 'scr-sync';
             s.src = `${SCRIPT_URL}?callback=cb&acao=buscarDadosVei&tag=${encodeURIComponent(tag)}&nome=${encodeURIComponent(nome)}&t=${Date.now()}`;
@@ -65,20 +81,21 @@
 
     function cb(r) {
         const msg = document.getElementById('statusMsg');
-        if(r.bloqueado) {
-            msg.className = "error"; msg.innerText = r.msg;
-            document.getElementById('btnS').disabled = true;
-        } else {
-            msg.className = "success"; msg.innerText = "✅ Disponível";
-            document.getElementById('btnS').disabled = false;
-        }
+        if(r.bloqueado) { msg.style.background = "#fce8e6"; msg.innerText = r.msg; document.getElementById('btnS').disabled = true; } 
+        else { msg.style.background = "#e6f4ea"; msg.innerText = "✅ Veículo Disponível"; document.getElementById('btnS').disabled = false; }
         document.getElementById('condutorID').value = r.condutorSugerido;
         document.getElementById('kmi').value = r.kmi;
+        document.getElementById('veiculo').value = r.veiculo;
+        document.getElementById('placa').value = r.placa;
+        document.getElementById('valSelo').value = r.valSelo;
+        document.getElementById('corSelo').value = r.corSelo;
+        document.getElementById('proxOleo').value = r.proxOleo;
+        document.getElementById('tipoOleo').value = r.tipoOleo;
     }
 
     function salvar(tipo) {
-        if(tipo === 'CHEGADA' && !document.getElementById('kmf').value) return alert("KM Final vazio!");
-        const btn = event.target; btn.disabled = true;
+        if(tipo === 'CHEGADA' && !document.getElementById('kmf').value) return alert("Preencha o KM Final!");
+        const btn = event.target; btn.disabled = true; btn.innerText = "GRAVANDO...";
         const dados = Object.fromEntries(new FormData(document.getElementById('formApp')));
         dados.tipo = tipo; dados.data = new Date().toLocaleDateString('pt-BR');
         const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
@@ -86,8 +103,9 @@
 
         fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(dados) })
         .then(() => {
-            const fone = "5599999999999";
-            const msg = `*TELEJUR FROTA*\nMotorista: ${dados.nome}\nCarro: ${dados.tag} (${dados.condutorID})\nKM: ${tipo==='SAIDA'?dados.kmi:dados.kmf}`;
+            const fone = "5593981162453";
+            const kmt = tipo === 'SAIDA' ? dados.kmi : dados.kmf;
+            const msg = `*TELEJUR V22 - ${tipo}*\n\n👤 *Motorista:* ${dados.nome}\n🏷️ *TAG:* ${dados.tag}\n🆔 *ID:* ${dados.condutorID}\n🚗 *Carro:* ${dados.veiculo} (${dados.placa})\n📟 *KM:* ${kmt}\n🗓️ *Selo:* ${dados.valSelo} (${dados.corSelo})\n🛢️ *Óleo:* ${dados.tipoOleo}\n📝 *Obs:* ${dados.obs || 'OK'}`;
             window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(msg)}`, '_blank');
             location.reload();
         });
