@@ -4,171 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Frota Telejur Ultra</title>
-    <style>
-        .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .bg-running { background-color: #ef4444; animation: pulse 2s infinite; }
-        .bg-free { background-color: #22c55e; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-    </style>
+    <title>Frota Telejur Intelligence</title>
 </head>
-<body class="bg-slate-100 pb-10 font-sans text-slate-800" onload="atualizarPainel()">
+<body class="bg-slate-900 pb-10 font-sans text-slate-100">
 
-    <header class="bg-blue-900 text-white shadow-xl sticky top-0 z-50">
-        <div class="p-4 text-center">
-            <h1 class="font-black text-xl tracking-tighter">FROTA TELEJUR</h1>
-            <p class="text-[9px] opacity-70 uppercase">Gestão de Tráfego em Tempo Real</p>
-        </div>
-    </header>
+    <div class="max-w-md mx-auto p-4">
+        <header class="py-6 text-center">
+            <h1 class="text-2xl font-black tracking-tighter text-blue-400">TELEJUR FROTA</h1>
+            <div id="relogio" class="text-[10px] font-mono text-slate-500"></div>
+        </header>
 
-    <div class="max-w-md mx-auto p-4 space-y-6">
-        
-        <section class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200">
-            <h2 class="text-[10px] font-black text-slate-400 uppercase mb-4 flex justify-between">
-                Monitoramento da Frota
-                <button onclick="atualizarPainel()" class="text-blue-600">Atualizar ↻</button>
-            </h2>
-            <div id="grid-painel" class="grid grid-cols-2 gap-3">
-                <div class="text-center py-4 text-slate-300 text-xs">Carregando frota...</div>
+        <section class="bg-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-700 space-y-6">
+            
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Selecione o Veículo</label>
+                <select id="tag_select" onchange="validarTag()" class="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl p-4 font-black text-xl text-white outline-none focus:border-blue-500 transition-all">
+                    <option value="" disabled selected>---</option>
+                    <option value="TJUR 04">TJUR 04</option>
+                    <option value="TJUR 06">TJUR 06</option>
+                    <option value="TJUR 07">TJUR 07</option>
+                    <option value="TJUR 08">TJUR 08</option>
+                    <option value="TJUR 09">TJUR 09</option>
+                    <option value="TJUR 10">TJUR 10</option>
+                    <option value="TJUR 13">TJUR 13</option>
+                </select>
             </div>
+
+            <div id="painel-info" class="grid grid-cols-2 gap-3 hidden">
+                <div class="bg-slate-900 p-3 rounded-2xl border border-slate-700">
+                    <span class="block text-[8px] font-bold text-slate-500 uppercase">Fila/ID</span>
+                    <input type="text" id="id_condutor" readonly class="bg-transparent font-black text-blue-400 outline-none w-full">
+                </div>
+                <div class="bg-slate-900 p-3 rounded-2xl border border-slate-700">
+                    <span class="block text-[8px] font-bold text-slate-500 uppercase">Status</span>
+                    <div id="status_tag" class="font-black text-[10px] uppercase mt-1">Verificando...</div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Motorista</label>
+                <select id="motorista" class="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl p-4 font-bold text-white outline-none">
+                    <option value="" disabled selected>Quem é você?</option>
+                    <option value="ADRIANO NASCIMENTO">ADRIANO</option>
+                    <option value="FRACIVALDO COSTA">FRACIVALDO</option>
+                    <option value="JOELCINEI">JOELCINEI</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">KM Atual</label>
+                    <input type="tel" id="km_atual" oninput="calcularManutencao()" placeholder="0" class="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Próx. Troca</label>
+                    <input type="tel" id="km_troca" oninput="calcularManutencao()" placeholder="0" class="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none">
+                </div>
+            </div>
+
+            <div id="alerta_troca" class="bg-blue-900/30 p-4 rounded-2xl text-center border border-blue-500/30">
+                <span class="text-[9px] font-bold text-blue-400 uppercase">Resíduo de Óleo</span>
+                <div id="resta_valor" class="text-xl font-black text-white">--- KM</div>
+            </div>
+
+            <div class="space-y-3 pt-4">
+                <button id="btn_saida" onclick="enviar('EM TRÂNSITO')" disabled class="w-full bg-green-600 disabled:bg-slate-700 text-white font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest transition-all">Registrar Saída</button>
+                <button id="btn_chegada" onclick="enviar('CONCLUÍDO')" disabled class="w-full bg-blue-600 disabled:bg-slate-700 text-white font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest transition-all">Finalizar Trajeto</button>
+            </div>
+
         </section>
-
-        <div id="modulo-registro" class="space-y-4">
-            <section class="bg-white rounded-3xl shadow-2xl border-2 border-blue-100 p-6 space-y-5">
-                
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">1. Selecione o Veículo</label>
-                    <select id="tag_select" onchange="verificarStatusTag()" class="w-full border-2 border-slate-100 rounded-2xl p-4 font-black text-blue-800 bg-slate-50 outline-none text-xl appearance-none">
-                        <option value="" disabled selected>ESCOLHA A TAG...</option>
-                        <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
-                        <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
-                        <option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option>
-                        <option value="TJUR 13">TJUR 13</option>
-                    </select>
-                </div>
-
-                <div id="alerta-bloqueio" class="hidden bg-red-50 border-2 border-red-100 p-4 rounded-2xl text-center">
-                    <p class="text-red-600 font-black text-sm uppercase">⚠️ VEÍCULO EM TRÂNSITO</p>
-                    <p id="msg-bloqueio" class="text-[10px] text-red-400 font-bold uppercase"></p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-50 p-3 rounded-xl border text-center">
-                        <span class="block text-[8px] font-bold text-slate-400 uppercase">Fila de Hoje</span>
-                        <input type="text" id="id_condutor" readonly class="bg-transparent w-full text-center font-black text-blue-600 outline-none" value="---">
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-xl border text-center">
-                        <span class="block text-[8px] font-bold text-slate-400 uppercase">Status Local</span>
-                        <div id="status-local" class="font-black text-[10px] text-slate-400 uppercase">Aguardando</div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">2. Motorista Responsável</label>
-                    <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-2xl p-4 font-bold bg-white outline-none">
-                        <option value="" disabled selected>Quem está assumindo?</option>
-                        <option value="ADRIANO NASCIMENTO">Adriano Nascimento</option>
-                        <option value="FRACIVALDO COSTA">Fracivaldo Costa</option>
-                        <option value="JOELCINEI GUIMARÃES">Joelcinei Guimarães</option>
-                        <option value="FRACINILDO TEIXEIRA">Fracinildo Teixeira</option>
-                        <option value="EZEQUIEL SILVA">Ezequiel Silva</option>
-                        <option value="REGINALDO PEREIRA">Reginaldo Pereira</option>
-                        <option value="LAFAIETE BATISTA">Lafaiete Batista</option>
-                        <option value="WALTER GONÇALVES">Walter Gonçalves</option>
-                    </select>
-                </div>
-
-                <div class="pt-4 space-y-3">
-                    <button id="btn-saida" onclick="enviar('inicio')" class="w-full bg-green-600 text-white font-black py-5 rounded-2xl shadow-lg uppercase tracking-widest disabled:opacity-30">Registrar Saída</button>
-                    <button id="btn-chegada" onclick="enviar('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl shadow-lg uppercase tracking-widest disabled:opacity-30">Registrar Chegada</button>
-                </div>
-            </section>
-        </div>
     </div>
 
     <script>
-        const scriptURL = "SUA_URL_DO_SCRIPT_AQUI";
-        const tagsLista = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
+        const scriptURL = "SUA_URL_AQUI";
 
-        async function atualizarPainel() {
-            const grid = document.getElementById('grid-painel');
-            try {
-                const res = await fetch(`${scriptURL}?acao=painelGeral`);
-                const status = await res.json();
-                grid.innerHTML = "";
-                
-                tagsLista.forEach(tag => {
-                    const isRunning = status[tag] === "Em Trânsito";
-                    grid.innerHTML += `
-                        <div class="flex items-center justify-between p-3 rounded-xl border ${isRunning ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}">
-                            <span class="font-black text-xs">${tag}</span>
-                            <span class="text-[9px] font-bold uppercase flex items-center ${isRunning ? 'text-red-600' : 'text-green-600'}">
-                                <span class="dot ${isRunning ? 'bg-running' : 'bg-free'}"></span>
-                                ${status[tag]}
-                            </span>
-                        </div>
-                    `;
-                });
-            } catch(e) { grid.innerHTML = "Erro ao carregar painel."; }
-        }
-
-        async function verificarStatusTag() {
+        async function validarTag() {
             const tag = document.getElementById('tag_select').value;
-            const btnSaida = document.getElementById('btn-saida');
-            const btnChegada = document.getElementById('btn-chegada');
-            const alerta = document.getElementById('alerta-bloqueio');
-            const campoID = document.getElementById('id_condutor');
-
-            campoID.value = "...";
+            const painel = document.getElementById('painel-info');
+            const statusTxt = document.getElementById('status_tag');
             
-            const res = await fetch(`${scriptURL}?acao=checarTag&tag=${tag}`);
-            const data = await res.json();
+            painel.classList.remove('hidden');
+            statusTxt.innerText = "LENDO PLANILHA...";
+            statusTxt.className = "font-black text-[10px] uppercase mt-1 text-slate-400";
 
-            campoID.value = data.proximoID;
+            try {
+                const response = await fetch(`${scriptURL}?acao=checarStatus&tag=${tag}`);
+                const data = await response.json();
 
-            if (data.emTransito) {
-                btnSaida.disabled = true;
-                btnChegada.disabled = false;
-                alerta.classList.remove('hidden');
-                document.getElementById('msg-bloqueio').innerText = `Com: ${data.motoristaNaRua}`;
-                document.getElementById('status-local').innerText = "Ocupado";
-                document.getElementById('status-local').className = "font-black text-[10px] text-red-500 uppercase";
-            } else {
-                btnSaida.disabled = false;
-                btnChegada.disabled = true;
-                alerta.classList.add('hidden');
-                document.getElementById('status-local').innerText = "Livre";
-                document.getElementById('status-local').className = "font-black text-[10px] text-green-500 uppercase";
+                document.getElementById('id_condutor').value = data.proximoID;
+
+                if (data.bloqueado) {
+                    statusTxt.innerText = "EM TRÂNSITO";
+                    statusTxt.className = "font-black text-[10px] uppercase mt-1 text-red-500";
+                    document.getElementById('btn_saida').disabled = true;
+                    document.getElementById('btn_chegada').disabled = false;
+                } else {
+                    statusTxt.innerText = "LIBERADO";
+                    statusTxt.className = "font-black text-[10px] uppercase mt-1 text-green-500";
+                    document.getElementById('btn_saida').disabled = false;
+                    document.getElementById('btn_chegada').disabled = true;
+                }
+            } catch (e) {
+                alert("Erro de conexão!");
             }
         }
 
-        async function enviar(tipo) {
-            const motorista = document.getElementById('nome_condutor').value;
+        function calcularManutencao() {
+            const atual = parseInt(document.getElementById('km_atual').value) || 0;
+            const troca = parseInt(document.getElementById('km_troca').value) || 0;
+            const resta = troca - atual;
+            const display = document.getElementById('resta_valor');
+            
+            if (resta <= 0 && troca > 0) {
+                display.innerText = "VENCIDO!";
+                display.className = "text-xl font-black text-red-500";
+            } else {
+                display.innerText = resta + " KM";
+                display.className = "text-xl font-black text-white";
+            }
+        }
+
+        async function enviar(status) {
             const tag = document.getElementById('tag_select').value;
-            if(!motorista || !tag) return alert("Selecione tudo!");
+            const motorista = document.getElementById('motorista').value;
+            const km = document.getElementById('km_atual').value;
+            
+            if (!tag || !motorista || !km) return alert("Preencha todos os campos!");
 
             const btn = event.target;
-            btn.innerText = "PROCESSANDO...";
+            btn.innerText = "SALVANDO...";
             btn.disabled = true;
 
             const payload = {
-                tipo: tipo,
+                status: status,
                 data: new Date().toLocaleDateString('pt-BR'),
                 tag: tag,
                 id_motorista: document.getElementById('id_condutor').value,
                 nome: motorista,
-                hora_inicio: tipo === 'inicio' ? new Date().toLocaleTimeString('pt-BR') : "",
-                hora_fim: tipo === 'fim' ? new Date().toLocaleTimeString('pt-BR') : "",
-                veiculo: tag, // Simplificado para este exemplo
-                placa: "---",
-                obs: "REGISTRO VIA SISTEMA"
+                km: km,
+                hora: new Date().toLocaleTimeString('pt-BR'),
+                resta_troca: document.getElementById('resta_valor').innerText,
+                obs: "REGISTRO SISTEMA"
             };
 
             await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload)});
             
-            alert(`Registro de ${tipo === 'inicio' ? 'SAÍDA' : 'CHEGADA'} concluído!`);
+            alert("Operação realizada com sucesso!");
             location.reload();
         }
+
+        setInterval(() => {
+            document.getElementById('relogio').innerText = new Date().toLocaleString();
+        }, 1000);
     </script>
 </body>
 </html>
