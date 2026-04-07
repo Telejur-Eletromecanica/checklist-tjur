@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Frota Telejur Pro</title>
+    <title>Frota Telejur Intelligence</title>
 </head>
-<body class="bg-slate-950 pb-10 font-sans text-slate-200">
+<body class="bg-slate-950 pb-10 font-sans text-slate-200" onload="verificarTrajetoEmAberto()">
 
     <div class="max-w-md mx-auto p-4">
         <header class="py-8 text-center">
@@ -17,8 +17,8 @@
         <main class="bg-slate-900 rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 space-y-6">
             
             <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Veículo Ativo (TAG)</label>
-                <select id="tag_select" onchange="consultarPlanilha()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-xl text-white outline-none focus:border-blue-600 transition-all appearance-none">
+                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Veículo (TAG)</label>
+                <select id="tag_select" onchange="consultarPlanilha()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-xl text-white outline-none focus:border-blue-600 appearance-none">
                     <option value="" disabled selected>---</option>
                     <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
                     <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
@@ -33,47 +33,59 @@
                     <input type="text" id="id_condutor" readonly class="bg-transparent w-full text-center font-black text-blue-400 outline-none text-sm" value="---">
                 </div>
                 <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 text-center">
-                    <span class="text-[9px] font-bold text-slate-500 uppercase">Disponibilidade</span>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase">Status</span>
                     <div id="status_label" class="font-black text-[10px] mt-1 uppercase">...</div>
                 </div>
             </div>
 
             <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Motorista Responsável</label>
-                <select id="motorista" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-bold text-white outline-none focus:border-blue-600 appearance-none">
+                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Motorista</label>
+                <select id="motorista" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-bold text-white outline-none">
                     <option value="" disabled selected>SELECIONE...</option>
                     <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
                     <option value="FRACIVALDO COSTA">FRACIVALDO COSTA</option>
                     <option value="JOELCINEI GUIMARÃES">JOELCINEI GUIMARÃES</option>
-                    <option value="FRACINILDO TEIXEIRA">FRACINILDO TEIXEIRA</option>
                 </select>
             </div>
 
             <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase ml-2">KM Atual</label>
-                    <input type="tel" id="km_atual" oninput="atualizarOleo()" placeholder="0" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none focus:border-green-600">
+                    <input type="tel" id="km_atual" oninput="atualizarOleo()" placeholder="0" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-500 uppercase ml-2">Troca Óleo</label>
-                    <input type="tel" id="km_troca" oninput="atualizarOleo()" placeholder="0" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none focus:border-orange-600">
+                    <input type="tel" id="km_troca" oninput="atualizarOleo()" placeholder="0" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none">
                 </div>
             </div>
 
             <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl text-center">
-                <span class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Saldo de Quilometragem</span>
+                <span class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Saldo de Óleo</span>
                 <div id="km_restante" class="text-2xl font-black text-white">--- KM</div>
             </div>
 
             <div class="grid grid-cols-1 gap-3 pt-2">
-                <button id="btn_saida" onclick="registrar('EM TRÂNSITO')" disabled class="w-full bg-green-600 hover:bg-green-500 disabled:bg-slate-800 disabled:text-slate-600 font-black py-5 rounded-2xl shadow-xl uppercase transition-all">Iniciar Trajeto</button>
-                <button id="btn_chegada" onclick="registrar('CONCLUÍDO')" disabled class="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 font-black py-5 rounded-2xl shadow-xl uppercase transition-all">Finalizar Trajeto</button>
+                <button id="btn_saida" onclick="registrar('EM TRÂNSITO')" disabled class="w-full bg-green-600 disabled:hidden font-black py-5 rounded-2xl shadow-xl uppercase transition-all">Iniciar Trajeto</button>
+                <button id="btn_chegada" onclick="registrar('CONCLUÍDO')" disabled class="w-full bg-blue-600 disabled:hidden font-black py-5 rounded-2xl shadow-xl uppercase transition-all">Finalizar Trajeto</button>
             </div>
         </main>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+
+        // VERIFICA SE EXISTE UM TRAJETO SALVO NO CELULAR AO ABRIR O SITE
+        function verificarTrajetoEmAberto() {
+            const salvo = localStorage.getItem('trajeto_telejur');
+            if (salvo) {
+                const dados = JSON.parse(salvo);
+                document.getElementById('tag_select').value = dados.tag;
+                document.getElementById('motorista').value = dados.nome;
+                document.getElementById('km_atual').value = dados.km;
+                document.getElementById('km_troca').value = dados.km_troca || "";
+                consultarPlanilha(); // Atualiza a fila e os botões
+            }
+        }
 
         async function consultarPlanilha() {
             const tag = document.getElementById('tag_select').value;
@@ -82,16 +94,14 @@
             
             container.classList.remove('hidden');
             label.innerText = "VERIFICANDO...";
-            label.className = "font-black text-[10px] mt-1 text-slate-500";
 
             try {
                 const res = await fetch(`${API_URL}?acao=checarStatus&tag=${tag}`);
                 const data = await res.json();
-
                 document.getElementById('id_condutor').value = data.proximoID;
 
                 if (data.bloqueado) {
-                    label.innerText = "OCUPADO (" + data.quem + ")";
+                    label.innerText = "OCUPADO POR " + data.quem;
                     label.className = "font-black text-[10px] mt-1 text-red-500 animate-pulse";
                     document.getElementById('btn_saida').disabled = true;
                     document.getElementById('btn_chegada').disabled = false;
@@ -101,7 +111,8 @@
                     document.getElementById('btn_saida').disabled = false;
                     document.getElementById('btn_chegada').disabled = true;
                 }
-            } catch (e) { alert("Erro ao ler dados. Verifique a URL do Script."); }
+                atualizarOleo();
+            } catch (e) { console.log(e); }
         }
 
         function atualizarOleo() {
@@ -109,18 +120,14 @@
             const troca = parseInt(document.getElementById('km_troca').value) || 0;
             const resta = troca - atual;
             const display = document.getElementById('km_restante');
-            
-            if (troca > 0) {
-                display.innerText = resta <= 0 ? "VENCIDO!" : resta.toLocaleString() + " KM";
-                display.className = resta <= 0 ? "text-2xl font-black text-red-500" : "text-2xl font-black text-white";
-            }
+            display.innerText = troca > 0 ? (resta <= 0 ? "VENCIDO!" : resta.toLocaleString() + " KM") : "--- KM";
         }
 
         async function registrar(status) {
             const tag = document.getElementById('tag_select').value;
             const motorista = document.getElementById('motorista').value;
             const km = document.getElementById('km_atual').value;
-            if (!tag || !motorista || !km) return alert("Preencha todos os campos!");
+            const km_troca = document.getElementById('km_troca').value;
 
             const btn = event.target;
             btn.innerText = "GRAVANDO...";
@@ -140,14 +147,22 @@
 
             try {
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload)});
-                alert("Registro efetuado!");
-                location.reload();
+                
+                if (status === "EM TRÂNSITO") {
+                    // SALVA NA MEMÓRIA DO CELULAR
+                    localStorage.setItem('trajeto_telejur', JSON.stringify({tag, nome: motorista, km, km_troca}));
+                    alert("TRAJETO INICIADO! O sistema manterá seus dados até você finalizar.");
+                    location.reload();
+                } else {
+                    // LIMPA A MEMÓRIA AO FINALIZAR
+                    localStorage.removeItem('trajeto_telejur');
+                    alert("TRAJETO FINALIZADO COM SUCESSO!");
+                    location.reload();
+                }
             } catch (e) { alert("Erro ao salvar."); btn.disabled = false; }
         }
 
-        setInterval(() => {
-            document.getElementById('live-clock').innerText = new Date().toLocaleString('pt-BR');
-        }, 1000);
+        setInterval(() => { document.getElementById('live-clock').innerText = new Date().toLocaleString('pt-BR'); }, 1000);
     </script>
 </body>
 </html>
