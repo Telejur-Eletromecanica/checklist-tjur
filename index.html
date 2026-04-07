@@ -75,16 +75,21 @@
                 <input type="tel" id="km_final" oninput="calcular()" placeholder="000000" class="w-full border-2 border-blue-100 rounded-xl p-4 text-4xl font-black text-center">
                 <div id="res_resta_fim" class="bg-blue-50 p-4 rounded-xl text-center text-xl font-black text-blue-600 uppercase">--- KM</div>
                 <textarea id="obs" placeholder="OBSERVAÇÕES..." class="w-full border rounded-xl p-4 text-sm h-32 bg-slate-50 uppercase"></textarea>
-                <button id="btn_finalizar" onclick="enviar('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl uppercase text-lg">Finalizar</button>
+                <button id="btn_finalizar" onclick="enviar('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl uppercase text-lg">Finalizar Trajeto</button>
             </section>
         </div>
     </div>
 
     <script>
-        // COLE AQUI A URL DO SEU GOOGLE SCRIPT APÓS O DEPLOY
-        const scriptURL = "SUA_NOVA_URL_AQUI"; 
+        // URL DO GOOGLE SCRIPT CONFIGURADA
+        const scriptURL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
         
-        const frota = { "TJUR 04": ["Sky munck", "QFA1I50"], "TJUR 06": ["Saveiro furgão", "QUJ3E02"], "TJUR 07": ["Sky munck", "RWR3C75"], "TJUR 08": ["Caminhonete hilux", "QVE5H48"], "TJUR 09": ["Sky munck", "RXC6J04"], "TJUR 10": ["Caminhonete", "PHU1I37"], "TJUR 13": ["Caminhonete", "QVD4I38"] };
+        const frota = { 
+            "TJUR 04": ["Sky munck", "QFA1I50"], "TJUR 06": ["Saveiro furgão", "QUJ3E02"], 
+            "TJUR 07": ["Sky munck", "RWR3C75"], "TJUR 08": ["Caminhonete hilux", "QVE5H48"], 
+            "TJUR 09": ["Sky munck", "RXC6J04"], "TJUR 10": ["Caminhonete", "PHU1I37"], 
+            "TJUR 13": ["Caminhonete", "QVD4I38"] 
+        };
 
         function mudarTela(t) { 
             document.getElementById('tela-saida').classList.toggle('hidden', t !== 'saida'); 
@@ -97,19 +102,31 @@
             const tag = document.getElementById('tag_select').value;
             const idCampo = document.getElementById('id_condutor');
             const btn = document.getElementById('btn_enviar');
+            
             document.getElementById('veiculo_input').value = frota[tag][0];
             document.getElementById('placa_input').value = frota[tag][1];
-            idCampo.value = "BUSCANDO..."; btn.disabled = true;
+            
+            idCampo.value = "BUSCANDO..."; 
+            btn.disabled = true;
+            btn.classList.replace('bg-green-600', 'bg-slate-400');
+
             try {
                 const r = await fetch(`${scriptURL}?tag=${encodeURIComponent(tag)}&_=${new Date().getTime()}`);
                 const d = await r.json();
+                
                 if (d.ocupado) {
-                    alert(`BLOQUEIO: ${tag} está com ${d.motoristaAtual}.`);
-                    idCampo.value = "TAG EM USO"; btn.classList.replace('bg-green-600', 'bg-slate-400');
+                    alert(`BLOQUEIO: ${tag} está com ${d.motoristaAtual.toUpperCase()}.`);
+                    idCampo.value = "TAG EM USO";
+                    idCampo.classList.add('text-red-600');
                 } else {
-                    idCampo.value = d.sugestaoId; btn.disabled = false; btn.classList.replace('bg-slate-400', 'bg-green-600');
+                    idCampo.value = d.sugestaoId;
+                    idCampo.classList.remove('text-red-600');
+                    btn.disabled = false;
+                    btn.classList.replace('bg-slate-400', 'bg-green-600');
                 }
-            } catch (e) { idCampo.value = "ERRO CONEXÃO"; }
+            } catch (e) { 
+                idCampo.value = "ERRO CONEXÃO"; 
+            }
         }
 
         function calcular() {
@@ -117,29 +134,55 @@
             const ref = limpar('km_final') > 0 ? limpar('km_final') : limpar('km_inicial');
             const tro = limpar('km_troca');
             if (ref > 0 && tro > 0) {
-                const r = tro - ref; const txt = r <= 0 ? "VENCIDO!" : r + " KM";
-                document.getElementById('res_resta').innerText = txt; document.getElementById('res_resta_fim').innerText = txt;
+                const r = tro - ref; 
+                const txt = r <= 0 ? "VENCIDO!" : r + " KM";
+                document.getElementById('res_resta').innerText = txt; 
+                document.getElementById('res_resta_fim').innerText = txt;
             }
         }
 
         async function enviar(tipo) {
-            const btn = event.target; btn.disabled = true; btn.innerText = "ENVIANDO...";
-            const agora = new Date(); const hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            const btn = event.target; 
+            btn.disabled = true; 
+            btn.innerText = "ENVIANDO...";
+            
+            const agora = new Date(); 
+            const hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            
             const dados = {
-                tipo: tipo, data: agora.toLocaleDateString('pt-BR'), tag: document.getElementById('tag_select').value, 
-                id_motorista: document.getElementById('id_condutor').value, nome: document.getElementById('nome_condutor').value.toUpperCase(), 
-                km_inicial: document.getElementById('km_inicial').value.replace(/\D/g, ''), km_final: document.getElementById('km_final').value.replace(/\D/g, ''), 
-                hora_inicio: tipo === 'inicio' ? hora : "", hora_fim: tipo === 'fim' ? hora : "", 
-                veiculo: document.getElementById('veiculo_input').value, placa: document.getElementById('placa_input').value, 
-                tipo_oleo: document.getElementById('tipo_oleo').value, prox_oleo: document.getElementById('km_troca').value.replace(/\D/g, ''), 
-                resta_troca: document.getElementById('res_resta').innerText, obs: document.getElementById('obs').value.toUpperCase() || "S/O"
+                tipo: tipo, 
+                data: agora.toLocaleDateString('pt-BR'), 
+                tag: document.getElementById('tag_select').value, 
+                id_motorista: document.getElementById('id_condutor').value, 
+                nome: document.getElementById('nome_condutor').value.toUpperCase(), 
+                km_inicial: document.getElementById('km_inicial').value.replace(/\D/g, ''), 
+                km_final: document.getElementById('km_final').value.replace(/\D/g, ''), 
+                hora_inicio: tipo === 'inicio' ? hora : "", 
+                hora_fim: tipo === 'fim' ? hora : "", 
+                veiculo: document.getElementById('veiculo_input').value, 
+                placa: document.getElementById('placa_input').value, 
+                tipo_oleo: document.getElementById('tipo_oleo').value, 
+                prox_oleo: document.getElementById('km_troca').value.replace(/\D/g, ''), 
+                resta_troca: document.getElementById('res_resta').innerText, 
+                obs: document.getElementById('obs').value.toUpperCase() || "S/O"
             };
+
             try {
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados)});
                 const zap = `🚀 *TRAJETO: ${tipo === 'inicio' ? 'SAÍDA' : 'CHEGADA'}*\n👤 *MOTORISTA:* ${dados.nome}\n🆔 *${dados.id_motorista}*\n🏷️ *TAG:* ${dados.tag}\n📍 *KM:* ${tipo === 'inicio' ? dados.km_inicial : dados.km_final}\n⚠️ *RESTA:* ${dados.resta_troca}`;
                 window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(zap)}`);
-                if(tipo === 'fim') location.reload(); else mudarTela('retorno');
-            } catch(e) { alert("Erro!"); btn.disabled = false; }
+                
+                if(tipo === 'fim') {
+                    alert("Trajeto finalizado com sucesso!");
+                    location.reload(); 
+                } else {
+                    mudarTela('retorno');
+                }
+            } catch(e) { 
+                alert("Erro ao salvar dados!"); 
+                btn.disabled = false; 
+                btn.innerText = tipo === 'inicio' ? "Registrar Saída" : "Finalizar Trajeto";
+            }
         }
     </script>
 </body>
