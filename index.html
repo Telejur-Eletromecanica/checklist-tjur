@@ -4,26 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Frota Telejur</title>
+    <title>Frota Telejur Ultra</title>
+    <style>
+        .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .bg-running { background-color: #ef4444; animation: pulse 2s infinite; }
+        .bg-free { background-color: #22c55e; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    </style>
 </head>
-<body class="bg-slate-100 pb-10 font-sans text-slate-800">
+<body class="bg-slate-100 pb-10 font-sans text-slate-800" onload="atualizarPainel()">
 
-    <header class="bg-blue-800 text-white shadow-lg sticky top-0 z-50">
-        <div class="p-4 text-center border-b border-blue-700">
-            <h1 class="font-bold text-lg uppercase tracking-wider">Frota Telejur</h1>
-        </div>
-        <div class="flex justify-around bg-blue-900">
-            <button onclick="mudarTela('saida')" id="btn-saida" class="w-1/2 py-3 font-bold uppercase text-[10px] border-b-4 border-white opacity-100">1. SAÍDA</button>
-            <button onclick="mudarTela('retorno')" id="btn-retorno" class="w-1/2 py-3 font-bold uppercase text-[10px] opacity-60">2. CHEGADA</button>
+    <header class="bg-blue-900 text-white shadow-xl sticky top-0 z-50">
+        <div class="p-4 text-center">
+            <h1 class="font-black text-xl tracking-tighter">FROTA TELEJUR</h1>
+            <p class="text-[9px] opacity-70 uppercase">Gestão de Tráfego em Tempo Real</p>
         </div>
     </header>
 
-    <div class="max-w-md mx-auto p-4 space-y-4">
-        <div id="tela-saida" class="space-y-4">
-            <section class="bg-white rounded-2xl shadow-sm border p-5 space-y-4">
+    <div class="max-w-md mx-auto p-4 space-y-6">
+        
+        <section class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200">
+            <h2 class="text-[10px] font-black text-slate-400 uppercase mb-4 flex justify-between">
+                Monitoramento da Frota
+                <button onclick="atualizarPainel()" class="text-blue-600">Atualizar ↻</button>
+            </h2>
+            <div id="grid-painel" class="grid grid-cols-2 gap-3">
+                <div class="text-center py-4 text-slate-300 text-xs">Carregando frota...</div>
+            </div>
+        </section>
+
+        <div id="modulo-registro" class="space-y-4">
+            <section class="bg-white rounded-3xl shadow-2xl border-2 border-blue-100 p-6 space-y-5">
+                
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">VEÍCULO (TAG)</label>
-                    <select id="tag_select" onchange="preencherVeiculoPlaca()" class="w-full border-2 border-blue-50 rounded-xl p-4 font-black text-blue-700 bg-blue-50 outline-none text-lg">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">1. Selecione o Veículo</label>
+                    <select id="tag_select" onchange="verificarStatusTag()" class="w-full border-2 border-slate-100 rounded-2xl p-4 font-black text-blue-800 bg-slate-50 outline-none text-xl appearance-none">
                         <option value="" disabled selected>ESCOLHA A TAG...</option>
                         <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
                         <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
@@ -32,20 +47,26 @@
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="veiculo_input" readonly placeholder="VEÍCULO" class="bg-slate-50 border p-3 rounded-lg text-xs font-bold text-slate-500 text-center uppercase">
-                    <input type="text" id="placa_input" readonly placeholder="PLACA" class="bg-slate-50 border p-3 rounded-lg text-xs font-bold text-slate-500 text-center uppercase">
+                <div id="alerta-bloqueio" class="hidden bg-red-50 border-2 border-red-100 p-4 rounded-2xl text-center">
+                    <p class="text-red-600 font-black text-sm uppercase">⚠️ VEÍCULO EM TRÂNSITO</p>
+                    <p id="msg-bloqueio" class="text-[10px] text-red-400 font-bold uppercase"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl border text-center">
+                        <span class="block text-[8px] font-bold text-slate-400 uppercase">Fila de Hoje</span>
+                        <input type="text" id="id_condutor" readonly class="bg-transparent w-full text-center font-black text-blue-600 outline-none" value="---">
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border text-center">
+                        <span class="block text-[8px] font-bold text-slate-400 uppercase">Status Local</span>
+                        <div id="status-local" class="font-black text-[10px] text-slate-400 uppercase">Aguardando</div>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">IDENTIFICAÇÃO (AUTOMÁTICA)</label>
-                    <input type="text" id="id_condutor" readonly value="AGUARDANDO MOTORISTA" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-black bg-slate-50 text-blue-600 text-center outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">MOTORISTA</label>
-                    <select id="nome_condutor" onchange="validarMotorista()" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold bg-white outline-none">
-                        <option value="" disabled selected>Selecione o motorista...</option>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">2. Motorista Responsável</label>
+                    <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-2xl p-4 font-bold bg-white outline-none">
+                        <option value="" disabled selected>Quem está assumindo?</option>
                         <option value="ADRIANO NASCIMENTO">Adriano Nascimento</option>
                         <option value="FRACIVALDO COSTA">Fracivaldo Costa</option>
                         <option value="JOELCINEI GUIMARÃES">Joelcinei Guimarães</option>
@@ -57,71 +78,97 @@
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] font-bold text-green-600 uppercase mb-1">KM SAÍDA</label>
-                        <input type="tel" id="km_inicial" oninput="calcularTroca()" placeholder="000000" class="w-full border-2 border-green-100 rounded-xl p-3 text-xl font-black text-green-700 text-center outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">TIPO DE ÓLEO</label>
-                        <select id="tipo_oleo" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold uppercase outline-none">
-                            <option value="5w30">5w30</option><option value="5w40">5w40</option><option value="10w40">10w40</option>
-                            <option value="15w40" selected>15w40</option> <option value="20w50">20w50</option>
-                        </select>
-                    </div>
+                <div class="pt-4 space-y-3">
+                    <button id="btn-saida" onclick="enviar('inicio')" class="w-full bg-green-600 text-white font-black py-5 rounded-2xl shadow-lg uppercase tracking-widest disabled:opacity-30">Registrar Saída</button>
+                    <button id="btn-chegada" onclick="enviar('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl shadow-lg uppercase tracking-widest disabled:opacity-30">Registrar Chegada</button>
                 </div>
-
-                <div class="grid grid-cols-2 gap-2 border-t pt-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">PRÓX. TROCA KM</label>
-                        <input type="tel" id="km_troca" oninput="calcularTroca()" placeholder="000000" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-center outline-none">
-                    </div>
-                    <div class="flex flex-col justify-end">
-                        <label class="block text-[10px] font-bold text-blue-900 uppercase mb-1">RESTA</label>
-                        <div id="res_resta" class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center text-xs font-black text-blue-500 uppercase">--- KM</div>
-                    </div>
-                </div>
-
-                <button id="btn_enviar" onclick="enviarDados('inicio')" class="w-full bg-green-600 text-white font-black py-5 rounded-xl shadow-lg uppercase text-lg">Registrar Saída</button>
             </section>
         </div>
-        </div>
+    </div>
 
     <script>
-        const scriptURL = "SUA_URL_DO_SCRIPT";
-        const frota = { "TJUR 04": { v: "Sky munck", p: "QFA1I50" }, "TJUR 06": { v: "Saveiro furgão", p: "QUJ3E02" }, "TJUR 07": { v: "Sky munck", p: "RWR3C75" }, "TJUR 08": { v: "Caminhonete hilux", p: "QVE5H48" }, "TJUR 09": { v: "Sky munck", p: "RXC6J04" }, "TJUR 10": { v: "Caminhonete", p: "PHU1I37" }, "TJUR 13": { v: "Caminhonete", p: "QVD4I38" } };
+        const scriptURL = "SUA_URL_DO_SCRIPT_AQUI";
+        const tagsLista = ["TJUR 04", "TJUR 06", "TJUR 07", "TJUR 08", "TJUR 09", "TJUR 10", "TJUR 13"];
 
-        function preencherVeiculoPlaca() { 
-            const f = frota[document.getElementById('tag_select').value]; 
-            if(f) { 
-                document.getElementById('veiculo_input').value = f.v; 
-                document.getElementById('placa_input').value = f.p; 
-                validarMotorista(); // Revalida se mudar a tag
-            } 
+        async function atualizarPainel() {
+            const grid = document.getElementById('grid-painel');
+            try {
+                const res = await fetch(`${scriptURL}?acao=painelGeral`);
+                const status = await res.json();
+                grid.innerHTML = "";
+                
+                tagsLista.forEach(tag => {
+                    const isRunning = status[tag] === "Em Trânsito";
+                    grid.innerHTML += `
+                        <div class="flex items-center justify-between p-3 rounded-xl border ${isRunning ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}">
+                            <span class="font-black text-xs">${tag}</span>
+                            <span class="text-[9px] font-bold uppercase flex items-center ${isRunning ? 'text-red-600' : 'text-green-600'}">
+                                <span class="dot ${isRunning ? 'bg-running' : 'bg-free'}"></span>
+                                ${status[tag]}
+                            </span>
+                        </div>
+                    `;
+                });
+            } catch(e) { grid.innerHTML = "Erro ao carregar painel."; }
         }
 
-        async function validarMotorista() {
+        async function verificarStatusTag() {
             const tag = document.getElementById('tag_select').value;
-            const motorista = document.getElementById('nome_condutor').value;
+            const btnSaida = document.getElementById('btn-saida');
+            const btnChegada = document.getElementById('btn-chegada');
+            const alerta = document.getElementById('alerta-bloqueio');
             const campoID = document.getElementById('id_condutor');
-            
-            if (!tag || !motorista) return;
 
-            campoID.value = "VERIFICANDO...";
+            campoID.value = "...";
             
-            try {
-                // Faz uma chamada GET para o script pedindo o próximo ID para essa TAG hoje
-                const response = await fetch(`${scriptURL}?acao=verificarID&tag=${tag}&motorista=${motorista}`);
-                const data = await response.json();
-                
-                // O script deve retornar algo como { proximoID: "Condutor 2" }
-                campoID.value = data.proximoID;
-            } catch (e) {
-                campoID.value = "Condutor 1"; // Fallback caso dê erro
+            const res = await fetch(`${scriptURL}?acao=checarTag&tag=${tag}`);
+            const data = await res.json();
+
+            campoID.value = data.proximoID;
+
+            if (data.emTransito) {
+                btnSaida.disabled = true;
+                btnChegada.disabled = false;
+                alerta.classList.remove('hidden');
+                document.getElementById('msg-bloqueio').innerText = `Com: ${data.motoristaNaRua}`;
+                document.getElementById('status-local').innerText = "Ocupado";
+                document.getElementById('status-local').className = "font-black text-[10px] text-red-500 uppercase";
+            } else {
+                btnSaida.disabled = false;
+                btnChegada.disabled = true;
+                alerta.classList.add('hidden');
+                document.getElementById('status-local').innerText = "Livre";
+                document.getElementById('status-local').className = "font-black text-[10px] text-green-500 uppercase";
             }
         }
 
-        // Funções de calcularTroca e enviarDados permanecem as mesmas...
+        async function enviar(tipo) {
+            const motorista = document.getElementById('nome_condutor').value;
+            const tag = document.getElementById('tag_select').value;
+            if(!motorista || !tag) return alert("Selecione tudo!");
+
+            const btn = event.target;
+            btn.innerText = "PROCESSANDO...";
+            btn.disabled = true;
+
+            const payload = {
+                tipo: tipo,
+                data: new Date().toLocaleDateString('pt-BR'),
+                tag: tag,
+                id_motorista: document.getElementById('id_condutor').value,
+                nome: motorista,
+                hora_inicio: tipo === 'inicio' ? new Date().toLocaleTimeString('pt-BR') : "",
+                hora_fim: tipo === 'fim' ? new Date().toLocaleTimeString('pt-BR') : "",
+                veiculo: tag, // Simplificado para este exemplo
+                placa: "---",
+                obs: "REGISTRO VIA SISTEMA"
+            };
+
+            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload)});
+            
+            alert(`Registro de ${tipo === 'inicio' ? 'SAÍDA' : 'CHEGADA'} concluído!`);
+            location.reload();
+        }
     </script>
 </body>
 </html>
