@@ -4,165 +4,188 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Frota Telejur Intelligence</title>
+    <title>Telejur Frota Ultra - Selos</title>
+    <style>
+        .selo-preview { transition: all 0.3s ease; }
+    </style>
 </head>
-<body class="bg-slate-950 pb-10 font-sans text-slate-200" onload="verificarTrajetoEmAberto()">
+<body class="bg-slate-950 pb-10 font-sans text-slate-200">
 
     <div class="max-w-md mx-auto p-4">
-        <header class="py-8 text-center">
-            <h1 class="text-3xl font-black tracking-tighter text-blue-500 italic uppercase">Telejur <span class="text-white">Frota</span></h1>
-            <p class="text-[10px] text-slate-500 font-mono mt-2" id="live-clock"></p>
+        <header class="py-6 text-center">
+            <h1 class="text-2xl font-black text-blue-500 italic uppercase">Telejur <span class="text-white">Frota</span></h1>
+            <p id="clock" class="text-[9px] text-slate-500 font-mono"></p>
         </header>
 
-        <main class="bg-slate-900 rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 space-y-6">
+        <main class="bg-slate-900 rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 space-y-5">
             
-            <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Veículo (TAG)</label>
-                <select id="tag_select" onchange="consultarPlanilha()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-xl text-white outline-none focus:border-blue-600 appearance-none">
-                    <option value="" disabled selected>---</option>
-                    <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
-                    <option value="TJUR 07">TJUR 07</option><option value="TJUR 08">TJUR 08</option>
-                    <option value="TJUR 09">TJUR 09</option><option value="TJUR 10">TJUR 10</option>
-                    <option value="TJUR 13">TJUR 13</option>
-                </select>
-            </div>
-
-            <div id="status-container" class="grid grid-cols-2 gap-3 hidden">
-                <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 text-center">
-                    <span class="text-[9px] font-bold text-slate-500 uppercase">Sua Vez</span>
-                    <input type="text" id="id_condutor" readonly class="bg-transparent w-full text-center font-black text-blue-400 outline-none text-sm" value="---">
-                </div>
-                <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 text-center">
-                    <span class="text-[9px] font-bold text-slate-500 uppercase">Status</span>
-                    <div id="status_label" class="font-black text-[10px] mt-1 uppercase">...</div>
-                </div>
-            </div>
-
-            <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Motorista</label>
-                <select id="motorista" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-bold text-white outline-none">
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Operador</label>
+                <select id="motorista" onchange="checkBloqueio()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-bold text-white outline-none focus:border-blue-600">
                     <option value="" disabled selected>SELECIONE...</option>
-                    <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
-                    <option value="FRACIVALDO COSTA">FRACIVALDO COSTA</option>
-                    <option value="JOELCINEI GUIMARÃES">JOELCINEI GUIMARÃES</option>
+                    <optgroup label="AUTORIZADOS">
+                        <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
+                        <option value="LAFAIETE BATISTA">LAFAIETE BATISTA</option>
+                        <option value="REGINALDO PEREIRA">REGINALDO PEREIRA</option>
+                    </optgroup>
+                    <optgroup label="RESTRITOS">
+                        <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
+                        <option value="FRACIVALDO COSTA">FRACIVALDO COSTA</option>
+                        <option value="FRACINILDO TEIXEIRA">FRACINILDO TEIXEIRA</option>
+                        <option value="JOELCINEI GUIMARÃES">JOELCINEI GUIMARÃES</option>
+                    </optgroup>
                 </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-2">KM Atual</label>
-                    <input type="tel" id="km_atual" oninput="atualizarOleo()" placeholder="0" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-2">Troca Óleo</label>
-                    <input type="tel" id="km_troca" oninput="atualizarOleo()" placeholder="0" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none">
-                </div>
+            <div id="msg_bloqueio" class="hidden bg-red-600/10 border border-red-500 p-4 rounded-2xl text-center text-red-500 font-bold text-[10px] uppercase">
+                Acesso Restrito: Motorista não autorizado.
             </div>
 
-            <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl text-center">
-                <span class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Saldo de Óleo</span>
-                <div id="km_restante" class="text-2xl font-black text-white">--- KM</div>
-            </div>
+            <div id="area_operacional" class="space-y-5">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Veículo</label>
+                    <select id="tag_select" onchange="atualizarInterface()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none">
+                        <option value="" disabled selected>ESCOLHA A TAG...</option>
+                        <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
+                        <option value="TJUR 13">TJUR 13</option>
+                    </select>
+                </div>
 
-            <div class="grid grid-cols-1 gap-3 pt-2">
-                <button id="btn_saida" onclick="registrar('EM TRÂNSITO')" disabled class="w-full bg-green-600 disabled:hidden font-black py-5 rounded-2xl shadow-xl uppercase transition-all">Iniciar Trajeto</button>
-                <button id="btn_chegada" onclick="registrar('CONCLUÍDO')" disabled class="w-full bg-blue-600 disabled:hidden font-black py-5 rounded-2xl shadow-xl uppercase transition-all">Finalizar Trajeto</button>
+                <div id="painel_info" class="hidden grid grid-cols-2 gap-2 bg-black/40 p-3 rounded-2xl border border-slate-800 text-center">
+                    <div><span class="text-[8px] text-slate-500 block uppercase">Fila</span><b id="id_display" class="text-blue-400">---</b></div>
+                    <div><span class="text-[8px] text-slate-500 block uppercase">Status</span><b id="status_msg" class="text-xs uppercase">---</b></div>
+                </div>
+
+                <div id="form_saida" class="hidden space-y-4 border-t border-slate-800 pt-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="tel" id="km_ini" placeholder="KM Inicial" class="bg-slate-800 border-2 border-slate-700 rounded-xl p-3 font-black text-white text-center">
+                        <input type="tel" id="km_troca" placeholder="Troca Óleo" class="bg-slate-800 border-2 border-slate-700 rounded-xl p-3 font-black text-white text-center">
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <p class="text-[9px] font-bold text-slate-500 uppercase text-center">Identificação do Selo Anual</p>
+                        <div class="flex items-center gap-3">
+                            <div id="selo_preview" class="w-12 h-12 rounded-full border-4 border-slate-700 bg-slate-800 flex items-center justify-center text-[10px] font-black text-white shadow-lg">SELO</div>
+                            <select id="selo_cor" onchange="updateSeloUI()" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs font-bold text-white">
+                                <option value="BRANCO">BRANCO</option>
+                                <option value="VERDE">VERDE</option>
+                                <option value="AMARELO">AMARELO</option>
+                                <option value="AZUL">AZUL</option>
+                                <option value="VERMELHO">VERMELHO</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-bold text-slate-500 uppercase ml-1">Validade do Selo (Calendário)</label>
+                            <input type="date" id="selo_data" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white text-xs font-bold">
+                        </div>
+                    </div>
+                    
+                    <button onclick="enviar('EM TRÂNSITO', true)" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-xl uppercase text-xs flex items-center justify-center gap-2">
+                        Iniciar e Enviar Relatório 📱
+                    </button>
+                    <button onclick="enviar('EM TRÂNSITO', false)" class="w-full text-slate-500 font-bold py-2 text-[10px] uppercase tracking-widest">Apenas Salvar no Sistema</button>
+                </div>
+
+                <div id="form_chegada" class="hidden space-y-4 border-t border-slate-800 pt-4">
+                    <input type="tel" id="km_fim" placeholder="KM FINAL" class="w-full bg-slate-800 border-2 border-blue-500 rounded-2xl p-5 font-black text-white text-center text-3xl outline-none">
+                    <button onclick="enviar('CONCLUÍDO', true)" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-xl uppercase text-xs flex items-center justify-center gap-2 italic">
+                        Finalizar e Enviar WhatsApp 📱
+                    </button>
+                    <button onclick="enviar('CONCLUÍDO', false)" class="w-full text-slate-500 font-bold py-2 text-[10px] uppercase tracking-widest">Apenas Salvar no Sistema</button>
+                </div>
             </div>
         </main>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
+        const API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
 
-        // VERIFICA SE EXISTE UM TRAJETO SALVO NO CELULAR AO ABRIR O SITE
-        function verificarTrajetoEmAberto() {
-            const salvo = localStorage.getItem('trajeto_telejur');
-            if (salvo) {
-                const dados = JSON.parse(salvo);
-                document.getElementById('tag_select').value = dados.tag;
-                document.getElementById('motorista').value = dados.nome;
-                document.getElementById('km_atual').value = dados.km;
-                document.getElementById('km_troca').value = dados.km_troca || "";
-                consultarPlanilha(); // Atualiza a fila e os botões
-            }
+        function checkBloqueio() {
+            const motorista = document.getElementById('motorista').value;
+            const restritos = ["ADRIANO NASCIMENTO", "FRACIVALDO COSTA", "FRACINILDO TEIXEIRA", "JOELCINEI GUIMARÃES"];
+            const isRestrito = restritos.includes(motorista);
+            document.getElementById('msg_bloqueio').classList.toggle('hidden', !isRestrito);
+            document.getElementById('area_operacional').classList.toggle('hidden', isRestrito);
+            if(!isRestrito) atualizarInterface();
         }
 
-        async function consultarPlanilha() {
+        function updateSeloUI() {
+            const cor = document.getElementById('selo_cor').value;
+            const preview = document.getElementById('selo_preview');
+            const cores = {
+                'BRANCO': '#FFFFFF', 'VERDE': '#22C55E', 'AMARELO': '#EAB308',
+                'AZUL': '#3B82F6', 'VERMELHO': '#EF4444'
+            };
+            preview.style.backgroundColor = cores[cor];
+            preview.style.color = cor === 'BRANCO' || cor === 'AMARELO' ? 'black' : 'white';
+        }
+
+        async function atualizarInterface() {
             const tag = document.getElementById('tag_select').value;
-            const label = document.getElementById('status_label');
-            const container = document.getElementById('status-container');
-            
-            container.classList.remove('hidden');
-            label.innerText = "VERIFICANDO...";
+            const motorista = document.getElementById('motorista').value;
+            if(!tag || !motorista) return;
+
+            document.getElementById('painel_info').classList.remove('hidden');
+            document.getElementById('status_msg').innerText = "SINCRONIZANDO...";
 
             try {
-                const res = await fetch(`${API_URL}?acao=checarStatus&tag=${tag}`);
+                const res = await fetch(`${API}?acao=checarStatus&tag=${tag}&motorista=${motorista}`);
                 const data = await res.json();
-                document.getElementById('id_condutor').value = data.proximoID;
+                document.getElementById('id_display').innerText = data.proximoID;
 
                 if (data.bloqueado) {
-                    label.innerText = "OCUPADO POR " + data.quem;
-                    label.className = "font-black text-[10px] mt-1 text-red-500 animate-pulse";
-                    document.getElementById('btn_saida').disabled = true;
-                    document.getElementById('btn_chegada').disabled = false;
+                    document.getElementById('status_msg').innerText = "OCUPADO";
+                    document.getElementById('form_saida').classList.add('hidden');
+                    document.getElementById('form_chegada').classList.remove('hidden');
                 } else {
-                    label.innerText = "LIBERADO";
-                    label.className = "font-black text-[10px] mt-1 text-green-500";
-                    document.getElementById('btn_saida').disabled = false;
-                    document.getElementById('btn_chegada').disabled = true;
+                    document.getElementById('status_msg').innerText = "LIBERADO";
+                    document.getElementById('form_saida').classList.remove('hidden');
+                    document.getElementById('form_chegada').classList.add('hidden');
                 }
-                atualizarOleo();
             } catch (e) { console.log(e); }
         }
 
-        function atualizarOleo() {
-            const atual = parseInt(document.getElementById('km_atual').value) || 0;
-            const troca = parseInt(document.getElementById('km_troca').value) || 0;
-            const resta = troca - atual;
-            const display = document.getElementById('km_restante');
-            display.innerText = troca > 0 ? (resta <= 0 ? "VENCIDO!" : resta.toLocaleString() + " KM") : "--- KM";
-        }
-
-        async function registrar(status) {
+        async function enviar(status, viaWhatsapp) {
+            const btn = event.target;
             const tag = document.getElementById('tag_select').value;
             const motorista = document.getElementById('motorista').value;
-            const km = document.getElementById('km_atual').value;
-            const km_troca = document.getElementById('km_troca').value;
+            const selo_cor = document.getElementById('selo_cor').value;
+            const selo_data = document.getElementById('selo_data').value;
+            const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+            const km = status === "EM TRÂNSITO" ? document.getElementById('km_ini').value : document.getElementById('km_fim').value;
 
-            const btn = event.target;
-            btn.innerText = "GRAVANDO...";
-            btn.disabled = true;
+            btn.disabled = true; btn.innerText = "GRAVANDO...";
 
             const payload = {
-                data: new Date().toLocaleDateString('pt-BR'),
-                tag: tag,
-                id_motorista: document.getElementById('id_condutor').value,
-                nome: motorista,
-                km: km,
-                hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-                resta_troca: document.getElementById('km_restante').innerText,
-                status: status,
-                obs: status === "CONCLUÍDO" ? "Fim do trajeto" : "Início do trajeto"
+                data: dataHoje, tag, id_motorista: document.getElementById('id_display').innerText,
+                nome: motorista, km, hora, selo_cor, selo_data, status,
+                obs: status === "EM TRÂNSITO" ? "Saída" : "Chegada"
             };
 
             try {
-                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload)});
+                await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload)});
                 
-                if (status === "EM TRÂNSITO") {
-                    // SALVA NA MEMÓRIA DO CELULAR
-                    localStorage.setItem('trajeto_telejur', JSON.stringify({tag, nome: motorista, km, km_troca}));
-                    alert("TRAJETO INICIADO! O sistema manterá seus dados até você finalizar.");
-                    location.reload();
-                } else {
-                    // LIMPA A MEMÓRIA AO FINALIZAR
-                    localStorage.removeItem('trajeto_telejur');
-                    alert("TRAJETO FINALIZADO COM SUCESSO!");
-                    location.reload();
+                if (viaWhatsapp) {
+                    const dataFormatada = selo_data ? selo_data.split('-').reverse().join('/') : "N/I";
+                    const msg = window.encodeURIComponent(
+                        `*TELEJUR FROTA - RELATÓRIO*\n\n` +
+                        `🔹 *Status:* ${status}\n` +
+                        `👤 *Motorista:* ${motorista}\n` +
+                        `🚗 *Veículo:* ${tag} (${payload.id_motorista})\n` +
+                        `🛣️ *KM:* ${km}\n` +
+                        `🕒 *Hora:* ${hora}\n` +
+                        `🎨 *Cor do Selo:* ${selo_cor}\n` +
+                        `📅 *Vencimento:* ${dataFormatada}`
+                    );
+                    window.open(`https://wa.me/?text=${msg}`, '_blank');
                 }
-            } catch (e) { alert("Erro ao salvar."); btn.disabled = false; }
+                alert("Salvo!");
+                location.reload();
+            } catch (e) { alert("Erro!"); btn.disabled = false; }
         }
 
-        setInterval(() => { document.getElementById('live-clock').innerText = new Date().toLocaleString('pt-BR'); }, 1000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString(); }, 1000);
     </script>
 </body>
 </html>
