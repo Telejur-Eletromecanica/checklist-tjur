@@ -9,17 +9,14 @@
 <body class="bg-slate-100 pb-10 font-sans text-slate-800">
 
     <header class="bg-blue-800 text-white shadow-lg sticky top-0 z-50">
-        <div class="p-4 text-center border-b border-blue-700">
-            <h1 class="font-bold text-lg uppercase tracking-wider">Frota Telejur</h1>
-        </div>
+        <div class="p-4 text-center border-b border-blue-700"><h1 class="font-bold text-lg uppercase">Frota Telejur</h1></div>
         <div class="flex justify-around bg-blue-900">
-            <button onclick="mudarTela('saida')" id="btn-saida" class="w-1/2 py-3 font-bold uppercase text-[10px] border-b-4 border-white">1. SAÍDA</button>
-            <button onclick="mudarTela('retorno')" id="btn-retorno" class="w-1/2 py-3 font-bold uppercase text-[10px] opacity-60">2. CHEGADA</button>
+            <button onclick="mudarTela('saida')" id="btn-saida" class="w-1/2 py-3 font-bold text-[10px] border-b-4 border-white">1. SAÍDA</button>
+            <button onclick="mudarTela('retorno')" id="btn-retorno" class="w-1/2 py-3 font-bold text-[10px] opacity-60">2. CHEGADA</button>
         </div>
     </header>
 
     <div class="max-w-md mx-auto p-4 space-y-4">
-        
         <div id="tela-saida" class="space-y-4">
             <section class="bg-white rounded-2xl shadow-sm border p-5 space-y-4">
                 <div>
@@ -32,25 +29,21 @@
                         <option value="TJUR 13">TJUR 13</option>
                     </select>
                 </div>
-
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="veiculo_input" readonly placeholder="VEÍCULO" class="bg-slate-50 border p-3 rounded-lg text-xs font-bold text-center uppercase text-slate-500">
-                    <input type="text" id="placa_input" readonly placeholder="PLACA" class="bg-slate-50 border p-3 rounded-lg text-xs font-bold text-center uppercase text-slate-500">
+                    <input type="text" id="veiculo_input" readonly placeholder="VEÍCULO" class="bg-slate-50 border p-3 rounded-lg text-xs font-bold text-center uppercase">
+                    <input type="text" id="placa_input" readonly placeholder="PLACA" class="bg-slate-50 border p-3 rounded-lg text-xs font-bold text-center uppercase">
                 </div>
-
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">IDENTIFICAÇÃO DO TRAJETO</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">IDENTIFICAÇÃO</label>
                     <input type="text" id="id_condutor" readonly class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-black bg-slate-50 text-blue-600 text-center" value="Selecione a TAG...">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">MOTORISTA</label>
-                    <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold bg-white">
+                    <select id="nome_condutor" class="w-full border-2 border-slate-100 rounded-xl p-3 text-sm font-bold">
                         <option value="" disabled selected>Selecione...</option>
                         <option>ADRIANO NASCIMENTO</option><option>FRACIVALDO COSTA</option><option>JOELCINEI GUIMARÃES</option><option>FRACINILDO TEIXEIRA</option><option>EZEQUIEL SILVA</option><option>REGINALDO PEREIRA</option><option>LAFAIETE BATISTA</option><option>WALTER GONÇALVES</option>
                     </select>
                 </div>
-
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[10px] font-bold text-green-600 uppercase mb-1">KM SAÍDA</label>
@@ -63,19 +56,16 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-2 border-t pt-4">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">PRÓX. TROCA</label>
                         <input type="tel" id="km_troca" oninput="calcular()" placeholder="159250" class="w-full border-2 border-slate-100 rounded-xl p-3 text-xl font-bold text-center">
                     </div>
                     <div class="flex flex-col justify-end">
-                        <label class="block text-[10px] font-bold text-blue-900 uppercase mb-1">RESTA</label>
                         <div id="res_resta" class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center text-xs font-black text-blue-500 uppercase">--- KM</div>
                     </div>
                 </div>
-
-                <button id="btn_enviar" onclick="enviar('inicio')" disabled class="w-full bg-slate-400 text-white font-black py-5 rounded-xl uppercase text-lg transition-all">Registrar Saída</button>
+                <button id="btn_enviar" onclick="enviar('inicio')" disabled class="w-full bg-slate-400 text-white font-black py-5 rounded-xl uppercase text-lg">Registrar Saída</button>
             </section>
         </div>
 
@@ -83,138 +73,73 @@
             <section class="bg-white rounded-2xl shadow-md border p-5 space-y-4">
                 <label class="block text-[10px] font-bold text-blue-700 uppercase text-center">KM CHEGADA</label>
                 <input type="tel" id="km_final" oninput="calcular()" placeholder="000000" class="w-full border-2 border-blue-100 rounded-xl p-4 text-4xl font-black text-center">
-                <div class="bg-blue-50 p-4 rounded-xl text-center">
-                    <div id="res_resta_fim" class="text-xl font-black text-blue-600 uppercase">--- KM</div>
-                </div>
+                <div id="res_resta_fim" class="bg-blue-50 p-4 rounded-xl text-center text-xl font-black text-blue-600 uppercase">--- KM</div>
                 <textarea id="obs" placeholder="OBSERVAÇÕES..." class="w-full border rounded-xl p-4 text-sm h-32 bg-slate-50 uppercase"></textarea>
-                <button id="btn_finalizar" onclick="enviar('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl uppercase text-lg">Finalizar Trajeto</button>
+                <button id="btn_finalizar" onclick="enviar('fim')" class="w-full bg-blue-800 text-white font-black py-5 rounded-2xl uppercase text-lg">Finalizar</button>
             </section>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO ---
-        const scriptURL = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec"; 
-        const frota = { 
-            "TJUR 04": ["Sky munck", "QFA1I50"], 
-            "TJUR 06": ["Saveiro furgão", "QUJ3E02"], 
-            "TJUR 07": ["Sky munck", "RWR3C75"], 
-            "TJUR 08": ["Caminhonete hilux", "QVE5H48"], 
-            "TJUR 09": ["Sky munck", "RXC6J04"], 
-            "TJUR 10": ["Caminhonete", "PHU1I37"], 
-            "TJUR 13": ["Caminhonete", "QVD4I38"] 
-        };
+        // COLE AQUI A URL DO SEU GOOGLE SCRIPT APÓS O DEPLOY
+        const scriptURL = "SUA_NOVA_URL_AQUI"; 
+        
+        const frota = { "TJUR 04": ["Sky munck", "QFA1I50"], "TJUR 06": ["Saveiro furgão", "QUJ3E02"], "TJUR 07": ["Sky munck", "RWR3C75"], "TJUR 08": ["Caminhonete hilux", "QVE5H48"], "TJUR 09": ["Sky munck", "RXC6J04"], "TJUR 10": ["Caminhonete", "PHU1I37"], "TJUR 13": ["Caminhonete", "QVD4I38"] };
 
         function mudarTela(t) { 
             document.getElementById('tela-saida').classList.toggle('hidden', t !== 'saida'); 
             document.getElementById('tela-retorno').classList.toggle('hidden', t !== 'retorno'); 
-            document.getElementById('btn-saida').classList.toggle('border-white', t === 'saida');
             document.getElementById('btn-saida').classList.toggle('opacity-60', t !== 'saida');
-            document.getElementById('btn-retorno').classList.toggle('border-white', t === 'retorno');
             document.getElementById('btn-retorno').classList.toggle('opacity-60', t !== 'retorno');
-            if(t === 'retorno') document.getElementById('btn-retorno').classList.add('border-b-4');
-            else document.getElementById('btn-retorno').classList.remove('border-b-4');
         }
 
         async function verificarStatus() {
             const tag = document.getElementById('tag_select').value;
             const idCampo = document.getElementById('id_condutor');
             const btn = document.getElementById('btn_enviar');
-
-            // Preenche info do veículo
             document.getElementById('veiculo_input').value = frota[tag][0];
             document.getElementById('placa_input').value = frota[tag][1];
-            
-            idCampo.value = "VERIFICANDO...";
-            idCampo.classList.remove('text-red-600', 'text-blue-600');
-            btn.disabled = true;
-            btn.classList.replace('bg-green-600', 'bg-slate-400');
-
+            idCampo.value = "BUSCANDO..."; btn.disabled = true;
             try {
-                const response = await fetch(`${scriptURL}?tag=${encodeURIComponent(tag)}&_=${new Date().getTime()}`);
-                const data = await response.json();
-
-                if (data.ocupado) {
-                    alert(`⚠️ VEÍCULO BLOQUEADO!\nA TAG ${tag} está em uso por: ${data.motoristaAtual.toUpperCase()}.`);
-                    idCampo.value = "TAG EM USO";
-                    idCampo.classList.add('text-red-600');
+                const r = await fetch(`${scriptURL}?tag=${encodeURIComponent(tag)}&_=${new Date().getTime()}`);
+                const d = await r.json();
+                if (d.ocupado) {
+                    alert(`BLOQUEIO: ${tag} está com ${d.motoristaAtual}.`);
+                    idCampo.value = "TAG EM USO"; btn.classList.replace('bg-green-600', 'bg-slate-400');
                 } else {
-                    idCampo.value = data.sugestaoId; // Ex: Condutor 1
-                    idCampo.classList.add('text-blue-600');
-                    btn.disabled = false;
-                    btn.classList.replace('bg-slate-400', 'bg-green-600');
+                    idCampo.value = d.sugestaoId; btn.disabled = false; btn.classList.replace('bg-slate-400', 'bg-green-600');
                 }
-            } catch (e) {
-                idCampo.value = "ERRO DE CONEXÃO";
-                alert("Erro ao consultar a planilha. Verifique a internet.");
-            }
+            } catch (e) { idCampo.value = "ERRO CONEXÃO"; }
         }
 
         function calcular() {
             const limpar = (id) => parseInt(document.getElementById(id).value.replace(/\D/g, '')) || 0;
-            const ini = limpar('km_inicial'); 
-            const fim = limpar('km_final'); 
+            const ref = limpar('km_final') > 0 ? limpar('km_final') : limpar('km_inicial');
             const tro = limpar('km_troca');
-            
-            const ref = fim > 0 ? fim : ini;
             if (ref > 0 && tro > 0) {
-                const r = tro - ref;
-                const txt = r <= 0 ? "VENCIDO!" : r + " KM";
-                document.getElementById('res_resta').innerText = txt;
-                document.getElementById('res_resta_fim').innerText = txt;
+                const r = tro - ref; const txt = r <= 0 ? "VENCIDO!" : r + " KM";
+                document.getElementById('res_resta').innerText = txt; document.getElementById('res_resta_fim').innerText = txt;
             }
         }
 
         async function enviar(tipo) {
-            const btn = tipo === 'inicio' ? document.getElementById('btn_enviar') : document.getElementById('btn_finalizar');
-            const motorista = document.getElementById('nome_condutor').value;
-
-            if (tipo === 'inicio' && !motorista) {
-                alert("Por favor, selecione o MOTORISTA.");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "ENVIANDO...";
-
-            const agora = new Date();
-            const hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            
+            const btn = event.target; btn.disabled = true; btn.innerText = "ENVIANDO...";
+            const agora = new Date(); const hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             const dados = {
-                tipo: tipo,
-                data: agora.toLocaleDateString('pt-BR'),
-                tag: document.getElementById('tag_select').value, 
-                id_motorista: document.getElementById('id_condutor').value,
-                nome: motorista.toUpperCase(), 
-                km_inicial: document.getElementById('km_inicial').value.replace(/\D/g, ''),
-                km_final: document.getElementById('km_final').value.replace(/\D/g, ''), 
-                hora_inicio: tipo === 'inicio' ? hora : "",
-                hora_fim: tipo === 'fim' ? hora : "",
-                veiculo: document.getElementById('veiculo_input').value.toUpperCase(), 
-                placa: document.getElementById('placa_input').value.toUpperCase(),
-                tipo_oleo: document.getElementById('tipo_oleo').value, 
-                prox_oleo: document.getElementById('km_troca').value.replace(/\D/g, ''),
-                resta_troca: document.getElementById('res_resta').innerText,
-                obs: document.getElementById('obs').value.toUpperCase() || "S/O"
+                tipo: tipo, data: agora.toLocaleDateString('pt-BR'), tag: document.getElementById('tag_select').value, 
+                id_motorista: document.getElementById('id_condutor').value, nome: document.getElementById('nome_condutor').value.toUpperCase(), 
+                km_inicial: document.getElementById('km_inicial').value.replace(/\D/g, ''), km_final: document.getElementById('km_final').value.replace(/\D/g, ''), 
+                hora_inicio: tipo === 'inicio' ? hora : "", hora_fim: tipo === 'fim' ? hora : "", 
+                veiculo: document.getElementById('veiculo_input').value, placa: document.getElementById('placa_input').value, 
+                tipo_oleo: document.getElementById('tipo_oleo').value, prox_oleo: document.getElementById('km_troca').value.replace(/\D/g, ''), 
+                resta_troca: document.getElementById('res_resta').innerText, obs: document.getElementById('obs').value.toUpperCase() || "S/O"
             };
-
             try {
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados)});
-                
-                // Formata mensagem WhatsApp
-                const zapMsg = `🚀 *TRAJETO: ${tipo === 'inicio' ? 'SAÍDA' : 'CHEGADA'}*\n👤 *MOTORISTA:* ${dados.nome}\n🆔 *${dados.id_motorista}*\n🏷️ *TAG:* ${dados.tag}\n📍 *KM:* ${tipo === 'inicio' ? dados.km_inicial : dados.km_final}\n⚠️ *RESTA:* ${dados.resta_troca}`;
-                
-                window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(zapMsg)}`);
-                
-                alert("Registro salvo com sucesso!");
-                if(tipo === 'fim') location.reload(); 
-                else mudarTela('retorno');
-
-            } catch(e) {
-                alert("Erro ao salvar! Tente novamente.");
-                btn.disabled = false;
-                btn.innerText = tipo === 'inicio' ? "Registrar Saída" : "Finalizar Trajeto";
-            }
+                const zap = `🚀 *TRAJETO: ${tipo === 'inicio' ? 'SAÍDA' : 'CHEGADA'}*\n👤 *MOTORISTA:* ${dados.nome}\n🆔 *${dados.id_motorista}*\n🏷️ *TAG:* ${dados.tag}\n📍 *KM:* ${tipo === 'inicio' ? dados.km_inicial : dados.km_final}\n⚠️ *RESTA:* ${dados.resta_troca}`;
+                window.open(`https://wa.me/5593981162453?text=${encodeURIComponent(zap)}`);
+                if(tipo === 'fim') location.reload(); else mudarTela('retorno');
+            } catch(e) { alert("Erro!"); btn.disabled = false; }
         }
     </script>
 </body>
