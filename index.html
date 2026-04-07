@@ -102,7 +102,7 @@
             const idC = document.getElementById('id_condutor');
             const btn = document.getElementById('btn_enviar');
             if(!tag) return;
-            idC.value = "CHOCANDO DADOS...";
+            idC.value = "CHECANDO DADOS...";
             try {
                 const r = await fetch(`${scriptURL}?tag=${encodeURIComponent(tag)}&_=${new Date().getTime()}`);
                 const d = await r.json();
