@@ -4,22 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Telejur Frota - Inteligente</title>
+    <title>Telejur Frota - Trajeto</title>
 </head>
-<body class="bg-slate-950 pb-10 font-sans text-slate-200">
+<body class="bg-slate-950 pb-10 font-sans text-slate-200" onload="verificarEstado()">
 
     <div class="max-w-md mx-auto p-4">
-        <header class="py-6 text-center border-b border-slate-800 mb-6">
+        <header class="py-6 text-center">
             <h1 class="text-2xl font-black text-blue-500 italic uppercase">Telejur <span class="text-white">Frota</span></h1>
+            <div id="indicador_etapa" class="mt-2 inline-block px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-slate-800 text-slate-400">
+                Aguardando Início
+            </div>
         </header>
 
         <main class="space-y-6">
             
             <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
-                <div>
+                <div id="selecao_veiculo">
                     <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Selecione a TAG</label>
-                    <select id="tag_select" onchange="autocompletarVeiculo()" class="w-full bg-slate-800 border-2 border-blue-600 rounded-xl p-4 text-xl font-black text-white outline-none">
-                        <option value="" disabled selected>ESCOLHA A TAG</option>
+                    <select id="tag_select" onchange="autocompletarVeiculo()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-xl font-black text-white outline-none focus:border-blue-600">
+                        <option value="" disabled selected>ESCOLHA...</option>
                         <option value="TJUR 04">TJUR 04</option>
                         <option value="TJUR 06">TJUR 06</option>
                         <option value="TJUR 07">TJUR 07</option>
@@ -31,34 +34,18 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800">
+                    <div class="bg-black/30 p-3 rounded-xl border border-slate-800">
                         <label class="text-[8px] font-bold text-slate-500 uppercase block">Veículo</label>
-                        <input type="text" id="veiculo_auto" readonly class="bg-transparent w-full text-sm font-bold text-slate-300 outline-none" placeholder="---">
+                        <input type="text" id="veiculo_auto" readonly class="bg-transparent w-full text-xs font-bold text-slate-400 outline-none">
                     </div>
-                    <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800">
+                    <div class="bg-black/30 p-3 rounded-xl border border-slate-800">
                         <label class="text-[8px] font-bold text-slate-500 uppercase block">Placa</label>
-                        <input type="text" id="placa_auto" readonly class="bg-transparent w-full text-sm font-black text-blue-400 outline-none uppercase" placeholder="---">
+                        <input type="text" id="placa_auto" readonly class="bg-transparent w-full text-xs font-black text-blue-400 outline-none">
                     </div>
                 </div>
-            </section>
 
-            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Data</label>
-                        <input type="date" id="data_ref" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">ID Fila</label>
-                        <select id="id_condutor" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-blue-400 outline-none">
-                            <option value="Condutor 1">Condutor 1</option>
-                            <option value="Condutor 2">Condutor 2</option>
-                            <option value="Condutor 3">Condutor 3</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Motorista Responsável</label>
+                <div id="selecao_motorista">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Motorista</label>
                     <select id="motorista" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
                         <option value="" disabled selected>QUEM É VOCÊ?</option>
                         <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
@@ -69,31 +56,41 @@
                 </div>
             </section>
 
-            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">KM Início</label>
-                        <input type="tel" id="km_inicio" placeholder="000000" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-lg font-black text-white text-center outline-none focus:border-green-500">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">KM Final</label>
-                        <input type="tel" id="km_final" placeholder="000000" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-lg font-black text-white text-center outline-none focus:border-blue-500">
-                    </div>
+            <section id="sessao_inicio" class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
+                <h2 class="text-xs font-black text-green-500 uppercase flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Saída de Garagem
+                </h2>
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">KM Inicial</label>
+                    <input type="tel" id="km_inicio" placeholder="000.000" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-2xl font-black text-white text-center outline-none focus:border-green-500">
                 </div>
-                <div class="bg-slate-950/30 p-4 rounded-2xl border border-slate-800">
-                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Manutenção de Óleo (15W40)</label>
-                    <input type="tel" id="km_troca" placeholder="Próxima Troca (KM)" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-orange-400 outline-none text-center">
-                </div>
+                <button onclick="iniciarTrajeto()" class="w-full bg-green-600 hover:bg-green-500 text-white font-black py-5 rounded-2xl shadow-lg uppercase tracking-tighter transition-all">
+                    Gravar Saída
+                </button>
             </section>
 
-            <button onclick="enviarRelatorio()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl shadow-2xl uppercase tracking-widest transition-all">
-                Enviar Relatório WhatsApp
-            </button>
+            <section id="sessao_fim" class="hidden bg-slate-900 rounded-3xl p-5 border-2 border-blue-600 shadow-2xl space-y-4">
+                <h2 class="text-xs font-black text-blue-500 uppercase flex items-center gap-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Retorno / Finalização
+                </h2>
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">KM Final</label>
+                    <input type="tel" id="km_final" placeholder="000.000" class="w-full bg-slate-800 border-2 border-blue-500 rounded-xl p-4 text-2xl font-black text-white text-center outline-none focus:border-white">
+                </div>
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Observações</label>
+                    <textarea id="obs" rows="2" placeholder="Ex: Luz do óleo acesa..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-slate-300 outline-none"></textarea>
+                </div>
+                <button onclick="finalizarTrajeto()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl shadow-lg uppercase tracking-tighter transition-all">
+                    Finalizar e Enviar WhatsApp
+                </button>
+                <button onclick="cancelarTrajeto()" class="w-full text-red-500 text-[10px] font-bold uppercase mt-2">Cancelar/Reiniciar</button>
+            </section>
+
         </main>
     </div>
 
     <script>
-        // BANCO DE DADOS BASEADO NA IMAGEM QUE VOCÊ ENVIOU
         const frota = {
             "TJUR 04": { veiculo: "SKY MUNCK", placa: "QFA1I50" },
             "TJUR 06": { veiculo: "SAVEIRO FURGÃO", placa: "QUJ3E02" },
@@ -107,35 +104,93 @@
         function autocompletarVeiculo() {
             const tag = document.getElementById('tag_select').value;
             const info = frota[tag];
-
             if (info) {
                 document.getElementById('veiculo_auto').value = info.veiculo;
                 document.getElementById('placa_auto').value = info.placa;
             }
         }
 
-        // Define a data de hoje automaticamente
-        document.getElementById('data_ref').valueAsDate = new Date();
-
-        function enviarRelatorio() {
+        // SALVA O INÍCIO E MUDA A TELA
+        function iniciarTrajeto() {
             const tag = document.getElementById('tag_select').value;
-            const veiculo = document.getElementById('veiculo_auto').value;
-            const placa = document.getElementById('placa_auto').value;
             const motorista = document.getElementById('motorista').value;
             const kmIni = document.getElementById('km_inicio').value;
+
+            if(!tag || !motorista || !kmIni) return alert("Preencha todos os campos de saída!");
+
+            const dados = {
+                tag, motorista, kmIni, 
+                veiculo: document.getElementById('veiculo_auto').value,
+                placa: document.getElementById('placa_auto').value,
+                horaIni: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
+            };
+
+            localStorage.setItem('trajeto_em_andamento', JSON.stringify(dados));
+            verificarEstado();
+            alert("Trajeto Iniciado com Sucesso!");
+        }
+
+        // VERIFICA SE HÁ ALGO SALVO NO CELULAR
+        function verificarEstado() {
+            const salvo = localStorage.getItem('trajeto_em_andamento');
+            const indicador = document.getElementById('indicador_etapa');
+            
+            if (salvo) {
+                const d = JSON.parse(salvo);
+                // Preenche e bloqueia os campos que já foram decididos
+                document.getElementById('tag_select').value = d.tag;
+                document.getElementById('tag_select').disabled = true;
+                document.getElementById('veiculo_auto').value = d.veiculo;
+                document.getElementById('placa_auto').value = d.placa;
+                document.getElementById('motorista').value = d.motorista;
+                document.getElementById('motorista').disabled = true;
+                document.getElementById('km_inicio').value = d.kmIni;
+                document.getElementById('km_inicio').disabled = true;
+
+                // Troca as telas
+                document.getElementById('sessao_inicio').classList.add('hidden');
+                document.getElementById('sessao_fim').classList.remove('hidden');
+                indicador.innerText = "Em Trânsito";
+                indicador.className = "mt-2 inline-block px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-blue-900 text-blue-300";
+            } else {
+                // Reset para início
+                document.getElementById('tag_select').disabled = false;
+                document.getElementById('motorista').disabled = false;
+                document.getElementById('sessao_inicio').classList.remove('hidden');
+                document.getElementById('sessao_fim').classList.add('hidden');
+                indicador.innerText = "Aguardando Início";
+                indicador.className = "mt-2 inline-block px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-slate-800 text-slate-400";
+            }
+        }
+
+        function finalizarTrajeto() {
+            const salvo = JSON.parse(localStorage.getItem('trajeto_em_andamento'));
             const kmFim = document.getElementById('km_final').value;
+            const obs = document.getElementById('obs').value;
+            const horaFim = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
-            if(!tag || !motorista) return alert("Selecione a TAG e o Motorista!");
+            if(!kmFim) return alert("Informe o KM Final!");
 
-            const texto = encodeURIComponent(
-                `*RELATÓRIO TELEJUR FROTA*\n\n` +
-                `🚗 *Veículo:* ${veiculo} (${tag})\n` +
-                `🔢 *Placa:* ${placa}\n` +
-                `👤 *Motorista:* ${motorista}\n` +
-                `🛣️ *KM Inicial:* ${kmIni}\n` +
-                `🏁 *KM Final:* ${kmFim}`
+            const msg = encodeURIComponent(
+                `*RELATÓRIO DE TRAJETO TELEJUR*\n\n` +
+                `👤 *Motorista:* ${salvo.motorista}\n` +
+                `🚗 *Veículo:* ${salvo.veiculo} (${salvo.tag})\n` +
+                `🔢 *Placa:* ${salvo.placa}\n\n` +
+                `🛫 *Início:* ${salvo.kmIni} km às ${salvo.horaIni}\n` +
+                `🏁 *Chegada:* ${kmFim} km às ${horaFim}\n` +
+                `📝 *Obs:* ${obs || "Nenhuma"}`
             );
-            window.open(`https://wa.me/?text=${texto}`, '_blank');
+
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+            localStorage.removeItem('trajeto_em_andamento');
+            location.reload();
+        }
+
+        function cancelarTrajeto() {
+            if(confirm("Deseja cancelar o trajeto atual e limpar os dados?")) {
+                localStorage.removeItem('trajeto_em_andamento');
+                location.reload();
+            }
         }
     </script>
 </body>
