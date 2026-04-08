@@ -4,66 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Telejur Frota - Offline Pro</title>
+    <title>Telejur Frota - Inteligente</title>
 </head>
 <body class="bg-slate-950 pb-10 font-sans text-slate-200">
 
     <div class="max-w-md mx-auto p-4">
         <header class="py-6 text-center border-b border-slate-800 mb-6">
             <h1 class="text-2xl font-black text-blue-500 italic uppercase">Telejur <span class="text-white">Frota</span></h1>
-            <p class="text-[10px] text-slate-500 font-mono uppercase tracking-widest mt-1">Controle de Saída e Chegada</p>
         </header>
 
         <main class="space-y-6">
             
             <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Selecione a TAG</label>
+                    <select id="tag_select" onchange="autocompletarVeiculo()" class="w-full bg-slate-800 border-2 border-blue-600 rounded-xl p-4 text-xl font-black text-white outline-none">
+                        <option value="" disabled selected>ESCOLHA A TAG</option>
+                        <option value="TJUR 04">TJUR 04</option>
+                        <option value="TJUR 06">TJUR 06</option>
+                        <option value="TJUR 07">TJUR 07</option>
+                        <option value="TJUR 08">TJUR 08</option>
+                        <option value="TJUR 09">TJUR 09</option>
+                        <option value="TJUR 10">TJUR 10</option>
+                        <option value="TJUR 13">TJUR 13</option>
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Data</label>
-                        <input type="date" id="data_ref" value="2026-04-06" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
+                    <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800">
+                        <label class="text-[8px] font-bold text-slate-500 uppercase block">Veículo</label>
+                        <input type="text" id="veiculo_auto" readonly class="bg-transparent w-full text-sm font-bold text-slate-300 outline-none" placeholder="---">
                     </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Placa</label>
-                        <input type="text" id="placa" value="QUJ3E02" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-blue-400 outline-none uppercase">
+                    <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800">
+                        <label class="text-[8px] font-bold text-slate-500 uppercase block">Placa</label>
+                        <input type="text" id="placa_auto" readonly class="bg-transparent w-full text-sm font-black text-blue-400 outline-none uppercase" placeholder="---">
                     </div>
-                </div>
-
-                <div>
-                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Motorista</label>
-                    <select id="motorista" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
-                        <option value="FRACIVALDO" selected>FRACIVALDO</option>
-                        <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
-                        <option value="LAFAIETE BATISTA">LAFAIETE BATISTA</option>
-                        <option value="REGINALDO PEREIRA">REGINALDO PEREIRA</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">ID do Condutor</label>
-                    <select id="id_condutor" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-blue-400 outline-none">
-                        <option value="Condutor 1" selected>Condutor 1</option>
-                        <option value="Condutor 2">Condutor 2</option>
-                        <option value="Condutor 3">Condutor 3</option>
-                    </select>
                 </div>
             </section>
 
             <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
-                <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-tighter border-b border-slate-800 pb-2">Manutenção de Óleo</h2>
-                
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Tipo de Óleo</label>
-                        <select id="tipo_oleo" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
-                            <option value="15W40" selected>15W40</option>
-                            <option value="5W30">5W30</option>
-                            <option value="10W40">10W40</option>
-                        </select>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Data</label>
+                        <input type="date" id="data_ref" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
                     </div>
                     <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Próx. Troca (KM)</label>
-                        <input type="tel" id="km_troca" value="150882" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-orange-400 outline-none">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">ID Fila</label>
+                        <select id="id_condutor" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-blue-400 outline-none">
+                            <option value="Condutor 1">Condutor 1</option>
+                            <option value="Condutor 2">Condutor 2</option>
+                            <option value="Condutor 3">Condutor 3</option>
+                        </select>
                     </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Motorista Responsável</label>
+                    <select id="motorista" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
+                        <option value="" disabled selected>QUEM É VOCÊ?</option>
+                        <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
+                        <option value="LAFAIETE BATISTA">LAFAIETE BATISTA</option>
+                        <option value="REGINALDO PEREIRA">REGINALDO PEREIRA</option>
+                        <option value="FRACIVALDO">FRACIVALDO</option>
+                    </select>
                 </div>
             </section>
 
@@ -71,73 +73,69 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">KM Início</label>
-                        <input type="tel" id="km_inicio" value="150434" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-lg font-black text-white text-center outline-none focus:border-green-500">
+                        <input type="tel" id="km_inicio" placeholder="000000" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-lg font-black text-white text-center outline-none focus:border-green-500">
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">KM Final</label>
-                        <input type="tel" id="km_final" value="150551" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-lg font-black text-white text-center outline-none focus:border-blue-500">
+                        <input type="tel" id="km_final" placeholder="000000" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-lg font-black text-white text-center outline-none focus:border-blue-500">
                     </div>
+                </div>
+                <div class="bg-slate-950/30 p-4 rounded-2xl border border-slate-800">
+                    <label class="text-[9px] font-bold text-slate-500 uppercase block mb-2">Manutenção de Óleo (15W40)</label>
+                    <input type="tel" id="km_troca" placeholder="Próxima Troca (KM)" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-orange-400 outline-none text-center">
                 </div>
             </section>
 
-            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Cor do Selo</label>
-                        <select id="cor_selo" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs font-bold text-white outline-none">
-                            <option value="AZUL" selected>AZUL</option>
-                            <option value="VERDE">VERDE</option>
-                            <option value="AMARELO">AMARELO</option>
-                            <option value="BRANCO">BRANCO</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Validade Selo</label>
-                        <input type="date" id="validade_selo" value="2026-05-31" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs font-bold text-white outline-none">
-                    </div>
-                </div>
-            </section>
-
-            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl">
-                <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Observações do Veículo</label>
-                <textarea id="obs" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs font-medium text-slate-300 outline-none mt-1">Luz de advertência acesa no painel.</textarea>
-            </section>
-
-            <button onclick="gerarRelatorio()" class="w-full bg-green-600 hover:bg-green-500 text-white font-black py-5 rounded-2xl shadow-2xl uppercase tracking-widest transition-all flex items-center justify-center gap-3">
-                <span>Enviar p/ WhatsApp</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.588-5.946 0-6.556 5.332-11.888 11.888-11.888 3.176 0 6.161 1.237 8.404 3.48s3.481 5.229 3.481 8.406c0 6.555-5.332 11.887-11.888 11.887-2.007 0-3.974-.506-5.717-1.465l-6.267 1.644zm6.108-4.435l.357.212c1.405.836 3.13 1.278 4.912 1.278 5.428 0 9.845-4.417 9.845-9.845 0-2.628-1.024-5.1-2.883-6.958-1.859-1.859-4.331-2.883-6.96-2.883-5.428 0-9.847 4.419-9.847 9.847 0 2.128.672 4.148 1.942 5.83l.233.308-.942 3.44 3.52-.924zm10.954-7.571c-.131-.218-.484-.348-.737-.477-.253-.131-1.492-.737-1.724-.82-.232-.083-.401-.131-.57.131-.169.262-.654.82-.801.99-.148.17-.295.192-.549.066-.253-.131-1.07-.394-2.037-1.257-.753-.671-1.261-1.501-1.409-1.754-.148-.253-.016-.391.112-.519.112-.116.253-.262.38-.394.127-.131.169-.224.253-.374.084-.15.042-.281-.021-.41-.064-.131-.57-1.376-.78-1.884-.204-.494-.412-.427-.57-.435-.147-.007-.316-.008-.485-.008s-.443.064-.674.316c-.232.253-.886.865-.886 2.11 0 1.245.907 2.446 1.034 2.615.127.169 1.785 2.726 4.323 3.82 2.115.912 2.651.986 3.584.847.534-.08 1.644-.671 1.875-1.321.232-.65.232-1.208.163-1.321z"/></svg>
+            <button onclick="enviarRelatorio()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl shadow-2xl uppercase tracking-widest transition-all">
+                Enviar Relatório WhatsApp
             </button>
         </main>
     </div>
 
     <script>
-        function gerarRelatorio() {
-            const data = document.getElementById('data_ref').value.split('-').reverse().join('/');
-            const placa = document.getElementById('placa').value;
+        // BANCO DE DADOS BASEADO NA IMAGEM QUE VOCÊ ENVIOU
+        const frota = {
+            "TJUR 04": { veiculo: "SKY MUNCK", placa: "QFA1I50" },
+            "TJUR 06": { veiculo: "SAVEIRO FURGÃO", placa: "QUJ3E02" },
+            "TJUR 07": { veiculo: "SKY MUNCK", placa: "RWR3C75" },
+            "TJUR 08": { veiculo: "CAMINHONETE HILUX", placa: "QVE5H48" },
+            "TJUR 09": { veiculo: "SKY MUNCK", placa: "RXC6J04" },
+            "TJUR 10": { veiculo: "CAMINHONETE", placa: "PHU1I37" },
+            "TJUR 13": { veiculo: "CAMINHONETE", placa: "QVD4I38" }
+        };
+
+        function autocompletarVeiculo() {
+            const tag = document.getElementById('tag_select').value;
+            const info = frota[tag];
+
+            if (info) {
+                document.getElementById('veiculo_auto').value = info.veiculo;
+                document.getElementById('placa_auto').value = info.placa;
+            }
+        }
+
+        // Define a data de hoje automaticamente
+        document.getElementById('data_ref').valueAsDate = new Date();
+
+        function enviarRelatorio() {
+            const tag = document.getElementById('tag_select').value;
+            const veiculo = document.getElementById('veiculo_auto').value;
+            const placa = document.getElementById('placa_auto').value;
             const motorista = document.getElementById('motorista').value;
-            const id = document.getElementById('id_condutor').value;
-            const oleo = document.getElementById('tipo_oleo').value;
-            const troca = document.getElementById('km_troca').value;
-            const ini = document.getElementById('km_inicio').value;
-            const fim = document.getElementById('km_final').value;
-            const cor = document.getElementById('cor_selo').value;
-            const val = document.getElementById('validade_selo').value.split('-').reverse().join('/');
-            const obs = document.getElementById('obs').value;
+            const kmIni = document.getElementById('km_inicio').value;
+            const kmFim = document.getElementById('km_final').value;
 
-            const mensagem = encodeURIComponent(
-                `*RELATÓRIO TELEJUR - FROTA*\n\n` +
-                `📅 *Data:* ${data}\n` +
+            if(!tag || !motorista) return alert("Selecione a TAG e o Motorista!");
+
+            const texto = encodeURIComponent(
+                `*RELATÓRIO TELEJUR FROTA*\n\n` +
+                `🚗 *Veículo:* ${veiculo} (${tag})\n` +
+                `🔢 *Placa:* ${placa}\n` +
                 `👤 *Motorista:* ${motorista}\n` +
-                `🆔 *ID:* ${id}\n` +
-                `🚗 *Placa:* ${placa}\n\n` +
-                `🛣️ *KM Início:* ${ini}\n` +
-                `🏁 *KM Final:* ${fim}\n\n` +
-                `🛢️ *Óleo:* ${oleo} (Troca: ${troca})\n` +
-                `🏷️ *Selo:* ${cor} (Venc: ${val})\n` +
-                `⚠️ *Obs:* ${obs}`
+                `🛣️ *KM Inicial:* ${kmIni}\n` +
+                `🏁 *KM Final:* ${kmFim}`
             );
-
-            window.open(`https://wa.me/?text=${mensagem}`, '_blank');
+            window.open(`https://wa.me/?text=${texto}`, '_blank');
         }
     </script>
 </body>
