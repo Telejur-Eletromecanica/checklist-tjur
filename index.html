@@ -4,188 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Telejur Frota Ultra - Selos</title>
-    <style>
-        .selo-preview { transition: all 0.3s ease; }
-    </style>
+    <title>Telejur Frota - Offline Pro</title>
 </head>
 <body class="bg-slate-950 pb-10 font-sans text-slate-200">
 
     <div class="max-w-md mx-auto p-4">
-        <header class="py-6 text-center">
+        <header class="py-6 text-center border-b border-slate-800 mb-6">
             <h1 class="text-2xl font-black text-blue-500 italic uppercase">Telejur <span class="text-white">Frota</span></h1>
-            <p id="clock" class="text-[9px] text-slate-500 font-mono"></p>
+            <p class="text-[10px] text-slate-500 font-mono uppercase tracking-widest mt-1">Controle de Saída e Chegada</p>
         </header>
 
-        <main class="bg-slate-900 rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 space-y-5">
+        <main class="space-y-6">
             
-            <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Operador</label>
-                <select id="motorista" onchange="checkBloqueio()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-bold text-white outline-none focus:border-blue-600">
-                    <option value="" disabled selected>SELECIONE...</option>
-                    <optgroup label="AUTORIZADOS">
+            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Data</label>
+                        <input type="date" id="data_ref" value="2026-04-06" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Placa</label>
+                        <input type="text" id="placa" value="QUJ3E02" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-blue-400 outline-none uppercase">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Motorista</label>
+                    <select id="motorista" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
+                        <option value="FRACIVALDO" selected>FRACIVALDO</option>
                         <option value="WALTER GONÇALVES">WALTER GONÇALVES</option>
                         <option value="LAFAIETE BATISTA">LAFAIETE BATISTA</option>
                         <option value="REGINALDO PEREIRA">REGINALDO PEREIRA</option>
-                    </optgroup>
-                    <optgroup label="RESTRITOS">
-                        <option value="ADRIANO NASCIMENTO">ADRIANO NASCIMENTO</option>
-                        <option value="FRACIVALDO COSTA">FRACIVALDO COSTA</option>
-                        <option value="FRACINILDO TEIXEIRA">FRACINILDO TEIXEIRA</option>
-                        <option value="JOELCINEI GUIMARÃES">JOELCINEI GUIMARÃES</option>
-                    </optgroup>
-                </select>
-            </div>
-
-            <div id="msg_bloqueio" class="hidden bg-red-600/10 border border-red-500 p-4 rounded-2xl text-center text-red-500 font-bold text-[10px] uppercase">
-                Acesso Restrito: Motorista não autorizado.
-            </div>
-
-            <div id="area_operacional" class="space-y-5">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Veículo</label>
-                    <select id="tag_select" onchange="atualizarInterface()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 font-black text-white outline-none">
-                        <option value="" disabled selected>ESCOLHA A TAG...</option>
-                        <option value="TJUR 04">TJUR 04</option><option value="TJUR 06">TJUR 06</option>
-                        <option value="TJUR 13">TJUR 13</option>
                     </select>
                 </div>
 
-                <div id="painel_info" class="hidden grid grid-cols-2 gap-2 bg-black/40 p-3 rounded-2xl border border-slate-800 text-center">
-                    <div><span class="text-[8px] text-slate-500 block uppercase">Fila</span><b id="id_display" class="text-blue-400">---</b></div>
-                    <div><span class="text-[8px] text-slate-500 block uppercase">Status</span><b id="status_msg" class="text-xs uppercase">---</b></div>
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">ID do Condutor</label>
+                    <select id="id_condutor" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-blue-400 outline-none">
+                        <option value="Condutor 1" selected>Condutor 1</option>
+                        <option value="Condutor 2">Condutor 2</option>
+                        <option value="Condutor 3">Condutor 3</option>
+                    </select>
                 </div>
+            </section>
 
-                <div id="form_saida" class="hidden space-y-4 border-t border-slate-800 pt-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="tel" id="km_ini" placeholder="KM Inicial" class="bg-slate-800 border-2 border-slate-700 rounded-xl p-3 font-black text-white text-center">
-                        <input type="tel" id="km_troca" placeholder="Troca Óleo" class="bg-slate-800 border-2 border-slate-700 rounded-xl p-3 font-black text-white text-center">
+            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
+                <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-tighter border-b border-slate-800 pb-2">Manutenção de Óleo</h2>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Tipo de Óleo</label>
+                        <select id="tipo_oleo" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-bold text-white outline-none">
+                            <option value="15W40" selected>15W40</option>
+                            <option value="5W30">5W30</option>
+                            <option value="10W40">10W40</option>
+                        </select>
                     </div>
-
-                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                        <p class="text-[9px] font-bold text-slate-500 uppercase text-center">Identificação do Selo Anual</p>
-                        <div class="flex items-center gap-3">
-                            <div id="selo_preview" class="w-12 h-12 rounded-full border-4 border-slate-700 bg-slate-800 flex items-center justify-center text-[10px] font-black text-white shadow-lg">SELO</div>
-                            <select id="selo_cor" onchange="updateSeloUI()" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs font-bold text-white">
-                                <option value="BRANCO">BRANCO</option>
-                                <option value="VERDE">VERDE</option>
-                                <option value="AMARELO">AMARELO</option>
-                                <option value="AZUL">AZUL</option>
-                                <option value="VERMELHO">VERMELHO</option>
-                            </select>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[8px] font-bold text-slate-500 uppercase ml-1">Validade do Selo (Calendário)</label>
-                            <input type="date" id="selo_data" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white text-xs font-bold">
-                        </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Próx. Troca (KM)</label>
+                        <input type="tel" id="km_troca" value="150882" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-orange-400 outline-none">
                     </div>
-                    
-                    <button onclick="enviar('EM TRÂNSITO', true)" class="w-full bg-green-600 text-white font-black py-4 rounded-2xl shadow-xl uppercase text-xs flex items-center justify-center gap-2">
-                        Iniciar e Enviar Relatório 📱
-                    </button>
-                    <button onclick="enviar('EM TRÂNSITO', false)" class="w-full text-slate-500 font-bold py-2 text-[10px] uppercase tracking-widest">Apenas Salvar no Sistema</button>
                 </div>
+            </section>
 
-                <div id="form_chegada" class="hidden space-y-4 border-t border-slate-800 pt-4">
-                    <input type="tel" id="km_fim" placeholder="KM FINAL" class="w-full bg-slate-800 border-2 border-blue-500 rounded-2xl p-5 font-black text-white text-center text-3xl outline-none">
-                    <button onclick="enviar('CONCLUÍDO', true)" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-xl uppercase text-xs flex items-center justify-center gap-2 italic">
-                        Finalizar e Enviar WhatsApp 📱
-                    </button>
-                    <button onclick="enviar('CONCLUÍDO', false)" class="w-full text-slate-500 font-bold py-2 text-[10px] uppercase tracking-widest">Apenas Salvar no Sistema</button>
+            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">KM Início</label>
+                        <input type="tel" id="km_inicio" value="150434" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-lg font-black text-white text-center outline-none focus:border-green-500">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">KM Final</label>
+                        <input type="tel" id="km_final" value="150551" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-lg font-black text-white text-center outline-none focus:border-blue-500">
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Cor do Selo</label>
+                        <select id="cor_selo" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs font-bold text-white outline-none">
+                            <option value="AZUL" selected>AZUL</option>
+                            <option value="VERDE">VERDE</option>
+                            <option value="AMARELO">AMARELO</option>
+                            <option value="BRANCO">BRANCO</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Validade Selo</label>
+                        <input type="date" id="validade_selo" value="2026-05-31" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs font-bold text-white outline-none">
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-slate-900 rounded-3xl p-5 border border-slate-800 shadow-xl">
+                <label class="text-[9px] font-bold text-slate-500 uppercase ml-1">Observações do Veículo</label>
+                <textarea id="obs" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs font-medium text-slate-300 outline-none mt-1">Luz de advertência acesa no painel.</textarea>
+            </section>
+
+            <button onclick="gerarRelatorio()" class="w-full bg-green-600 hover:bg-green-500 text-white font-black py-5 rounded-2xl shadow-2xl uppercase tracking-widest transition-all flex items-center justify-center gap-3">
+                <span>Enviar p/ WhatsApp</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.588-5.946 0-6.556 5.332-11.888 11.888-11.888 3.176 0 6.161 1.237 8.404 3.48s3.481 5.229 3.481 8.406c0 6.555-5.332 11.887-11.888 11.887-2.007 0-3.974-.506-5.717-1.465l-6.267 1.644zm6.108-4.435l.357.212c1.405.836 3.13 1.278 4.912 1.278 5.428 0 9.845-4.417 9.845-9.845 0-2.628-1.024-5.1-2.883-6.958-1.859-1.859-4.331-2.883-6.96-2.883-5.428 0-9.847 4.419-9.847 9.847 0 2.128.672 4.148 1.942 5.83l.233.308-.942 3.44 3.52-.924zm10.954-7.571c-.131-.218-.484-.348-.737-.477-.253-.131-1.492-.737-1.724-.82-.232-.083-.401-.131-.57.131-.169.262-.654.82-.801.99-.148.17-.295.192-.549.066-.253-.131-1.07-.394-2.037-1.257-.753-.671-1.261-1.501-1.409-1.754-.148-.253-.016-.391.112-.519.112-.116.253-.262.38-.394.127-.131.169-.224.253-.374.084-.15.042-.281-.021-.41-.064-.131-.57-1.376-.78-1.884-.204-.494-.412-.427-.57-.435-.147-.007-.316-.008-.485-.008s-.443.064-.674.316c-.232.253-.886.865-.886 2.11 0 1.245.907 2.446 1.034 2.615.127.169 1.785 2.726 4.323 3.82 2.115.912 2.651.986 3.584.847.534-.08 1.644-.671 1.875-1.321.232-.65.232-1.208.163-1.321z"/></svg>
+            </button>
         </main>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbysx-IjZe54SWbmqwl2NYJEx_kiuVtakdtE-GFYE30UxwYYQhcvOuw5DViSwMixS_QIyQ/exec";
-
-        function checkBloqueio() {
+        function gerarRelatorio() {
+            const data = document.getElementById('data_ref').value.split('-').reverse().join('/');
+            const placa = document.getElementById('placa').value;
             const motorista = document.getElementById('motorista').value;
-            const restritos = ["ADRIANO NASCIMENTO", "FRACIVALDO COSTA", "FRACINILDO TEIXEIRA", "JOELCINEI GUIMARÃES"];
-            const isRestrito = restritos.includes(motorista);
-            document.getElementById('msg_bloqueio').classList.toggle('hidden', !isRestrito);
-            document.getElementById('area_operacional').classList.toggle('hidden', isRestrito);
-            if(!isRestrito) atualizarInterface();
+            const id = document.getElementById('id_condutor').value;
+            const oleo = document.getElementById('tipo_oleo').value;
+            const troca = document.getElementById('km_troca').value;
+            const ini = document.getElementById('km_inicio').value;
+            const fim = document.getElementById('km_final').value;
+            const cor = document.getElementById('cor_selo').value;
+            const val = document.getElementById('validade_selo').value.split('-').reverse().join('/');
+            const obs = document.getElementById('obs').value;
+
+            const mensagem = encodeURIComponent(
+                `*RELATÓRIO TELEJUR - FROTA*\n\n` +
+                `📅 *Data:* ${data}\n` +
+                `👤 *Motorista:* ${motorista}\n` +
+                `🆔 *ID:* ${id}\n` +
+                `🚗 *Placa:* ${placa}\n\n` +
+                `🛣️ *KM Início:* ${ini}\n` +
+                `🏁 *KM Final:* ${fim}\n\n` +
+                `🛢️ *Óleo:* ${oleo} (Troca: ${troca})\n` +
+                `🏷️ *Selo:* ${cor} (Venc: ${val})\n` +
+                `⚠️ *Obs:* ${obs}`
+            );
+
+            window.open(`https://wa.me/?text=${mensagem}`, '_blank');
         }
-
-        function updateSeloUI() {
-            const cor = document.getElementById('selo_cor').value;
-            const preview = document.getElementById('selo_preview');
-            const cores = {
-                'BRANCO': '#FFFFFF', 'VERDE': '#22C55E', 'AMARELO': '#EAB308',
-                'AZUL': '#3B82F6', 'VERMELHO': '#EF4444'
-            };
-            preview.style.backgroundColor = cores[cor];
-            preview.style.color = cor === 'BRANCO' || cor === 'AMARELO' ? 'black' : 'white';
-        }
-
-        async function atualizarInterface() {
-            const tag = document.getElementById('tag_select').value;
-            const motorista = document.getElementById('motorista').value;
-            if(!tag || !motorista) return;
-
-            document.getElementById('painel_info').classList.remove('hidden');
-            document.getElementById('status_msg').innerText = "SINCRONIZANDO...";
-
-            try {
-                const res = await fetch(`${API}?acao=checarStatus&tag=${tag}&motorista=${motorista}`);
-                const data = await res.json();
-                document.getElementById('id_display').innerText = data.proximoID;
-
-                if (data.bloqueado) {
-                    document.getElementById('status_msg').innerText = "OCUPADO";
-                    document.getElementById('form_saida').classList.add('hidden');
-                    document.getElementById('form_chegada').classList.remove('hidden');
-                } else {
-                    document.getElementById('status_msg').innerText = "LIBERADO";
-                    document.getElementById('form_saida').classList.remove('hidden');
-                    document.getElementById('form_chegada').classList.add('hidden');
-                }
-            } catch (e) { console.log(e); }
-        }
-
-        async function enviar(status, viaWhatsapp) {
-            const btn = event.target;
-            const tag = document.getElementById('tag_select').value;
-            const motorista = document.getElementById('motorista').value;
-            const selo_cor = document.getElementById('selo_cor').value;
-            const selo_data = document.getElementById('selo_data').value;
-            const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            const dataHoje = new Date().toLocaleDateString('pt-BR');
-            const km = status === "EM TRÂNSITO" ? document.getElementById('km_ini').value : document.getElementById('km_fim').value;
-
-            btn.disabled = true; btn.innerText = "GRAVANDO...";
-
-            const payload = {
-                data: dataHoje, tag, id_motorista: document.getElementById('id_display').innerText,
-                nome: motorista, km, hora, selo_cor, selo_data, status,
-                obs: status === "EM TRÂNSITO" ? "Saída" : "Chegada"
-            };
-
-            try {
-                await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload)});
-                
-                if (viaWhatsapp) {
-                    const dataFormatada = selo_data ? selo_data.split('-').reverse().join('/') : "N/I";
-                    const msg = window.encodeURIComponent(
-                        `*TELEJUR FROTA - RELATÓRIO*\n\n` +
-                        `🔹 *Status:* ${status}\n` +
-                        `👤 *Motorista:* ${motorista}\n` +
-                        `🚗 *Veículo:* ${tag} (${payload.id_motorista})\n` +
-                        `🛣️ *KM:* ${km}\n` +
-                        `🕒 *Hora:* ${hora}\n` +
-                        `🎨 *Cor do Selo:* ${selo_cor}\n` +
-                        `📅 *Vencimento:* ${dataFormatada}`
-                    );
-                    window.open(`https://wa.me/?text=${msg}`, '_blank');
-                }
-                alert("Salvo!");
-                location.reload();
-            } catch (e) { alert("Erro!"); btn.disabled = false; }
-        }
-
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString(); }, 1000);
     </script>
 </body>
 </html>
