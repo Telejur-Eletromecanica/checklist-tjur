@@ -24,6 +24,11 @@
         .btn-whatsapp { width: 100%; padding: 15px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-inicio { background: var(--success); }
         .btn-fim { background: var(--finish); }
+        
+        /* Estilo para Foto */
+        .foto-container { border: 2px dashed #ccc; padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; position: relative; }
+        #preview { max-width: 100%; max-height: 150px; border-radius: 5px; margin-top: 5px; display: none; }
+        
         .reset-user { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; display: block; margin-top: 5px; }
         .hidden { display: none; }
     </style>
@@ -68,7 +73,7 @@
                 <div class="form-group full-width">
                     <label>Condutor 1</label>
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
-                    <button type="button" class="reset-user" onclick="limparNomeSalvo()">Trocar motorista (Resetar nome)</button>
+                    <button type="button" class="reset-user" onclick="limparNomeSalvo()">Resetar nome</button>
                 </div>
                 <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
                 <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
@@ -89,16 +94,25 @@
                 
                 <div class="form-group full-width">
                     <label>Observações</label>
-                    <textarea id="obs" placeholder="Informar avarias ou observações do trajeto"></textarea>
+                    <textarea id="obs" placeholder="Avarias ou observações"></textarea>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>📸 Anexar Foto (KM/Painel)</label>
+                    <div class="foto-container" onclick="document.getElementById('inputFoto').click()">
+                        <span id="fotoTxt">Clique para tirar foto ou anexar</span>
+                        <input type="file" id="inputFoto" accept="image/*" capture="environment" style="display:none" onchange="previewImagem(event)">
+                        <img id="preview" src="" alt="Preview">
+                    </div>
                 </div>
             </div>
             <div id="botoesAcao"></div>
-            <button type="button" class="reset-user" style="margin: 15px auto; text-align: center; width: 100%;" onclick="limparTudo()">Resetar Tudo (Trocar Veículo)</button>
+            <button type="button" class="reset-user" style="margin: 15px auto; text-align: center; width: 100%;" onclick="limparTudo()">Resetar Tudo</button>
         </form>
     </div>
 
     <div id="tab-admin" class="hidden">
-        <h3 style="color:var(--admin)">Admin: Condutores</h3>
+        <h3>Admin: Condutores</h3>
         <input type="text" id="novoNome" placeholder="Nome">
         <button onclick="addCondutor()" style="width:100%; margin:10px 0; padding:12px; background:var(--primary); color:white; border:none; border-radius:6px;">Adicionar</button>
         <div id="listaCondutores"></div>
@@ -114,6 +128,19 @@
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
+
+    function previewImagem(event) {
+        const input = event.target;
+        const reader = new FileReader();
+        reader.onload = function(){
+            const dataURL = reader.result;
+            const preview = document.getElementById('preview');
+            preview.src = dataURL;
+            preview.style.display = 'block';
+            document.getElementById('fotoTxt').innerText = "✅ Foto carregada!";
+        };
+        if(input.files[0]) reader.readAsDataURL(input.files[0]);
+    }
 
     function solicitarAcessoAdmin() {
         const pass = prompt("Senha Admin:");
@@ -159,7 +186,7 @@
         if (viagem) {
             Object.keys(viagem).forEach(id => {
                 const el = document.getElementById(id);
-                if(el) {
+                if(el && id !== 'inputFoto') {
                     el.value = viagem[id];
                     if(id !== 'km_final' && id !== 'obs') {
                         el.readOnly = true;
@@ -168,12 +195,12 @@
                 }
             });
             statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-fim" onclick="enviarFim()">ENVIAR RELATÓRIO FINAL (FIM)</button>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-fim" onclick="enviarFim()">FINALIZAR TRAJETO (FIM)</button>`;
         } else {
             const nomeS = localStorage.getItem('nomeSalvo');
             if(nomeS) document.getElementById('condutor1').value = nomeS;
             statusMsg.innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">ENVIAR RELATÓRIO INICIAL (START)</button>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR TRAJETO (START)</button>`;
         }
     }
 
@@ -189,11 +216,8 @@
         const cor = document.getElementById('cor_selo').value;
         const val = document.getElementById('val_selo').value.split('-').reverse().join('/');
         const obs = document.getElementById('obs').value || "Sem observações";
-        const data = document.getElementById('data_hoje').value;
 
         let texto = `*${status === 'INI' ? '🟢 INÍCIO' : '🔴 FIM'} DE TRAJETO - ${tag}*%0A`;
-        texto += `--------------------------------%0A`;
-        texto += `📅 Data: ${data}%0A`;
         texto += `🚗 Placa: ${placa}%0A%0A`;
         texto += `👤 Condutor 1: ${c1}%0A`;
         texto += `👤 Condutor 2: ${c2}%0A`;
@@ -210,7 +234,7 @@
         texto += `🧪 Tipo Óleo: ${tipo}%0A`;
         texto += `🏷️ Selo: ${cor} (${val})%0A%0A`;
         texto += `📝 Obs: ${obs}%0A`;
-        texto += `--------------------------------`;
+        if(document.getElementById('inputFoto').files[0]) texto += `%0A📸 *ANEXANDO FOTO DO PAINEL...*%0A`;
         return texto;
     }
 
@@ -242,13 +266,13 @@
         const kmF_bruto = document.getElementById('km_final').value;
         const kmI_bruto = document.getElementById('km_inicio').value;
 
-        if(!kmF_bruto) return alert("Por favor, informe o KM Final!");
-        if(limparKM(kmF_bruto) < limparKM(kmI_bruto)) return alert("Erro: KM Final não pode ser menor que o Inicial!");
+        if(!kmF_bruto) return alert("Informe o KM Final!");
+        if(limparKM(kmF_bruto) < limparKM(kmI_bruto)) return alert("KM Final inválido!");
 
         window.open(`https://wa.me/?text=${gerarTextoRelatorio('FIM', kmF_bruto)}`, '_blank');
         
         setTimeout(() => {
-            if(confirm("Trajeto enviado! Deseja encerrar e preparar para a próxima viagem?")) {
+            if(confirm("Lembre-se de anexar a foto no WhatsApp agora! Deseja finalizar o checklist?")) {
                 localStorage.removeItem('viagemAtiva');
                 location.reload();
             }
@@ -256,7 +280,7 @@
     }
 
     function limparTudo() {
-        if(confirm("Isso resetará o veículo e os condutores extras. Continuar?")) {
+        if(confirm("Resetar tudo?")) {
             localStorage.removeItem('viagemAtiva');
             location.reload();
         }
