@@ -24,11 +24,6 @@
         .btn-whatsapp { width: 100%; padding: 15px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-inicio { background: var(--success); }
         .btn-fim { background: var(--finish); }
-        
-        /* Estilo para Foto */
-        .foto-container { border: 2px dashed #ccc; padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; position: relative; }
-        #preview { max-width: 100%; max-height: 150px; border-radius: 5px; margin-top: 5px; display: none; }
-        
         .reset-user { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; display: block; margin-top: 5px; }
         .hidden { display: none; }
     </style>
@@ -73,7 +68,7 @@
                 <div class="form-group full-width">
                     <label>Condutor 1</label>
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
-                    <button type="button" class="reset-user" onclick="limparNomeSalvo()">Resetar nome</button>
+                    <button type="button" class="reset-user" onclick="limparNomeSalvo()">Trocar motorista</button>
                 </div>
                 <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
                 <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
@@ -94,20 +89,11 @@
                 
                 <div class="form-group full-width">
                     <label>Observações</label>
-                    <textarea id="obs" placeholder="Avarias ou observações"></textarea>
-                </div>
-
-                <div class="form-group full-width">
-                    <label>📸 Anexar Foto (KM/Painel)</label>
-                    <div class="foto-container" onclick="document.getElementById('inputFoto').click()">
-                        <span id="fotoTxt">Clique para tirar foto ou anexar</span>
-                        <input type="file" id="inputFoto" accept="image/*" capture="environment" style="display:none" onchange="previewImagem(event)">
-                        <img id="preview" src="" alt="Preview">
-                    </div>
+                    <textarea id="obs" placeholder="Informar avarias ou observações"></textarea>
                 </div>
             </div>
             <div id="botoesAcao"></div>
-            <button type="button" class="reset-user" style="margin: 15px auto; text-align: center; width: 100%;" onclick="limparTudo()">Resetar Tudo</button>
+            <button type="button" class="reset-user" style="margin: 15px auto; text-align: center; width: 100%;" onclick="limparTudo()">Resetar Veículo</button>
         </form>
     </div>
 
@@ -123,30 +109,12 @@
 <script>
     const SENHA_MESTRA = "1234";
     const frota = {
-        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", km_ini: "166.523", cor: "Azul", prox: "169.257", val: "2026-05-31" },
-        "TJUR 08": { placa: "QVE5H48", oleo: "5W30", km_ini: "115.000", cor: "Verde", prox: "120.000", val: "2026-12-31" }
+        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul", prox: "169.257", val: "2026-05-31" },
+        "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Verde", prox: "120.000", val: "2026-12-31" },
+        "TJUR 04": { placa: "PLACA04", oleo: "15W40", cor: "Azul", prox: "000.000", val: "2026-01-01" }
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
-
-    function previewImagem(event) {
-        const input = event.target;
-        const reader = new FileReader();
-        reader.onload = function(){
-            const dataURL = reader.result;
-            const preview = document.getElementById('preview');
-            preview.src = dataURL;
-            preview.style.display = 'block';
-            document.getElementById('fotoTxt').innerText = "✅ Foto carregada!";
-        };
-        if(input.files[0]) reader.readAsDataURL(input.files[0]);
-    }
-
-    function solicitarAcessoAdmin() {
-        const pass = prompt("Senha Admin:");
-        if (pass === SENHA_MESTRA) switchTab('admin');
-        else if (pass !== null) alert("Senha incorreta!");
-    }
 
     function limparKM(valor) {
         return Number(valor.toString().replace(/\./g, ''));
@@ -158,10 +126,10 @@
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
-            document.getElementById('km_inicio').value = v.km_ini;
             document.getElementById('cor_selo').value = v.cor;
             document.getElementById('prox_oleo').value = v.prox;
             document.getElementById('val_selo').value = v.val;
+            document.getElementById('km_inicio').value = ""; // DEIXA EM BRANCO PARA O MOTORISTA
         }
     }
 
@@ -173,7 +141,7 @@
     function limparNomeSalvo() {
         localStorage.removeItem('nomeSalvo');
         document.getElementById('condutor1').value = "";
-        alert("Motorista resetado!");
+        alert("Motorista removido!");
     }
 
     function renderInterface() {
@@ -186,7 +154,7 @@
         if (viagem) {
             Object.keys(viagem).forEach(id => {
                 const el = document.getElementById(id);
-                if(el && id !== 'inputFoto') {
+                if(el) {
                     el.value = viagem[id];
                     if(id !== 'km_final' && id !== 'obs') {
                         el.readOnly = true;
@@ -218,6 +186,7 @@
         const obs = document.getElementById('obs').value || "Sem observações";
 
         let texto = `*${status === 'INI' ? '🟢 INÍCIO' : '🔴 FIM'} DE TRAJETO - ${tag}*%0A`;
+        texto += `--------------------------------%0A`;
         texto += `🚗 Placa: ${placa}%0A%0A`;
         texto += `👤 Condutor 1: ${c1}%0A`;
         texto += `👤 Condutor 2: ${c2}%0A`;
@@ -234,7 +203,7 @@
         texto += `🧪 Tipo Óleo: ${tipo}%0A`;
         texto += `🏷️ Selo: ${cor} (${val})%0A%0A`;
         texto += `📝 Obs: ${obs}%0A`;
-        if(document.getElementById('inputFoto').files[0]) texto += `%0A📸 *ANEXANDO FOTO DO PAINEL...*%0A`;
+        texto += `--------------------------------`;
         return texto;
     }
 
@@ -267,12 +236,12 @@
         const kmI_bruto = document.getElementById('km_inicio').value;
 
         if(!kmF_bruto) return alert("Informe o KM Final!");
-        if(limparKM(kmF_bruto) < limparKM(kmI_bruto)) return alert("KM Final inválido!");
+        if(limparKM(kmF_bruto) < limparKM(kmI_bruto)) return alert("KM Final não pode ser menor que o Inicial!");
 
         window.open(`https://wa.me/?text=${gerarTextoRelatorio('FIM', kmF_bruto)}`, '_blank');
         
         setTimeout(() => {
-            if(confirm("Lembre-se de anexar a foto no WhatsApp agora! Deseja finalizar o checklist?")) {
+            if(confirm("Trajeto enviado! Limpar dados para o próximo?")) {
                 localStorage.removeItem('viagemAtiva');
                 location.reload();
             }
@@ -280,7 +249,7 @@
     }
 
     function limparTudo() {
-        if(confirm("Resetar tudo?")) {
+        if(confirm("Deseja resetar o veículo selecionado?")) {
             localStorage.removeItem('viagemAtiva');
             location.reload();
         }
@@ -297,6 +266,11 @@
         if(n) { condutores.push(n); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); document.getElementById('novoNome').value=""; }
     }
     function remover(i) { condutores.splice(i,1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); }
+    function solicitarAcessoAdmin() {
+        const pass = prompt("Senha Admin:");
+        if (pass === SENHA_MESTRA) switchTab('admin');
+        else if (pass !== null) alert("Senha incorreta!");
+    }
     function switchTab(t) {
         document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
         document.getElementById('tab-admin').className = t === 'admin' ? '' : 'hidden';
