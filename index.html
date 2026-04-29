@@ -20,8 +20,11 @@
         label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--primary); font-size: 13px; }
         select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
         
+        /* Destaque para campos obrigatórios vazios */
+        input:invalid, select:invalid { border: 1px solid #ccc; }
+        .required-label::after { content: " *"; color: var(--danger); }
+
         .btn-whatsapp { width: 100%; padding: 15px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        
         .reset-user { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; padding: 0; margin-top: 5px; display: block; }
         
         .hidden { display: none; }
@@ -37,68 +40,70 @@
     </div>
 
     <div id="tab-checklist">
-        <div class="form-group">
-            <label>Selecione a TAG do Veículo</label>
-            <select id="selectTag" onchange="atualizarDadosVeiculo()">
-                <option value="">-- Selecione --</option>
-                <option value="TJUR 13">TJUR 13 (Caminhonete)</option>
-                <option value="TJUR 04">TJUR 04 (Sky Munck)</option>
-                <option value="TJUR 06">TJUR 06 (Saveiro)</option>
-                <option value="TJUR 07">TJUR 07 (Sky Munck)</option>
-                <option value="TJUR 08">TJUR 08 (Hilux)</option>
-                <option value="TJUR 09">TJUR 09 (Sky Munck)</option>
-                <option value="TJUR 10">TJUR 10 (Caminhonete)</option>
-            </select>
-        </div>
-
-        <div class="form-grid">
+        <form id="chkForm">
             <div class="form-group">
-                <label>Data Atual</label>
-                <input type="text" id="data_hoje" readonly>
-            </div>
-            <div class="form-group">
-                <label>Placa</label>
-                <input type="text" id="placa" readonly style="background:#f1f3f5">
-            </div>
-            
-            <div class="form-group">
-                <label>Próx. Troca Óleo (Km/Data)</label>
-                <input type="text" id="prox_oleo">
-            </div>
-            <div class="form-group">
-                <label>Tipo de Óleo</label>
-                <select id="tipo_oleo">
-                    <option value="15W40">15W40</option>
-                    <option value="5W30">5W30</option>
-                    <option value="10W40">10W40</option>
+                <label class="required-label">Selecione a TAG do Veículo</label>
+                <select id="selectTag" required onchange="atualizarDadosVeiculo()">
+                    <option value="">-- Selecione --</option>
+                    <option value="TJUR 13">TJUR 13 (Caminhonete)</option>
+                    <option value="TJUR 04">TJUR 04 (Sky Munck)</option>
+                    <option value="TJUR 06">TJUR 06 (Saveiro)</option>
+                    <option value="TJUR 07">TJUR 07 (Sky Munck)</option>
+                    <option value="TJUR 08">TJUR 08 (Hilux)</option>
+                    <option value="TJUR 09">TJUR 09 (Sky Munck)</option>
+                    <option value="TJUR 10">TJUR 10 (Caminhonete)</option>
                 </select>
             </div>
 
-            <div class="form-group full-width">
-                <label>Condutor 1 (Principal)</label>
-                <select id="condutor1" onchange="salvarPreferenciaCondutor()"></select>
-                <button type="button" class="reset-user" onclick="limparPreferencia()">Resetar: Voltar lista completa</button>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Data Atual</label>
+                    <input type="text" id="data_hoje" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Placa</label>
+                    <input type="text" id="placa" readonly style="background:#f1f3f5">
+                </div>
+                
+                <div class="form-group">
+                    <label class="required-label">Próx. Troca Óleo (Km/Data)</label>
+                    <input type="text" id="prox_oleo" required placeholder="Ex: 169.257">
+                </div>
+                <div class="form-group">
+                    <label class="required-label">Tipo de Óleo</label>
+                    <select id="tipo_oleo" required>
+                        <option value="15W40">15W40</option>
+                        <option value="5W30">5W30</option>
+                        <option value="10W40">10W40</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="required-label">Condutor 1 (Principal)</label>
+                    <select id="condutor1" required onchange="salvarPreferenciaCondutor()"></select>
+                    <button type="button" class="reset-user" onclick="limparPreferencia()">Resetar: Voltar lista completa</button>
+                </div>
+
+                <div class="form-group full-width"><label>Condutor 2 (Opcional)</label><input type="text" id="condutor2" placeholder="Nome completo"></div>
+                <div class="form-group full-width"><label>Condutor 3 (Opcional)</label><input type="text" id="condutor3" placeholder="Nome completo"></div>
+
+                <div class="form-group"><label class="required-label">KM Início</label><input type="number" id="km_inicio" required></div>
+                <div class="form-group"><label class="required-label">KM Final</label><input type="number" id="km_final" required></div>
+
+                <div class="form-group">
+                    <label class="required-label">Cor do Selo</label>
+                    <select id="cor_selo" required>
+                        <option value="Verde">Verde</option>
+                        <option value="Amarelo">Amarelo</option>
+                        <option value="Azul">Azul</option>
+                        <option value="Vermelho">Vermelho</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="required-label">Validade Selo</label><input type="date" id="val_selo" required></div>
             </div>
 
-            <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Nome completo"></div>
-            <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Nome completo"></div>
-
-            <div class="form-group"><label>KM Início</label><input type="number" id="km_inicio"></div>
-            <div class="form-group"><label>KM Final</label><input type="number" id="km_final"></div>
-
-            <div class="form-group">
-                <label>Cor do Selo</label>
-                <select id="cor_selo">
-                    <option value="Verde">Verde</option>
-                    <option value="Amarelo">Amarelo</option>
-                    <option value="Azul">Azul</option>
-                    <option value="Vermelho">Vermelho</option>
-                </select>
-            </div>
-            <div class="form-group"><label>Validade Selo</label><input type="date" id="val_selo"></div>
-        </div>
-
-        <button class="btn-whatsapp" onclick="enviarWhatsApp()">ENVIAR NO WHATSAPP</button>
+            <button type="button" class="btn-whatsapp" onclick="enviarWhatsApp()">ENVIAR NO WHATSAPP</button>
+        </form>
     </div>
 
     <div id="tab-admin" class="hidden">
@@ -143,32 +148,22 @@
     function renderCondutores() {
         const c1 = document.getElementById('condutor1');
         const lista = document.getElementById('listaCondutores');
-        
-        // Renderiza no select do checklist
         c1.innerHTML = '<option value="">-- Selecione o Condutor --</option>' + 
                        condutores.map(c => `<option value="${c}">${c}</option>`).join('');
-        
-        // Verifica se existe preferência salva
         const salvo = localStorage.getItem('preferenciaCondutor');
-        if (salvo && condutores.includes(salvo)) {
-            c1.value = salvo;
-        }
-
-        // Renderiza na lista do admin
+        if (salvo && condutores.includes(salvo)) c1.value = salvo;
         lista.innerHTML = condutores.map((c, i) => `<div class="list-item"><span>${c}</span> <button onclick="remover(${i})" style="color:red;border:none;background:none;cursor:pointer">Remover</button></div>`).join('');
     }
 
     function salvarPreferenciaCondutor() {
         const selected = document.getElementById('condutor1').value;
-        if (selected) {
-            localStorage.setItem('preferenciaCondutor', selected);
-        }
+        if (selected) localStorage.setItem('preferenciaCondutor', selected);
     }
 
     function limparPreferencia() {
         localStorage.removeItem('preferenciaCondutor');
         document.getElementById('condutor1').value = "";
-        alert("Preferência limpa! Agora você pode selecionar qualquer nome.");
+        alert("Preferência limpa!");
     }
 
     function addCondutor() {
@@ -188,23 +183,28 @@
     }
 
     function enviarWhatsApp() {
-        const tag = document.getElementById('selectTag').value;
-        const cond = document.getElementById('condutor1').value;
-        if(!tag || !cond) return alert("Selecione a TAG e o Condutor!");
+        const form = document.getElementById('chkForm');
+        
+        // Verifica se todos os campos marcados com 'required' estão preenchidos
+        if (!form.checkValidity()) {
+            form.reportValidity(); // Mostra o balão de erro no campo que falta
+            return;
+        }
 
+        const tag = document.getElementById('selectTag').value;
         const valSelo = document.getElementById('val_selo').value;
-        const dataFormatada = valSelo ? valSelo.split('-').reverse().join('/') : "---";
+        const dataFormatada = valSelo.split('-').reverse().join('/');
 
         const msg = `*CHECKLIST ${tag}*%0A` +
                     `📅 Data: ${document.getElementById('data_hoje').value}%0A` +
                     `🚗 Placa: ${document.getElementById('placa').value}%0A` +
-                    `🛢️ Próx. Troca Óleo: ${document.getElementById('prox_oleo').value || "---"}%0A` +
+                    `🛢️ Próx. Troca Óleo: ${document.getElementById('prox_oleo').value}%0A` +
                     `🧪 Tipo de Óleo: ${document.getElementById('tipo_oleo').value}%0A%0A` +
-                    `👤 Condutor 1: ${cond}%0A` +
+                    `👤 Condutor 1: ${document.getElementById('condutor1').value}%0A` +
                     `👤 Condutor 2: ${document.getElementById('condutor2').value || "---"}%0A` +
                     `👤 Condutor 3: ${document.getElementById('condutor3').value || "---"}%0A%0A` +
-                    `🛣️ Km Início: ${document.getElementById('km_inicio').value || "0"}%0A` +
-                    `🏁 Km Final: ${document.getElementById('km_final').value || "0"}%0A%0A` +
+                    `🛣️ Km Início: ${document.getElementById('km_inicio').value}%0A` +
+                    `🏁 Km Final: ${document.getElementById('km_final').value}%0A%0A` +
                     `🏷️ Cor do Selo: ${document.getElementById('cor_selo').value}%0A` +
                     `📅 Validade Selo: ${dataFormatada}`;
 
