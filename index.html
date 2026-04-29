@@ -83,7 +83,7 @@
                 
                 <div class="form-group full-width">
                     <label>Observações</label>
-                    <textarea id="obs" placeholder="Ex: Riscos na lataria, pneus baixos, etc."></textarea>
+                    <textarea id="obs" placeholder="Ex: Informar avarias ou observações do trajeto"></textarea>
                 </div>
             </div>
             <div id="botoesAcao"></div>
@@ -92,19 +92,16 @@
     </div>
 
     <div id="tab-admin" class="hidden">
-        <h3 style="color:var(--admin)">Painel Administrativo</h3>
-        <p style="font-size: 12px; color: #666;">Gerencie a lista de condutores autorizados.</p>
-        <hr>
-        <input type="text" id="novoNome" placeholder="Nome do novo condutor">
-        <button onclick="addCondutor()" style="width:100%; margin-top:10px; padding:12px; background:var(--primary); color:white; border:none; border-radius:6px; font-weight:bold;">Adicionar Condutor</button>
-        <div id="listaCondutores" style="margin-top:20px;"></div>
-        <button onclick="switchTab('checklist')" style="width:100%; margin-top:20px; background:#ddd; border:none; padding:10px; border-radius:6px;">Sair do Admin</button>
+        <h3 style="color:var(--admin)">Admin: Condutores</h3>
+        <input type="text" id="novoNome" placeholder="Nome">
+        <button onclick="addCondutor()" style="width:100%; margin:10px 0; padding:12px; background:var(--primary); color:white; border:none; border-radius:6px;">Adicionar</button>
+        <div id="listaCondutores"></div>
+        <button onclick="switchTab('checklist')" style="width:100%; margin-top:20px; padding:10px;">Sair</button>
     </div>
 </div>
 
 <script>
-    const SENHA_MESTRA = "1234"; // <--- ALTERE SUA SENHA AQUI
-    
+    const SENHA_MESTRA = "1234";
     const frota = {
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", km_ini: "166523", cor: "Azul", prox: "169.257", val: "2026-05-31" },
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", km_ini: "115000", cor: "Verde", prox: "120.000", val: "2026-12-31" }
@@ -113,12 +110,9 @@
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
 
     function solicitarAcessoAdmin() {
-        const pass = prompt("Digite a senha para acessar as configurações:");
-        if (pass === SENHA_MESTRA) {
-            switchTab('admin');
-        } else if (pass !== null) {
-            alert("Senha incorreta!");
-        }
+        const pass = prompt("Senha Admin:");
+        if (pass === SENHA_MESTRA) switchTab('admin');
+        else if (pass !== null) alert("Senha incorreta!");
     }
 
     function atualizarDadosVeiculo() {
@@ -153,10 +147,16 @@
                 }
             });
             statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-finish" style="background:var(--finish)" onclick="enviarFim()">ENVIAR FINAL DE TRAJETO</button>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-fim" onclick="enviarFim()">ENVIAR FINAL DE TRAJETO</button>`;
         } else {
             statusMsg.innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
             containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">ENVIAR INÍCIO DE TRAJETO</button>`;
+            // Reset campos que podem ter ficado travados
+            document.querySelectorAll('#chkForm input, #chkForm select, #chkForm textarea').forEach(el => {
+                el.readOnly = false;
+                el.disabled = false;
+                if(el.id === 'data_hoje' || el.id === 'placa') el.readOnly = true;
+            });
         }
     }
 
@@ -181,7 +181,6 @@
         const dataVal = dados.val_selo.split('-').reverse().join('/');
 
         const msg = `*🟢 INÍCIO DE TRAJETO - ${dados.selectTag}*%0A` +
-                    `🚗 Placa: ${dados.placa}%0A` +
                     `👤 Condutor: ${dados.condutor1}%0A` +
                     `🛣️ KM Inicial: ${dados.km_inicio}%0A` +
                     `📝 Obs: ${dados.obs}`;
@@ -196,36 +195,36 @@
         
         const dados = JSON.parse(localStorage.getItem('viagemAtiva'));
         const obsFinal = document.getElementById('obs').value || "Sem observações";
-        const dataVal = dados.val_selo.split('-').reverse().join('/');
         const perc = kmF - dados.km_inicio;
+        const dataVal = dados.val_selo.split('-').reverse().join('/');
 
         const msg = `*🔴 FIM DE TRAJETO - ${dados.selectTag}*%0A` +
                     `--------------------------------%0A` +
                     `📅 Data: ${document.getElementById('data_hoje').value}%0A` +
-                    `🚗 Placa: ${dados.placa}%0A%0A` +
                     `👤 Condutor 1: ${dados.condutor1}%0A` +
-                    `👤 Condutor 2: ${dados.condutor2}%0A` +
-                    `👤 Condutor 3: ${dados.condutor3}%0A%0A` +
                     `🛣️ KM Início: ${dados.km_inicio}%0A` +
                     `🏁 KM Final: ${kmF}%0A` +
                     `📏 Percorrido: ${perc} km%0A%0A` +
                     `🛢️ Próx. Troca: ${dados.prox_oleo}%0A` +
-                    `🧪 Tipo Óleo: ${dados.tipo_oleo}%0A` +
                     `🏷️ Selo: ${dados.cor_selo} (${dataVal})%0A` +
                     `📝 Obs: ${obsFinal}%0A` +
                     `--------------------------------`;
 
         window.open(`https://wa.me/?text=${msg}`, '_blank');
-        if(confirm("Deseja encerrar este trajeto no sistema?")) {
-            localStorage.removeItem('viagemAtiva');
-            location.reload();
-        }
+        
+        // VOLTAR PARA TELA DE INÍCIO AUTOMATICAMENTE
+        setTimeout(() => {
+            if(confirm("Trajeto enviado! Deseja limpar os campos para um novo início?")) {
+                localStorage.removeItem('viagemAtiva');
+                window.location.reload(); 
+            }
+        }, 500);
     }
 
     function limparTudo() {
-        if(confirm("Deseja resetar o trajeto atual?")) {
+        if(confirm("Resetar formulário agora?")) {
             localStorage.removeItem('viagemAtiva');
-            location.reload();
+            window.location.reload();
         }
     }
 
@@ -233,14 +232,13 @@
         const c1 = document.getElementById('condutor1');
         const lista = document.getElementById('listaCondutores');
         c1.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
-        lista.innerHTML = condutores.map((c, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; background:#fff; margin-bottom:5px; border-radius:5px;">${c} <b style="color:red; cursor:pointer; padding:0 10px" onclick="remover(${i})">✕</b></div>`).join('');
+        lista.innerHTML = condutores.map((c, i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee">${c} <b style="color:red; cursor:pointer" onclick="remover(${i})">✕</b></div>`).join('');
     }
     function addCondutor() {
-        const n = document.getElementById('novoNome').value.trim();
-        if(n) { condutores.push(n); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); document.getElementById('novoNome').value = ""; }
+        const n = document.getElementById('novoNome').value;
+        if(n) { condutores.push(n); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); document.getElementById('novoNome').value=""; }
     }
-    function remover(i) { if(confirm("Remover condutor?")) { condutores.splice(i,1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); } }
-    
+    function remover(i) { condutores.splice(i,1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); }
     function switchTab(t) {
         document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
         document.getElementById('tab-admin').className = t === 'admin' ? '' : 'hidden';
