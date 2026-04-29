@@ -3,40 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Frota TJUR</title>
+    <title>Checklist Frota TJUR</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --admin: #e67e22; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #25D366; --admin: #e67e22; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
         
-        /* Abas */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; background: #ddd; }
         .tab-btn.active { background: var(--primary); color: white; }
 
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--primary); }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--primary); font-size: 14px; }
         select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        input[readonly] { background-color: #f9f9f9; }
+        input[readonly] { background-color: #f9f9f9; border-left: 4px solid var(--accent); }
         
-        button.main-btn { width: 100%; padding: 15px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        button.admin-btn { background: var(--admin); margin-top: 10px; width: 100%; padding: 10px; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-whatsapp { width: 100%; padding: 15px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .admin-btn { background: var(--admin); margin-top: 10px; width: 100%; padding: 10px; color: white; border: none; border-radius: 6px; cursor: pointer; }
         
         .hidden { display: none; }
-        .list-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
-        .del-btn { color: red; cursor: pointer; font-weight: bold; border: none; background: none; }
+        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .del-btn { color: red; border: none; background: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('checklist')">Checklist</button>
-        <button class="tab-btn" onclick="switchTab('admin')">Painel Admin</button>
+        <button class="tab-btn active" id="btn-chk" onclick="switchTab('checklist')">Checklist</button>
+        <button class="tab-btn" id="btn-adm" onclick="switchTab('admin')">Admin</button>
     </div>
 
     <div id="tab-checklist">
-        <h2 style="text-align: center; color: var(--primary);">Checklist TJUR</h2>
+        <h3 style="text-align: center; margin-top: 0;">📋 Checklist Diário</h3>
         
         <div class="form-group">
             <label>Veículo (TAG)</label>
@@ -53,60 +52,55 @@
         </div>
 
         <div class="form-group">
-            <label>Placa e Modelo</label>
-            <input type="text" id="infoVeiculo" readonly placeholder="Automático">
+            <label>Dados do Veículo</label>
+            <input type="text" id="infoVeiculo" readonly placeholder="Placa e Modelo">
         </div>
 
         <div class="form-group">
             <label>Condutor</label>
-            <select id="selectCondutor">
-                </select>
+            <select id="selectCondutor"></select>
         </div>
 
         <div class="form-group">
             <label>KM Atual</label>
-            <input type="number" id="km_atual" placeholder="000000">
+            <input type="number" id="km_atual" placeholder="Ex: 166523" inputmode="numeric">
         </div>
 
-        <button class="main-btn" onclick="finalizar()">Finalizar e Salvar</button>
+        <button class="btn-whatsapp" onclick="enviarWhatsApp()">
+            <span style="font-size: 20px;">➔</span> ENVIAR NO WHATSAPP
+        </button>
     </div>
 
     <div id="tab-admin" class="hidden">
-        <h2 style="text-align: center; color: var(--admin);">Gerenciar Condutores</h2>
-        
+        <h3 style="text-align: center; color: var(--admin); margin-top: 0;">Configurações</h3>
         <div class="form-group">
             <label>Novo Condutor</label>
-            <input type="text" id="novoNome" placeholder="Nome Completo">
-            <button class="admin-btn" onclick="addCondutor()">+ Adicionar Condutor</button>
+            <input type="text" id="novoNome" placeholder="Nome completo">
+            <button class="admin-btn" onclick="addCondutor()">+ Cadastrar</button>
         </div>
-
-        <hr>
-        <label>Condutores Cadastrados:</label>
         <div id="listaCondutores"></div>
     </div>
 </div>
 
 <script>
-    // Dados da Frota
     const frota = {
-        "TJUR 04": "SKY MUNCK - QFA1I50",
-        "TJUR 06": "SAVEIRO FURGÃO - QUJ3E02",
-        "TJUR 07": "SKY MUNCK - RWR3C75",
-        "TJUR 08": "CAMINHONETE HILUX - QVE5H48",
-        "TJUR 09": "SKY MUNCK - RXC6J04",
-        "TJUR 10": "CAMINHONETE - PHU1I37",
-        "TJUR 13": "CAMINHONETE - QVD4I38"
+        "TJUR 04": "SKY MUNCK | QFA1I50",
+        "TJUR 06": "SAVEIRO FURGÃO | QUJ3E02",
+        "TJUR 07": "SKY MUNCK | RWR3C75",
+        "TJUR 08": "CAMINHONETE HILUX | QVE5H48",
+        "TJUR 09": "SKY MUNCK | RXC6J04",
+        "TJUR 10": "CAMINHONETE | PHU1I37",
+        "TJUR 13": "CAMINHONETE | QVD4I38"
     };
 
-    // Condutores iniciais
     let condutores = JSON.parse(localStorage.getItem('condutores')) || 
         ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
 
     function switchTab(tab) {
         document.getElementById('tab-checklist').classList.toggle('hidden', tab !== 'checklist');
         document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+        document.getElementById('btn-chk').classList.toggle('active', tab === 'checklist');
+        document.getElementById('btn-adm').classList.toggle('active', tab === 'admin');
         renderCondutores();
     }
 
@@ -119,19 +113,12 @@
         const select = document.getElementById('selectCondutor');
         const lista = document.getElementById('listaCondutores');
         
-        // Atualiza o Select do Checklist
         select.innerHTML = '<option value="">-- Selecione o Condutor --</option>';
-        condutores.forEach(c => {
-            select.innerHTML += `<option value="${c}">${c}</option>`;
-        });
+        condutores.forEach(c => { select.innerHTML += `<option value="${c}">${c}</option>`; });
 
-        // Atualiza a lista na tela Admin
-        lista.innerHTML = "";
-        condutores.forEach((c, index) => {
-            lista.innerHTML += `
-                <div class="list-item">
-                    ${c} <button class="del-btn" onclick="removerCondutor(${index})">✕</button>
-                </div>`;
+        lista.innerHTML = "<strong>Condutores ativos:</strong>";
+        condutores.forEach((c, i) => {
+            lista.innerHTML += `<div class="list-item">${c} <button class="del-btn" onclick="remover(${i})">✕</button></div>`;
         });
     }
 
@@ -142,27 +129,43 @@
             localStorage.setItem('condutores', JSON.stringify(condutores));
             document.getElementById('novoNome').value = "";
             renderCondutores();
-            alert("Condutor adicionado!");
         }
     }
 
-    function removerCondutor(index) {
-        if(confirm("Deseja remover este condutor?")) {
-            condutores.splice(index, 1);
-            localStorage.setItem('condutores', JSON.stringify(condutores));
-            renderCondutores();
-        }
+    function remover(i) {
+        condutores.splice(i, 1);
+        localStorage.setItem('condutores', JSON.stringify(condutores));
+        renderCondutores();
     }
 
-    function finalizar() {
+    function enviarWhatsApp() {
         const tag = document.getElementById('selectTag').value;
+        const info = document.getElementById('infoVeiculo').value;
         const condutor = document.getElementById('selectCondutor').value;
-        if (!tag || !condutor) return alert("Preencha todos os campos!");
-        
-        alert(`Checklist de ${condutor} para ${tag} registrado!`);
+        const km = document.getElementById('km_atual').value;
+        const data = new Date().toLocaleDateString('pt-BR');
+        const hora = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+        if (!tag || !condutor || !km) {
+            alert("⚠️ Preencha todos os campos antes de enviar!");
+            return;
+        }
+
+        const mensagem = `*CHECKLIST VEICULAR - TJUR*%0A` +
+                         `--------------------------------%0A` +
+                         `*Data:* ${data} às ${hora}%0A` +
+                         `*TAG:* ${tag}%0A` +
+                         `*Veículo:* ${info}%0A` +
+                         `*Condutor:* ${condutor}%0A` +
+                         `*KM Atual:* ${km}%0A` +
+                         `--------------------------------%0A` +
+                         `_Enviado via Sistema TJUR Digital_`;
+
+        // Aqui você pode colocar o número do supervisor ex: 5591999999999
+        // Se deixar vazio, o usuário escolhe o contato no WhatsApp
+        window.open(`https://wa.me/?text=${mensagem}`, '_blank');
     }
 
-    // Inicializar lista
     renderCondutores();
 </script>
 
