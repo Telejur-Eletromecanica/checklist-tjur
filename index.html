@@ -8,30 +8,23 @@
         :root { --primary: #2c3e50; --accent: #3498db; --success: #25D366; --admin: #e67e22; --danger: #e74c3c; --finish: #9b59b6; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; display: flex; justify-content: center; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; background: #ddd; }
         .tab-btn.active { background: var(--primary); color: white; }
-
         .status-badge { text-align: center; padding: 8px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
         .status-aberto { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .status-novo { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-group { margin-bottom: 12px; }
         .full-width { grid-column: span 2; }
-        
         label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--primary); font-size: 13px; }
         select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-        input[readonly], select[disabled] { background-color: #f1f3f5; color: #777; cursor: not-allowed; }
-        
+        input[readonly], select[disabled] { background-color: #f1f3f5; color: #777; }
         .btn-whatsapp { width: 100%; padding: 15px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-inicio { background: var(--success); }
         .btn-fim { background: var(--finish); }
-        
-        .reset-link { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; display: block; margin: 10px auto; text-align: center; width: 100%; }
+        .reset-link { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; display: block; margin: 15px auto; text-align: center; }
         .hidden { display: none; }
-        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -44,36 +37,25 @@
 
     <div id="tab-checklist">
         <div id="statusMensagem"></div>
-
         <form id="chkForm">
             <div class="form-group">
-                <label>Selecione a TAG do Veículo</label>
+                <label>Veículo (TAG)</label>
                 <select id="selectTag" required onchange="atualizarDadosVeiculo()">
                     <option value="">-- Selecione --</option>
-                    <option value="TJUR 13">TJUR 13 (Caminhonete)</option>
-                    <option value="TJUR 04">TJUR 04 (Sky Munck)</option>
-                    <option value="TJUR 06">TJUR 06 (Saveiro)</option>
-                    <option value="TJUR 07">TJUR 07 (Sky Munck)</option>
-                    <option value="TJUR 08">TJUR 08 (Hilux)</option>
-                    <option value="TJUR 09">TJUR 09 (Sky Munck)</option>
-                    <option value="TJUR 10">TJUR 10 (Caminhonete)</option>
+                    <option value="TJUR 13">TJUR 13</option>
+                    <option value="TJUR 04">TJUR 04</option>
+                    <option value="TJUR 06">TJUR 06</option>
+                    <option value="TJUR 07">TJUR 07</option>
+                    <option value="TJUR 08">TJUR 08</option>
+                    <option value="TJUR 09">TJUR 09</option>
+                    <option value="TJUR 10">TJUR 10</option>
                 </select>
             </div>
 
             <div class="form-grid">
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="text" id="data_hoje" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Placa</label>
-                    <input type="text" id="placa" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label>Próx. Troca Óleo</label>
-                    <input type="text" id="prox_oleo" required>
-                </div>
+                <div class="form-group"><label>Data</label><input type="text" id="data_hoje" readonly></div>
+                <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
+                <div class="form-group"><label>Próx. Troca Óleo</label><input type="text" id="prox_oleo" required></div>
                 <div class="form-group">
                     <label>Tipo de Óleo</label>
                     <select id="tipo_oleo" required>
@@ -82,42 +64,32 @@
                         <option value="10W40">10W40</option>
                     </select>
                 </div>
-
-                <div class="form-group full-width">
-                    <label>Condutor 1</label>
-                    <select id="condutor1" required></select>
-                </div>
-
-                <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2"></div>
-                <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3"></div>
-
+                <div class="form-group full-width"><label>Condutor 1</label><select id="condutor1" required></select></div>
+                <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
+                <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
                 <div class="form-group"><label>KM Início</label><input type="number" id="km_inicio" required></div>
                 <div class="form-group"><label>KM Final</label><input type="number" id="km_final"></div>
-
                 <div class="form-group">
                     <label>Cor do Selo</label>
                     <select id="cor_selo" required>
                         <option value="Verde">Verde</option>
                         <option value="Amarelo">Amarelo</option>
-                        <option value="Azul" selected>Azul</option>
+                        <option value="Azul">Azul</option>
                         <option value="Vermelho">Vermelho</option>
                     </select>
                 </div>
                 <div class="form-group"><label>Validade Selo</label><input type="date" id="val_selo" required></div>
             </div>
-
-            <div id="botoesAcao">
-                </div>
-            
-            <button type="button" class="reset-link" onclick="limparTudo()">Limpar tudo e iniciar novo veículo</button>
+            <div id="botoesAcao"></div>
+            <button type="button" class="reset-link" onclick="limparTudo()">Resetar e iniciar novo veículo</button>
         </form>
     </div>
 
     <div id="tab-admin" class="hidden">
         <h3>Admin: Condutores</h3>
         <input type="text" id="novoNome" placeholder="Nome">
-        <button onclick="addCondutor()" style="width:100%; margin:10px 0; padding:10px;">Adicionar</button>
-        <div id="listaCondutores"></div>
+        <button onclick="addCondutor()" style="width:100%; margin-top:10px; padding:10px;">Adicionar</button>
+        <div id="listaCondutores" style="margin-top:10px;"></div>
     </div>
 </div>
 
@@ -130,8 +102,9 @@
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
 
     function atualizarDadosVeiculo() {
+        if (localStorage.getItem('viagemAtiva')) return;
         const v = frota[document.getElementById('selectTag').value];
-        if (v && !localStorage.getItem('viagemAtiva')) {
+        if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('km_inicio').value = v.km_ini;
@@ -145,55 +118,56 @@
         const viagem = JSON.parse(localStorage.getItem('viagemAtiva'));
         const containerBotoes = document.getElementById('botoesAcao');
         const statusMsg = document.getElementById('statusMensagem');
-        const form = document.getElementById('chkForm');
-
         renderCondutores();
         document.getElementById('data_hoje').value = new Date().toLocaleDateString('pt-BR');
 
         if (viagem) {
-            // Trava os campos de início
             Object.keys(viagem).forEach(id => {
                 const el = document.getElementById(id);
                 if(el) {
                     el.value = viagem[id];
-                    if(id !== 'km_final') el.readOnly = true;
-                    if(el.tagName === 'SELECT') el.disabled = true;
+                    if(id !== 'km_final') {
+                        el.readOnly = true;
+                        if(el.tagName === 'SELECT') el.disabled = true;
+                    }
                 }
             });
-            statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ VIAGEM EM ANDAMENTO: ${viagem.selectTag}</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-fim" onclick="enviarFim()">FINALIZAR TRAJETO (FIM)</button>`;
-            document.getElementById('km_final').required = true;
+            statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-fim" onclick="enviarFim()">ENVIAR FINAL DE TRAJETO</button>`;
         } else {
-            // Modo Início
-            statusMsg.innerHTML = `<div class="status-badge status-novo">✅ PRONTO PARA NOVA VIAGEM</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR TRAJETO (START)</button>`;
-            document.getElementById('km_final').required = false;
+            statusMsg.innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">ENVIAR INÍCIO DE TRAJETO</button>`;
         }
     }
 
     function enviarInicio() {
-        const form = document.getElementById('chkForm');
-        if (!form.checkValidity()) return form.reportValidity();
-
+        if (!document.getElementById('chkForm').checkValidity()) return document.getElementById('chkForm').reportValidity();
+        
         const dados = {
             selectTag: document.getElementById('selectTag').value,
             placa: document.getElementById('placa').value,
             prox_oleo: document.getElementById('prox_oleo').value,
             tipo_oleo: document.getElementById('tipo_oleo').value,
             condutor1: document.getElementById('condutor1').value,
-            condutor2: document.getElementById('condutor2').value,
-            condutor3: document.getElementById('condutor3').value,
+            condutor2: document.getElementById('condutor2').value || "---",
+            condutor3: document.getElementById('condutor3').value || "---",
             km_inicio: document.getElementById('km_inicio').value,
             cor_selo: document.getElementById('cor_selo').value,
             val_selo: document.getElementById('val_selo').value
         };
 
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
-        
+        const dataVal = dados.val_selo.split('-').reverse().join('/');
+
         const msg = `*🟢 INÍCIO DE TRAJETO - ${dados.selectTag}*%0A` +
-                    `👤 Condutor: ${dados.condutor1}%0A` +
+                    `🚗 Placa: ${dados.placa}%0A` +
+                    `👤 Condutor 1: ${dados.condutor1}%0A` +
+                    `👤 Condutor 2: ${dados.condutor2}%0A` +
+                    `👤 Condutor 3: ${dados.condutor3}%0A` +
                     `🛣️ KM Inicial: ${dados.km_inicio}%0A` +
-                    `⏰ Iniciado em: ${new Date().toLocaleTimeString('pt-BR')}`;
+                    `🛢️ Próx. Troca: ${dados.prox_oleo}%0A` +
+                    `🧪 Tipo Óleo: ${dados.tipo_oleo}%0A` +
+                    `🏷️ Selo: ${dados.cor_selo} (${dataVal})`;
         
         window.open(`https://wa.me/?text=${msg}`, '_blank');
         renderInterface();
@@ -201,46 +175,51 @@
 
     function enviarFim() {
         const kmF = document.getElementById('km_final').value;
-        const kmI = document.getElementById('km_inicio').value;
+        if(!kmF) return alert("Por favor, informe o KM Final!");
         
-        if(!kmF || Number(kmF) <= Number(kmI)) return alert("KM Final deve ser maior que o Inicial!");
-
         const dados = JSON.parse(localStorage.getItem('viagemAtiva'));
         const dataVal = dados.val_selo.split('-').reverse().join('/');
+        const perc = kmF - dados.km_inicio;
 
         const msg = `*🔴 FIM DE TRAJETO - ${dados.selectTag}*%0A` +
                     `--------------------------------%0A` +
                     `📅 Data: ${document.getElementById('data_hoje').value}%0A` +
-                    `🚗 Placa: ${dados.placa}%0A` +
-                    `👤 Condutor: ${dados.condutor1}%0A` +
-                    `🛣️ KM Início: ${kmI}%0A` +
+                    `🚗 Placa: ${dados.placa}%0A%0A` +
+                    `👤 Condutor 1: ${dados.condutor1}%0A` +
+                    `👤 Condutor 2: ${dados.condutor2}%0A` +
+                    `👤 Condutor 3: ${dados.condutor3}%0A%0A` +
+                    `🛣️ KM Início: ${dados.km_inicio}%0A` +
                     `🏁 KM Final: ${kmF}%0A` +
-                    `📏 Percorrido: ${kmF - kmI} km%0A` +
-                    `--------------------------------%0A` +
-                    `🛢️ Troca Óleo: ${dados.prox_oleo}%0A` +
-                    `🏷️ Selo: ${dados.cor_selo} (Venc: ${dataVal})`;
+                    `📏 Percorrido: ${perc} km%0A%0A` +
+                    `🛢️ Próx. Troca: ${dados.prox_oleo}%0A` +
+                    `🧪 Tipo Óleo: ${dados.tipo_oleo}%0A` +
+                    `🏷️ Cor Selo: ${dados.cor_selo}%0A` +
+                    `📅 Val. Selo: ${dataVal}%0A` +
+                    `--------------------------------`;
 
         window.open(`https://wa.me/?text=${msg}`, '_blank');
-        limparTudo();
-    }
-
-    function limparTudo() {
-        if(confirm("Deseja resetar o formulário para um novo veículo?")) {
+        if(confirm("Deseja encerrar este veículo no sistema?")) {
             localStorage.removeItem('viagemAtiva');
             location.reload();
         }
     }
 
-    // Funções de Condutores (Mantidas)
+    function limparTudo() {
+        if(confirm("Isso apagará os dados salvos do trajeto atual. Continuar?")) {
+            localStorage.removeItem('viagemAtiva');
+            location.reload();
+        }
+    }
+
     function renderCondutores() {
         const c1 = document.getElementById('condutor1');
         const lista = document.getElementById('listaCondutores');
         c1.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
-        lista.innerHTML = condutores.map((c, i) => `<div class="list-item">${c} <b onclick="remover(${i})">✕</b></div>`).join('');
+        lista.innerHTML = condutores.map((c, i) => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee">${c} <b style="color:red; cursor:pointer" onclick="remover(${i})">✕</b></div>`).join('');
     }
     function addCondutor() {
         const n = document.getElementById('novoNome').value;
-        if(n) { condutores.push(n); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); }
+        if(n) { condutores.push(n); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); document.getElementById('novoNome').value = ""; }
     }
     function remover(i) { condutores.splice(i,1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); }
     function switchTab(t) {
