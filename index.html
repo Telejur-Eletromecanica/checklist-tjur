@@ -15,11 +15,11 @@
         .form-group { margin-bottom: 12px; }
         .full-width { grid-column: span 2; }
         label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--primary); font-size: 13px; }
-        select, input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-        input[readonly] { background-color: #f1f3f5; color: #555; border-left: 3px solid var(--accent); }
+        select, input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; height: 45px; }
+        input[readonly] { background-color: #f1f3f5; color: #555; }
         .btn-whatsapp { width: 100%; padding: 15px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 15px; }
         .hidden { display: none; }
-        .list-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
+        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -35,20 +35,20 @@
             <label>Selecione a TAG do Veículo</label>
             <select id="selectTag" onchange="atualizarDadosVeiculo()">
                 <option value="">-- Selecione --</option>
-                <option value="TJUR 13">TJUR 13</option>
-                <option value="TJUR 04">TJUR 04</option>
-                <option value="TJUR 06">TJUR 06</option>
-                <option value="TJUR 07">TJUR 07</option>
-                <option value="TJUR 08">TJUR 08</option>
-                <option value="TJUR 09">TJUR 09</option>
-                <option value="TJUR 10">TJUR 10</option>
+                <option value="TJUR 13">TJUR 13 (Caminhonete)</option>
+                <option value="TJUR 04">TJUR 04 (Sky Munck)</option>
+                <option value="TJUR 06">TJUR 06 (Saveiro)</option>
+                <option value="TJUR 07">TJUR 07 (Sky Munck)</option>
+                <option value="TJUR 08">TJUR 08 (Hilux)</option>
+                <option value="TJUR 09">TJUR 09 (Sky Munck)</option>
+                <option value="TJUR 10">TJUR 10 (Caminhonete)</option>
             </select>
         </div>
 
         <div class="form-grid">
             <div class="form-group">
-                <label>Data</label>
-                <input type="text" id="data_hoje">
+                <label>Data Atual</label>
+                <input type="text" id="data_hoje" readonly>
             </div>
             <div class="form-group">
                 <label>Placa</label>
@@ -56,25 +56,29 @@
             </div>
             
             <div class="form-group">
-                <label>Próx. Troca Óleo</label>
-                <input type="text" id="prox_oleo" readonly>
+                <label>Próx. Troca Óleo (Data/Km)</label>
+                <input type="date" id="prox_oleo">
             </div>
             <div class="form-group">
                 <label>Tipo de Óleo</label>
-                <input type="text" id="tipo_oleo" readonly>
+                <select id="tipo_oleo">
+                    <option value="15W40">15W40</option>
+                    <option value="5W30">5W30</option>
+                    <option value="10W40">10W40</option>
+                </select>
             </div>
 
             <div class="form-group full-width">
-                <label>Condutor 1</label>
-                <select id="condutor1" class="sel-cond"></select>
+                <label>Condutor 1 (Principal)</label>
+                <select id="condutor1"></select>
             </div>
-            <div class="form-group">
+            <div class="form-group full-width">
                 <label>Condutor 2</label>
-                <input type="text" id="condutor2" placeholder="Nome">
+                <input type="text" id="condutor2" placeholder="Nome completo do segundo condutor">
             </div>
-            <div class="form-group">
+            <div class="form-group full-width">
                 <label>Condutor 3</label>
-                <input type="text" id="condutor3" placeholder="Nome">
+                <input type="text" id="condutor3" placeholder="Nome completo do terceiro condutor">
             </div>
 
             <div class="form-group">
@@ -97,7 +101,7 @@
             </div>
             <div class="form-group">
                 <label>Validade Selo</label>
-                <input type="text" id="val_selo" readonly>
+                <input type="date" id="val_selo">
             </div>
         </div>
 
@@ -105,35 +109,36 @@
     </div>
 
     <div id="tab-admin" class="hidden">
-        <h3>Gerenciar Condutores</h3>
-        <input type="text" id="novoNome" placeholder="Nome do Condutor">
-        <button onclick="addCondutor()" style="width:100%; margin-top:5px; padding:10px;">Adicionar</button>
-        <div id="listaCondutores" style="margin-top:15px;"></div>
+        <h3>Gerenciar Lista de Condutores</h3>
+        <input type="text" id="novoNome" placeholder="Nome Completo">
+        <button onclick="addCondutor()" style="width:100%; margin-top:10px; padding:12px; background:var(--primary); color:white; border:none; border-radius:6px;">Cadastrar Novo</button>
+        <div id="listaCondutores" style="margin-top:20px;"></div>
     </div>
 </div>
 
 <script>
     const frota = {
-        "TJUR 13": { placa: "QVD4I38", prox_oleo: "169.257", tipo_oleo: "15W40", km_ini: "166523", km_fin: "166541", cor: "Azul", validade: "31/05/2026" },
-        "TJUR 08": { placa: "QVE5H48", prox_oleo: "120.000", tipo_oleo: "5W30", km_ini: "115000", km_fin: "", cor: "Verde", validade: "20/12/2026" },
-        "TJUR 04": { placa: "QFA1I50", prox_oleo: "---", tipo_oleo: "---", km_ini: "", km_fin: "", cor: "Verde", validade: "---" },
-        "TJUR 06": { placa: "QUJ3E02", prox_oleo: "---", tipo_oleo: "---", km_ini: "", km_fin: "", cor: "Amarelo", validade: "---" }
+        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", km_ini: "166523", km_fin: "166541", cor: "Azul" },
+        "TJUR 04": { placa: "QFA1I50", oleo: "15W40", km_ini: "", km_fin: "", cor: "Verde" },
+        "TJUR 06": { placa: "QUJ3E02", oleo: "5W30", km_ini: "", km_fin: "", cor: "Amarelo" },
+        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", km_ini: "", km_fin: "", cor: "Azul" },
+        "TJUR 08": { placa: "QVE5H48", oleo: "5W30", km_ini: "115000", km_fin: "", cor: "Verde" },
+        "TJUR 09": { placa: "RXC6J04", oleo: "15W40", km_ini: "", km_fin: "", cor: "Vermelho" },
+        "TJUR 10": { placa: "PHU1I37", oleo: "15W40", km_ini: "", km_fin: "", cor: "Verde" }
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
 
-    document.getElementById('data_hoje').value = new Date().toLocaleDateString('pt-BR').substring(0, 5);
+    document.getElementById('data_hoje').value = new Date().toLocaleDateString('pt-BR');
 
     function atualizarDadosVeiculo() {
         const v = frota[document.getElementById('selectTag').value];
         if (v) {
             document.getElementById('placa').value = v.placa;
-            document.getElementById('prox_oleo').value = v.prox_oleo;
-            document.getElementById('tipo_oleo').value = v.tipo_oleo;
+            document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('km_inicio').value = v.km_ini;
             document.getElementById('km_final').value = v.km_fin;
             document.getElementById('cor_selo').value = v.cor;
-            document.getElementById('val_selo').value = v.validade;
         }
     }
 
@@ -149,31 +154,51 @@
         const c1 = document.getElementById('condutor1');
         const lista = document.getElementById('listaCondutores');
         c1.innerHTML = condutores.map(c => `<option value="${c}">${c}</option>`).join('');
-        lista.innerHTML = condutores.map((c, i) => `<div class="list-item">${c} <span onclick="remover(${i})" style="color:red;cursor:pointer">✕</span></div>`).join('');
+        lista.innerHTML = condutores.map((c, i) => `<div class="list-item"><span>${c}</span> <b onclick="remover(${i})" style="color:red;cursor:pointer">Remover</b></div>`).join('');
     }
 
     function addCondutor() {
-        const n = document.getElementById('novoNome').value;
-        if(n) { condutores.push(n); localStorage.setItem('condutores', JSON.stringify(condutores)); renderCondutores(); document.getElementById('novoNome').value = ""; }
+        const n = document.getElementById('novoNome').value.trim();
+        if(n) { 
+            condutores.push(n); 
+            localStorage.setItem('condutores', JSON.stringify(condutores)); 
+            renderCondutores(); 
+            document.getElementById('novoNome').value = ""; 
+        }
     }
 
     function remover(i) {
-        condutores.splice(i, 1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderCondutores();
+        if(confirm("Remover condutor da lista?")) {
+            condutores.splice(i, 1); 
+            localStorage.setItem('condutores', JSON.stringify(condutores)); 
+            renderCondutores();
+        }
+    }
+
+    function formatarData(dataISO) {
+        if(!dataISO) return "Não informada";
+        const [ano, mes, dia] = dataISO.split('-');
+        return `${dia}/${mes}/${ano}`;
     }
 
     function enviarWhatsApp() {
-        const msg = `*CHECKLIST ${document.getElementById('selectTag').value}*%0A` +
+        const tag = document.getElementById('selectTag').value;
+        if(!tag) return alert("Por favor, selecione a TAG do veículo.");
+
+        const msg = `*CHECKLIST ${tag}*%0A` +
+                    `--------------------------------%0A` +
                     `📅 Data: ${document.getElementById('data_hoje').value}%0A` +
                     `🚗 Placa: ${document.getElementById('placa').value}%0A` +
-                    `🛢️ Próx. Troca Óleo: ${document.getElementById('prox_oleo').value}%0A` +
+                    `🛢️ Próx. Troca Óleo: ${formatarData(document.getElementById('prox_oleo').value)}%0A` +
                     `🧪 Tipo de Óleo: ${document.getElementById('tipo_oleo').value}%0A%0A` +
                     `👤 Condutor 1: ${document.getElementById('condutor1').value}%0A` +
                     `👤 Condutor 2: ${document.getElementById('condutor2').value || "---"}%0A` +
                     `👤 Condutor 3: ${document.getElementById('condutor3').value || "---"}%0A%0A` +
-                    `🛣️ Km Início: ${document.getElementById('km_inicio').value}%0A` +
-                    `🏁 Km Final: ${document.getElementById('km_final').value}%0A%0A` +
+                    `🛣️ Km Início: ${document.getElementById('km_inicio').value || "0"}%0A` +
+                    `🏁 Km Final: ${document.getElementById('km_final').value || "0"}%0A%0A` +
                     `🏷️ Cor do Selo: ${document.getElementById('cor_selo').value}%0A` +
-                    `📅 Validade Selo: ${document.getElementById('val_selo').value}`;
+                    `📅 Validade Selo: ${formatarData(document.getElementById('val_selo').value)}%0A` +
+                    `--------------------------------`;
 
         window.open(`https://wa.me/?text=${msg}`, '_blank');
     }
