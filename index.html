@@ -89,7 +89,7 @@
                 
                 <div class="form-group full-width">
                     <label>Observações</label>
-                    <textarea id="obs" placeholder="Informar avarias ou observações"></textarea>
+                    <textarea id="obs" placeholder="Informar avarias ou observações do trajeto"></textarea>
                 </div>
             </div>
             <div id="botoesAcao"></div>
@@ -121,7 +121,6 @@
         else if (pass !== null) alert("Senha incorreta!");
     }
 
-    // Função para converter KM com ponto em número real (Ex: "166.523" -> 166523)
     function limparKM(valor) {
         return Number(valor.toString().replace(/\./g, ''));
     }
@@ -147,7 +146,7 @@
     function limparNomeSalvo() {
         localStorage.removeItem('nomeSalvo');
         document.getElementById('condutor1').value = "";
-        alert("Nome removido!");
+        alert("Motorista resetado!");
     }
 
     function renderInterface() {
@@ -169,13 +168,50 @@
                 }
             });
             statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-fim" onclick="enviarFim()">FINALIZAR TRAJETO (FIM)</button>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-fim" onclick="enviarFim()">ENVIAR RELATÓRIO FINAL (FIM)</button>`;
         } else {
             const nomeS = localStorage.getItem('nomeSalvo');
             if(nomeS) document.getElementById('condutor1').value = nomeS;
             statusMsg.innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR TRAJETO (START)</button>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">ENVIAR RELATÓRIO INICIAL (START)</button>`;
         }
+    }
+
+    function gerarTextoRelatorio(status, kmF_bruto = null) {
+        const tag = document.getElementById('selectTag').value;
+        const placa = document.getElementById('placa').value;
+        const c1 = document.getElementById('condutor1').value;
+        const c2 = document.getElementById('condutor2').value || "---";
+        const c3 = document.getElementById('condutor3').value || "---";
+        const kmI = document.getElementById('km_inicio').value;
+        const prox = document.getElementById('prox_oleo').value;
+        const tipo = document.getElementById('tipo_oleo').value;
+        const cor = document.getElementById('cor_selo').value;
+        const val = document.getElementById('val_selo').value.split('-').reverse().join('/');
+        const obs = document.getElementById('obs').value || "Sem observações";
+        const data = document.getElementById('data_hoje').value;
+
+        let texto = `*${status === 'INI' ? '🟢 INÍCIO' : '🔴 FIM'} DE TRAJETO - ${tag}*%0A`;
+        texto += `--------------------------------%0A`;
+        texto += `📅 Data: ${data}%0A`;
+        texto += `🚗 Placa: ${placa}%0A%0A`;
+        texto += `👤 Condutor 1: ${c1}%0A`;
+        texto += `👤 Condutor 2: ${c2}%0A`;
+        texto += `👤 Condutor 3: ${c3}%0A%0A`;
+        texto += `🛣️ KM Início: ${kmI}%0A`;
+        
+        if(status === 'FIM') {
+            const perc = limparKM(kmF_bruto) - limparKM(kmI);
+            texto += `🏁 KM Final: ${kmF_bruto}%0A`;
+            texto += `📏 Percorrido: ${perc} km%0A%0A`;
+        }
+
+        texto += `🛢️ Próx. Troca: ${prox}%0A`;
+        texto += `🧪 Tipo Óleo: ${tipo}%0A`;
+        texto += `🏷️ Selo: ${cor} (${val})%0A%0A`;
+        texto += `📝 Obs: ${obs}%0A`;
+        texto += `--------------------------------`;
+        return texto;
     }
 
     function enviarInicio() {
@@ -187,19 +223,18 @@
             prox_oleo: document.getElementById('prox_oleo').value,
             tipo_oleo: document.getElementById('tipo_oleo').value,
             condutor1: document.getElementById('condutor1').value,
-            condutor2: document.getElementById('condutor2').value || "---",
-            condutor3: document.getElementById('condutor3').value || "---",
+            condutor2: document.getElementById('condutor2').value,
+            condutor3: document.getElementById('condutor3').value,
             km_inicio: document.getElementById('km_inicio').value,
             cor_selo: document.getElementById('cor_selo').value,
             val_selo: document.getElementById('val_selo').value,
-            obs: document.getElementById('obs').value || "Sem observações"
+            obs: document.getElementById('obs').value
         };
 
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         localStorage.setItem('nomeSalvo', dados.condutor1);
         
-        const msg = `*🟢 INÍCIO DE TRAJETO - ${dados.selectTag}*%0A👤 Condutor: ${dados.condutor1}%0A🛣️ KM Inicial: ${dados.km_inicio}%0A📝 Obs: ${dados.obs}`;
-        window.open(`https://wa.me/?text=${msg}`, '_blank');
+        window.open(`https://wa.me/?text=${gerarTextoRelatorio('INI')}`, '_blank');
         renderInterface();
     }
 
@@ -207,27 +242,13 @@
         const kmF_bruto = document.getElementById('km_final').value;
         const kmI_bruto = document.getElementById('km_inicio').value;
 
-        if(!kmF_bruto) return alert("Informe o KM Final!");
+        if(!kmF_bruto) return alert("Por favor, informe o KM Final!");
+        if(limparKM(kmF_bruto) < limparKM(kmI_bruto)) return alert("Erro: KM Final não pode ser menor que o Inicial!");
 
-        // Lógica de validação numérica ignorando pontos
-        const kmF_num = limparKM(kmF_bruto);
-        const kmI_num = limparKM(kmI_bruto);
-
-        if(kmF_num < kmI_num) {
-            return alert(`Erro: O KM Final (${kmF_bruto}) não pode ser menor que o Inicial (${kmI_bruto})!`);
-        }
-        
-        const dados = JSON.parse(localStorage.getItem('viagemAtiva'));
-        const obsFinal = document.getElementById('obs').value || "Sem observações";
-        const perc = kmF_num - kmI_num;
-        const dVal = dados.val_selo.split('-').reverse().join('/');
-
-        const msg = `*🔴 FIM DE TRAJETO - ${dados.selectTag}*%0A--------------------------------%0A📅 Data: ${document.getElementById('data_hoje').value}%0A🚗 Placa: ${dados.placa}%0A👤 Condutor 1: ${dados.condutor1}%0A👤 Condutor 2: ${dados.condutor2}%0A👤 Condutor 3: ${dados.condutor3}%0A🛣️ KM Início: ${kmI_bruto}%0A🏁 KM Final: ${kmF_bruto}%0A📏 Percorrido: ${perc} km%0A🛢️ Próx. Troca: ${dados.prox_oleo}%0A🧪 Tipo Óleo: ${dados.tipo_oleo}%0A🏷️ Selo: ${dados.cor_selo} (${dVal})%0A📝 Obs: ${obsFinal}%0A--------------------------------`;
-
-        window.open(`https://wa.me/?text=${msg}`, '_blank');
+        window.open(`https://wa.me/?text=${gerarTextoRelatorio('FIM', kmF_bruto)}`, '_blank');
         
         setTimeout(() => {
-            if(confirm("Trajeto finalizado! Manter motorista para a próxima?")) {
+            if(confirm("Trajeto enviado! Deseja encerrar e preparar para a próxima viagem?")) {
                 localStorage.removeItem('viagemAtiva');
                 location.reload();
             }
@@ -235,8 +256,8 @@
     }
 
     function limparTudo() {
-        if(confirm("Resetar tudo?")) {
-            localStorage.clear();
+        if(confirm("Isso resetará o veículo e os condutores extras. Continuar?")) {
+            localStorage.removeItem('viagemAtiva');
             location.reload();
         }
     }
