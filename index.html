@@ -18,7 +18,8 @@
         .form-group { margin-bottom: 12px; }
         .full-width { grid-column: span 2; }
         label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--primary); font-size: 13px; }
-        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        select, input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        textarea { resize: vertical; min-height: 60px; font-family: inherit; }
         input[readonly], select[disabled] { background-color: #f1f3f5; color: #777; }
         .btn-whatsapp { width: 100%; padding: 15px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-inicio { background: var(--success); }
@@ -32,7 +33,7 @@
 <div class="container">
     <div class="tabs">
         <button class="tab-btn active" id="btn-chk" onclick="switchTab('checklist')">Checklist</button>
-        <button class="tab-btn" id="btn-adm" onclick="switchTab('admin')">Admin</button>
+        <button class="tab-btn" id="btn-adm" onclick="solicitarAcessoAdmin()">Admin</button>
     </div>
 
     <div id="tab-checklist">
@@ -79,6 +80,11 @@
                     </select>
                 </div>
                 <div class="form-group"><label>Validade Selo</label><input type="date" id="val_selo" required></div>
+                
+                <div class="form-group full-width">
+                    <label>Observações</label>
+                    <textarea id="obs" placeholder="Ex: Riscos na lataria, pneus baixos, etc."></textarea>
+                </div>
             </div>
             <div id="botoesAcao"></div>
             <button type="button" class="reset-link" onclick="limparTudo()">Resetar e iniciar novo veículo</button>
@@ -86,20 +92,34 @@
     </div>
 
     <div id="tab-admin" class="hidden">
-        <h3>Admin: Condutores</h3>
-        <input type="text" id="novoNome" placeholder="Nome">
-        <button onclick="addCondutor()" style="width:100%; margin-top:10px; padding:10px;">Adicionar</button>
-        <div id="listaCondutores" style="margin-top:10px;"></div>
+        <h3 style="color:var(--admin)">Painel Administrativo</h3>
+        <p style="font-size: 12px; color: #666;">Gerencie a lista de condutores autorizados.</p>
+        <hr>
+        <input type="text" id="novoNome" placeholder="Nome do novo condutor">
+        <button onclick="addCondutor()" style="width:100%; margin-top:10px; padding:12px; background:var(--primary); color:white; border:none; border-radius:6px; font-weight:bold;">Adicionar Condutor</button>
+        <div id="listaCondutores" style="margin-top:20px;"></div>
+        <button onclick="switchTab('checklist')" style="width:100%; margin-top:20px; background:#ddd; border:none; padding:10px; border-radius:6px;">Sair do Admin</button>
     </div>
 </div>
 
 <script>
+    const SENHA_MESTRA = "1234"; // <--- ALTERE SUA SENHA AQUI
+    
     const frota = {
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", km_ini: "166523", cor: "Azul", prox: "169.257", val: "2026-05-31" },
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", km_ini: "115000", cor: "Verde", prox: "120.000", val: "2026-12-31" }
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
+
+    function solicitarAcessoAdmin() {
+        const pass = prompt("Digite a senha para acessar as configurações:");
+        if (pass === SENHA_MESTRA) {
+            switchTab('admin');
+        } else if (pass !== null) {
+            alert("Senha incorreta!");
+        }
+    }
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
@@ -126,14 +146,14 @@
                 const el = document.getElementById(id);
                 if(el) {
                     el.value = viagem[id];
-                    if(id !== 'km_final') {
+                    if(id !== 'km_final' && id !== 'obs') {
                         el.readOnly = true;
                         if(el.tagName === 'SELECT') el.disabled = true;
                     }
                 }
             });
             statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-fim" onclick="enviarFim()">ENVIAR FINAL DE TRAJETO</button>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-finish" style="background:var(--finish)" onclick="enviarFim()">ENVIAR FINAL DE TRAJETO</button>`;
         } else {
             statusMsg.innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
             containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">ENVIAR INÍCIO DE TRAJETO</button>`;
@@ -153,7 +173,8 @@
             condutor3: document.getElementById('condutor3').value || "---",
             km_inicio: document.getElementById('km_inicio').value,
             cor_selo: document.getElementById('cor_selo').value,
-            val_selo: document.getElementById('val_selo').value
+            val_selo: document.getElementById('val_selo').value,
+            obs: document.getElementById('obs').value || "Sem observações"
         };
 
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
@@ -161,13 +182,9 @@
 
         const msg = `*🟢 INÍCIO DE TRAJETO - ${dados.selectTag}*%0A` +
                     `🚗 Placa: ${dados.placa}%0A` +
-                    `👤 Condutor 1: ${dados.condutor1}%0A` +
-                    `👤 Condutor 2: ${dados.condutor2}%0A` +
-                    `👤 Condutor 3: ${dados.condutor3}%0A` +
+                    `👤 Condutor: ${dados.condutor1}%0A` +
                     `🛣️ KM Inicial: ${dados.km_inicio}%0A` +
-                    `🛢️ Próx. Troca: ${dados.prox_oleo}%0A` +
-                    `🧪 Tipo Óleo: ${dados.tipo_oleo}%0A` +
-                    `🏷️ Selo: ${dados.cor_selo} (${dataVal})`;
+                    `📝 Obs: ${dados.obs}`;
         
         window.open(`https://wa.me/?text=${msg}`, '_blank');
         renderInterface();
@@ -178,6 +195,7 @@
         if(!kmF) return alert("Por favor, informe o KM Final!");
         
         const dados = JSON.parse(localStorage.getItem('viagemAtiva'));
+        const obsFinal = document.getElementById('obs').value || "Sem observações";
         const dataVal = dados.val_selo.split('-').reverse().join('/');
         const perc = kmF - dados.km_inicio;
 
@@ -193,19 +211,19 @@
                     `📏 Percorrido: ${perc} km%0A%0A` +
                     `🛢️ Próx. Troca: ${dados.prox_oleo}%0A` +
                     `🧪 Tipo Óleo: ${dados.tipo_oleo}%0A` +
-                    `🏷️ Cor Selo: ${dados.cor_selo}%0A` +
-                    `📅 Val. Selo: ${dataVal}%0A` +
+                    `🏷️ Selo: ${dados.cor_selo} (${dataVal})%0A` +
+                    `📝 Obs: ${obsFinal}%0A` +
                     `--------------------------------`;
 
         window.open(`https://wa.me/?text=${msg}`, '_blank');
-        if(confirm("Deseja encerrar este veículo no sistema?")) {
+        if(confirm("Deseja encerrar este trajeto no sistema?")) {
             localStorage.removeItem('viagemAtiva');
             location.reload();
         }
     }
 
     function limparTudo() {
-        if(confirm("Isso apagará os dados salvos do trajeto atual. Continuar?")) {
+        if(confirm("Deseja resetar o trajeto atual?")) {
             localStorage.removeItem('viagemAtiva');
             location.reload();
         }
@@ -215,13 +233,14 @@
         const c1 = document.getElementById('condutor1');
         const lista = document.getElementById('listaCondutores');
         c1.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
-        lista.innerHTML = condutores.map((c, i) => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee">${c} <b style="color:red; cursor:pointer" onclick="remover(${i})">✕</b></div>`).join('');
+        lista.innerHTML = condutores.map((c, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; background:#fff; margin-bottom:5px; border-radius:5px;">${c} <b style="color:red; cursor:pointer; padding:0 10px" onclick="remover(${i})">✕</b></div>`).join('');
     }
     function addCondutor() {
-        const n = document.getElementById('novoNome').value;
+        const n = document.getElementById('novoNome').value.trim();
         if(n) { condutores.push(n); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); document.getElementById('novoNome').value = ""; }
     }
-    function remover(i) { condutores.splice(i,1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); }
+    function remover(i) { if(confirm("Remover condutor?")) { condutores.splice(i,1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); } }
+    
     function switchTab(t) {
         document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
         document.getElementById('tab-admin').className = t === 'admin' ? '' : 'hidden';
