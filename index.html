@@ -8,33 +8,26 @@
         :root { --primary: #2c3e50; --accent: #3498db; --success: #25D366; --admin: #e67e22; --danger: #e74c3c; --finish: #9b59b6; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; display: flex; justify-content: center; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        
         .brand-header { text-align: center; margin-bottom: 20px; }
         .brand-header h1 { color: var(--primary); margin: 0; font-size: 28px; letter-spacing: 1px; text-transform: uppercase; }
         .brand-header p { color: var(--accent); margin: 0; font-size: 12px; font-weight: bold; }
-
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; background: #ddd; }
         .tab-btn.active { background: var(--primary); color: white; }
-        
         .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-bottom: 1px solid #eee; margin-bottom: 5px; border-radius: 4px; }
         .btn-delete { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        
         .status-badge { text-align: center; padding: 8px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
         .status-aberto { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .status-novo { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full-width { grid-column: span 2; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--primary); font-size: 13px; }
         select, input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-        
         .btn-whatsapp { width: 100%; padding: 15px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-inicio { background: var(--success); }
         .btn-finish { background: var(--finish); }
-        .reset-user { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; display: block; margin-top: 5px; width: 100%; }
-        
+        .reset-user { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; display: block; margin-top: 15px; width: 100%; text-align: center; }
         .hidden { display: none; }
         .status-calc { font-size: 11px; font-weight: bold; margin-top: 4px; display: block; }
     </style>
@@ -120,7 +113,7 @@
                 </div>
             </div>
             <div id="botoesAcao"></div>
-            <button type="button" class="reset-user" onclick="limparTudo()">Resetar Formulário</button>
+            <button type="button" class="reset-user" onclick="limparTudo()">Resetar/Limpar Sistema</button>
         </form>
     </div>
 
@@ -149,29 +142,24 @@
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
 
-    // FUNÇÃO PARA GERAR O SOM DE BIP
     function tocarBip() {
         try {
             const context = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = context.createOscillator();
+            const osc = context.createOscillator();
             const gain = context.createGain();
-            oscillator.connect(gain);
-            gain.connect(context.destination);
-            oscillator.type = "sine";
-            oscillator.frequency.value = 880; // Lá (A5)
-            gain.gain.setValueAtTime(0.1, context.currentTime);
-            oscillator.start();
-            oscillator.stop(context.currentTime + 0.15); // Duração de 150ms
-        } catch (e) { console.log("Áudio não suportado"); }
+            osc.connect(gain); gain.connect(context.destination);
+            osc.frequency.value = 800; gain.gain.value = 0.1;
+            osc.start(); osc.stop(context.currentTime + 0.2);
+        } catch (e) {}
     }
 
-    function limparKM(v) { if(!v) return 0; return Number(v.toString().replace(/\./g, '').replace(',', '.')); }
+    function limparKM(v) { return Number(v.toString().replace(/\./g, '').replace(',', '.')); }
 
     function calcularTudo() {
         const hoje = new Date(); hoje.setHours(0,0,0,0);
         const proxOleo = document.getElementById('prox_oleo');
-        const kmIni = limparKM(document.getElementById('km_inicio').value);
-        const kmFin = limparKM(document.getElementById('km_final').value);
+        const kmIni = limparKM(document.getElementById('km_inicio').value || 0);
+        const kmFin = limparKM(document.getElementById('km_final').value || 0);
         const displayOleo = document.getElementById('calc_oleo');
         const kmAtual = kmFin > 0 ? kmFin : kmIni;
 
@@ -189,81 +177,51 @@
         }
 
         const valSelo = document.getElementById('val_selo').value;
-        const displaySelo = document.getElementById('calc_selo');
         if (valSelo) {
             const dSelo = new Date(valSelo);
             const diffSelo = Math.ceil((dSelo - hoje) / (1000 * 60 * 60 * 24));
-            displaySelo.innerText = diffSelo < 0 ? `SELO VENCIDO! (${Math.abs(diffSelo)}d)` : `Vence em ${diffSelo} dias`;
-            displaySelo.style.color = diffSelo < 0 ? "red" : "green";
+            document.getElementById('calc_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
+            document.getElementById('calc_selo').style.color = diffSelo < 0 ? "red" : "green";
         }
     }
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
         const v = frota[document.getElementById('selectTag').value];
-        const prox = document.getElementById('prox_oleo');
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
-            document.getElementById('km_inicio').value = ""; 
-            document.getElementById('km_final').value = "";
-            document.getElementById('val_selo').value = "";
+            const prox = document.getElementById('prox_oleo');
             prox.type = v.tipoTroca === "data" ? "date" : "text";
             document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Data Próx. Troca" : "Próx. Troca (KM)";
-            prox.value = ""; calcularTudo();
+            calcularTudo();
         }
     }
 
-    function salvarSomenteNome() { const n = document.getElementById('condutor1').value; if(n) localStorage.setItem('nomeSalvo', n); }
+    function salvarSomenteNome() { localStorage.setItem('nomeSalvo', document.getElementById('condutor1').value); }
 
     function renderInterface() {
         const viagem = JSON.parse(localStorage.getItem('viagemAtiva'));
-        const containerBotoes = document.getElementById('botoesAcao');
-        const statusMsg = document.getElementById('statusMensagem');
         renderCondutoresChecklist(); renderCondutoresAdmin();
         document.getElementById('data_hoje').value = new Date().toLocaleDateString('pt-BR');
 
         if (viagem) {
             Object.keys(viagem).forEach(id => {
                 const el = document.getElementById(id);
-                if(el) { el.value = viagem[id]; if(id !== 'km_final' && id !== 'obs') { el.readOnly = true; if(el.tagName === 'SELECT') el.disabled = true; } }
+                if(el) { 
+                    el.value = viagem[id]; 
+                    if(id !== 'km_final' && id !== 'obs') { el.readOnly = true; if(el.tagName === 'SELECT') el.disabled = true; }
+                }
             });
-            statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-finish" onclick="enviarFim()">FINALIZAR TRAJETO (FIM)</button>`;
+            document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
+            document.getElementById('botoesAcao').innerHTML = `<button type="button" class="btn-whatsapp btn-finish" onclick="enviarFim()">FINALIZAR TRAJETO (FIM)</button>`;
             calcularTudo();
         } else {
-            const nomeS = localStorage.getItem('nomeSalvo'); if(nomeS) document.getElementById('condutor1').value = nomeS;
-            statusMsg.innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR TRAJETO (START)</button>`;
+            document.getElementById('condutor1').value = localStorage.getItem('nomeSalvo') || "";
+            document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
+            document.getElementById('botoesAcao').innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR TRAJETO (START)</button>`;
         }
-    }
-
-    function gerarTextoRelatorio(status, kmF_input = null) {
-        const tag = document.getElementById('selectTag').value;
-        const placa = document.getElementById('placa').value;
-        const c1 = document.getElementById('condutor1').value;
-        const c2 = document.getElementById('condutor2').value || "Não informado";
-        const c3 = document.getElementById('condutor3').value || "Não informado";
-        const kmI = document.getElementById('km_inicio').value;
-        const tipoOleo = document.getElementById('tipo_oleo').value;
-        let prox = document.getElementById('prox_oleo').value;
-        if(document.getElementById('prox_oleo').type === 'date') prox = prox.split('-').reverse().join('/');
-        const statusOleo = document.getElementById('calc_oleo').innerText;
-        const corSelo = document.getElementById('cor_selo').value;
-        const valSelo = document.getElementById('val_selo').value.split('-').reverse().join('/');
-        const statusSelo = document.getElementById('calc_selo').innerText;
-        const obs = document.getElementById('obs').value || "Sem observações";
-
-        let t = `*${status === 'INI' ? '🟢 INÍCIO' : '🔴 FIM'} DE TRAJETO - ${tag}*%0A`;
-        t += `🚗 Placa: ${placa}%0A%0A`;
-        t += `👤 Condutor 1: ${c1}%0A👤 Condutor 2: ${c2}%0A👤 Condutor 3: ${c3}%0A%0A`;
-        t += `🛣️ KM Início: ${kmI}%0A`;
-        if(status === 'FIM') { t += `🏁 KM Final: ${kmF_input}%0A📏 Percorrido: ${limparKM(kmF_input) - limparKM(kmI)} km%0A%0A`; }
-        t += `🛢️ Tipo Óleo: ${tipoOleo}%0A🔧 Próx. Troca: ${prox}%0A📊 Status Óleo: ${statusOleo}%0A%0A`;
-        t += `🏷️ Cor do Selo: ${corSelo}%0A📅 Validade Selo: ${valSelo}%0A⚠️ Status Selo: ${statusSelo}%0A%0A`;
-        t += `📝 Obs: ${obs}`;
-        return t;
     }
 
     function enviarInicio() {
@@ -274,9 +232,10 @@
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         
         tocarBip();
-        alert(`Relatório Iniciado!\n\nObrigado, ${nome}! Tenha um ótimo dia de trabalho.`);
+        alert(`Obrigado, ${nome}! Início registrado.`);
         
-        window.open(`https://wa.me/?text=${gerarTextoRelatorio('INI')}`, '_blank');
+        const texto = encodeURIComponent(montarTexto('INI'));
+        window.open(`https://wa.me/?text=${texto}`, '_blank');
         renderInterface();
     }
 
@@ -286,21 +245,41 @@
         const nome = document.getElementById('condutor1').value;
         
         if(!kmF) return alert("Informe o KM Final!");
-        if(limparKM(kmF) < limparKM(kmI)) return alert("KM Final inválido!");
+        if(limparKM(kmF) < limparKM(kmI)) return alert("KM Final não pode ser menor que o Inicial!");
         
         tocarBip();
-        alert(`Relatório de Finalização!\n\nObrigado, ${nome}! Excelente descanso.`);
+        const texto = encodeURIComponent(montarTexto('FIM', kmF));
+        window.open(`https://wa.me/?text=${texto}`, '_blank');
         
-        window.open(`https://wa.me/?text=${gerarTextoRelatorio('FIM', kmF)}`, '_blank');
-        
-        setTimeout(() => { if(confirm("Deseja encerrar este trajeto?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }, 1000);
+        // Limpeza imediata após confirmação do alerta
+        alert(`Obrigado, ${nome}! Trajeto finalizado.`);
+        localStorage.removeItem('viagemAtiva'); 
+        location.reload();
     }
 
-    function limparTudo() { if(confirm("Resetar?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
-    function renderCondutoresChecklist() { const select = document.getElementById('condutor1'); const v = select.value; select.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join(''); if(v) select.value = v; }
+    function montarTexto(status, kmF = null) {
+        const tag = document.getElementById('selectTag').value;
+        const c1 = document.getElementById('condutor1').value;
+        const kmI = document.getElementById('km_inicio').value;
+        const prox = document.getElementById('prox_oleo').value;
+        const cor = document.getElementById('cor_selo').value;
+        const val = document.getElementById('val_selo').value.split('-').reverse().join('/');
+        
+        let t = `*${status === 'INI' ? '🟢 START' : '🔴 FIM'} - ${tag}*\n`;
+        t += `👤 Condutor: ${c1}\n`;
+        t += `🛣️ KM Início: ${kmI}\n`;
+        if(status === 'FIM') t += `🏁 KM Final: ${kmF}\n📏 Percorrido: ${limparKM(kmF) - limparKM(kmI)} km\n`;
+        t += `🔧 Próx. Troca: ${prox}\n`;
+        t += `🏷️ Selo: ${cor} | Val: ${val}\n`;
+        t += `📝 Obs: ${document.getElementById('obs').value || "N/A"}`;
+        return t;
+    }
+
+    function limparTudo() { if(confirm("Deseja realmente limpar tudo?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
+    function renderCondutoresChecklist() { const s = document.getElementById('condutor1'); const v = s.value; s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join(''); if(v) s.value = v; }
     function renderCondutoresAdmin() { document.getElementById('listaCondutoresAdmin').innerHTML = condutores.map((c, i) => `<div class="admin-item"><span>${c}</span><button class="btn-delete" onclick="removerCondutor(${i})">Excluir</button></div>`).join(''); }
-    function addCondutor() { const input = document.getElementById('novoNome'); const n = input.value.trim(); if(n) { condutores.push(n); condutores.sort(); localStorage.setItem('condutores', JSON.stringify(condutores)); input.value = ""; renderInterface(); } }
-    function removerCondutor(i) { if(confirm(`Excluir ${condutores[i]}?`)) { condutores.splice(i, 1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); } }
+    function addCondutor() { const n = document.getElementById('novoNome').value.trim(); if(n) { condutores.push(n); condutores.sort(); localStorage.setItem('condutores', JSON.stringify(condutores)); document.getElementById('novoNome').value = ""; renderInterface(); } }
+    function removerCondutor(i) { if(confirm("Excluir condutor?")) { condutores.splice(i, 1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); } }
     function solicitarAcessoAdmin() { if (prompt("Senha Admin:") === SENHA_MESTRA) switchTab('admin'); }
     function switchTab(t) {
         document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
