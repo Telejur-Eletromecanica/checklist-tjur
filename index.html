@@ -146,6 +146,11 @@
     }
 
     function limparKM(v) { return Number(v.toString().replace(/\./g, '').replace(',', '.')); }
+    
+    function formatarSemLink(texto) {
+        if (!texto) return "";
+        return texto.toString().replace(/\./g, '．'); 
+    }
 
     function calcularTudo() {
         const hoje = new Date(); hoje.setHours(0,0,0,0);
@@ -223,9 +228,8 @@
         const c2 = document.getElementById('condutor2').value || "Nao informado";
         const c3 = document.getElementById('condutor3').value || "Nao informado";
         
-        // Anti-sublinhado: Adiciona caractere invisível após o número se houver ponto
-        const kmI = document.getElementById('km_inicio').value.replace(/\./g, '.\u200B');
-        const kmF = kmFValue ? kmFValue.replace(/\./g, '.\u200B') : "";
+        const kmI = formatarSemLink(document.getElementById('km_inicio').value);
+        const kmF = formatarSemLink(kmFValue);
         
         const oleo = document.getElementById('tipo_oleo').value;
         
@@ -233,6 +237,8 @@
         if(document.getElementById('prox_oleo').type === 'date' && prox) {
             const partes = prox.split('-');
             prox = `${partes[1]}/${partes[0]}`;
+        } else {
+            prox = formatarSemLink(prox);
         }
         
         const statusOleo = document.getElementById('calc_oleo').innerText;
@@ -241,31 +247,24 @@
         const statusSelo = document.getElementById('calc_selo').innerText;
         const obs = document.getElementById('obs').value || "Sem observacoes";
 
-        // Montagem com negrito (*) e "sublinhado" (_) do WhatsApp
         let t = `*${status === 'INI' ? 'INICIO' : 'FIM'} DE TRAJETO - ${tag}*\n\n`;
-        
-        t += `_*Placa:*_ ${placa}\n\n`;
-        t += `_*Condutor 1:*_ ${c1}\n`;
-        t += `_*Condutor 2:*_ ${c2}\n`;
-        t += `_*Condutor 3:*_ ${c3}\n\n`;
-        
-        t += `_*KM Inicio:*_ ${kmI}\n`;
+        t += `*Placa:* ${placa}\n\n`;
+        t += `*Condutor 1:* ${c1}\n`;
+        t += `*Condutor 2:* ${c2}\n`;
+        t += `*Condutor 3:* ${c3}\n\n`;
+        t += `*KM Inicio:* ${kmI}\n`;
         if(status === 'FIM') {
-            t += `_*KM Final:*_ ${kmF}\n`;
-            const diff = limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value);
-            t += `_*Km Percorrido:*_ ${diff} km\n\n`;
+            t += `*KM Final:* ${kmF}\n`;
+            const diff = (limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value)).toFixed(2);
+            t += `*Km Percorrido:* ${formatarSemLink(diff)} km\n\n`;
         }
-
-        t += `_*Tipo Oleo:*_ ${oleo}\n`;
-        t += `_*Prox. Troca:*_ ${prox}\n`;
-        t += `_*Status Oleo:*_ ${statusOleo}\n\n`;
-        
-        t += `_*Cor do Selo:*_ ${cor}\n`;
-        t += `_*Validade Selo:*_ ${val}\n`;
-        t += `_*Status Selo:*_ ${statusSelo}\n\n`;
-        
-        t += `_*Obs:*_ ${obs}`;
-        
+        t += `*Tipo Oleo:* ${oleo}\n`;
+        t += `*Prox. Troca:* ${prox}\n`;
+        t += `*Status Oleo:* ${statusOleo}\n\n`;
+        t += `*Cor do Selo:* ${cor}\n`;
+        t += `*Validade Selo:* ${val}\n`;
+        t += `*Status Selo:* ${statusSelo}\n\n`;
+        t += `*Obs:* ${obs}`;
         return t;
     }
 
@@ -277,7 +276,7 @@
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         
         tocarBip();
-        alert(`Obrigado, ${nome}! Inicio de trajeto registrado.`);
+        alert(`Ola, ${nome}! Inicio de trajeto registrado. Enviando ao WhatsApp...`);
         
         const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('INI'));
         window.open(url, '_blank');
@@ -293,14 +292,18 @@
         if(limparKM(kmF) < limparKM(kmI)) return alert("Erro: KM Final invalido!");
         
         tocarBip();
+        
+        // Exibe a confirmação ANTES de tudo para garantir que o usuário veja
+        alert(`Obrigado, ${nome}! Trajeto finalizado com sucesso. Bom descanso!`);
+        
         const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmF));
+        
+        // Abre o WhatsApp
         window.open(url, '_blank');
         
-        setTimeout(() => {
-            alert(`Obrigado, ${nome}! Trajeto finalizado com sucesso. Bom descanso!`);
-            localStorage.removeItem('viagemAtiva'); 
-            location.reload();
-        }, 500);
+        // Limpa e reseta o sistema
+        localStorage.removeItem('viagemAtiva'); 
+        setTimeout(() => { location.reload(); }, 1000);
     }
 
     function limparTudo() { if(confirm("Deseja limpar todos os dados?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
