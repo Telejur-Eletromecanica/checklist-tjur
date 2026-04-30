@@ -109,9 +109,9 @@
 <script>
     const SENHA_MESTRA = "1234";
     const frota = {
-        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul", val: "2026-05-31" },
-        "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Verde", val: "2026-12-31" },
-        "TJUR 04": { placa: "QVD4I22", oleo: "15W40", cor: "Verde", val: "2026-06-30" }
+        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul" },
+        "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Verde" },
+        "TJUR 04": { placa: "QVD4I22", oleo: "15W40", cor: "Verde" }
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
@@ -127,10 +127,10 @@
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
-            document.getElementById('val_selo').value = v.val;
-            // CAMPOS QUE FICAM EM BRANCO PARA PREENCHIMENTO MANUAL
+            // CAMPOS QUE FICAM EM BRANCO PARA PREENCHIMENTO MANUAL OBRIGATÓRIO
             document.getElementById('km_inicio').value = ""; 
             document.getElementById('prox_oleo').value = "";
+            document.getElementById('val_selo').value = "";
         }
     }
 
@@ -211,7 +211,8 @@
     }
 
     function enviarInicio() {
-        if (!document.getElementById('chkForm').checkValidity()) return document.getElementById('chkForm').reportValidity();
+        const form = document.getElementById('chkForm');
+        if (!form.checkValidity()) return form.reportValidity();
         
         const dados = {
             selectTag: document.getElementById('selectTag').value,
@@ -223,7 +224,7 @@
             condutor3: document.getElementById('condutor3').value,
             km_inicio: document.getElementById('km_inicio').value,
             cor_selo: document.getElementById('cor_selo').value,
-            val_selo: document.getElementById('val_selo').value,
+            val_selo: document.getElementById('val_selo').value, // Salva a validade aqui
             obs: document.getElementById('obs').value
         };
 
