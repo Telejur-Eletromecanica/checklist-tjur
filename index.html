@@ -48,7 +48,7 @@
         <div id="statusMensagem"></div>
         <form id="chkForm">
             <div class="form-group">
-                <label>Veículo (TAG)</label>
+                <label>Veiculo (TAG)</label>
                 <select id="selectTag" required onchange="atualizarDadosVeiculo()">
                     <option value="">-- Selecione --</option>
                     <option value="TJUR 04">TJUR 04 (SKY MUNCK)</option>
@@ -65,12 +65,12 @@
                 <div class="form-group"><label>Data Checklist</label><input type="text" id="data_hoje" readonly></div>
                 <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
                 <div class="form-group">
-                    <label id="labelProxOleo">Próx. Troca Óleo</label>
+                    <label id="labelProxOleo">Prox. Troca Oleo</label>
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
                     <span id="calc_oleo" class="status-calc"></span>
                 </div>
                 <div class="form-group">
-                    <label>Tipo de Óleo</label>
+                    <label>Tipo de Oleo</label>
                     <select id="tipo_oleo" required>
                         <option value="15W40">15W40</option>
                         <option value="5W30">5W30</option>
@@ -83,7 +83,7 @@
                 </div>
                 <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
                 <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
-                <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required placeholder="KM" oninput="calcularTudo()"></div>
+                <div class="form-group"><label>KM Inicio</label><input type="text" id="km_inicio" required placeholder="KM" oninput="calcularTudo()"></div>
                 <div class="form-group"><label>KM Final</label><input type="text" id="km_final" placeholder="KM" oninput="calcularTudo()"></div>
                 <div class="form-group">
                     <label>Cor do Selo</label>
@@ -100,8 +100,8 @@
                     <span id="calc_selo" class="status-calc"></span>
                 </div>
                 <div class="form-group full-width">
-                    <label>Observações</label>
-                    <textarea id="obs" placeholder="Avarias ou observações"></textarea>
+                    <label>Observacoes</label>
+                    <textarea id="obs" placeholder="Avarias ou observacoes"></textarea>
                 </div>
             </div>
             <div id="botoesAcao"></div>
@@ -224,8 +224,13 @@
         const c3 = document.getElementById('condutor3').value || "Nao informado";
         const kmI = document.getElementById('km_inicio').value;
         const oleo = document.getElementById('tipo_oleo').value;
+        
+        // LOGICA PARA MES E ANO NO WHATSAPP
         let prox = document.getElementById('prox_oleo').value;
-        if(document.getElementById('prox_oleo').type === 'date') prox = prox.split('-').reverse().join('/');
+        if(document.getElementById('prox_oleo').type === 'date' && prox) {
+            const partes = prox.split('-'); // yyyy-mm-dd
+            prox = `${partes[1]}/${partes[0]}`; // mm/yyyy
+        }
         
         const statusOleo = document.getElementById('calc_oleo').innerText;
         const cor = document.getElementById('cor_selo').value;
@@ -263,7 +268,7 @@
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         
         tocarBip();
-        alert(`Ola, ${nome}! Inicio registrado. Enviando dados ao WhatsApp...`);
+        alert(`Obrigado, ${nome}! Inicio de trajeto registrado.`);
         
         const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('INI'));
         window.open(url, '_blank');
@@ -279,24 +284,21 @@
         if(limparKM(kmF) < limparKM(kmI)) return alert("Erro: KM Final invalido!");
         
         tocarBip();
-        const texto = montarTextoWhatsapp('FIM', kmF);
-        const url = "https://wa.me/?text=" + encodeURIComponent(texto);
-        
+        const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmF));
         window.open(url, '_blank');
         
-        // Mensagem de confirmação final e limpeza
         setTimeout(() => {
-            alert(`Obrigado, ${nome}! Trajeto finalizado com sucesso. Sistema resetado.`);
+            alert(`Obrigado, ${nome}! Trajeto finalizado com sucesso. Bom descanso!`);
             localStorage.removeItem('viagemAtiva'); 
             location.reload();
         }, 500);
     }
 
-    function limparTudo() { if(confirm("Deseja limpar todos os campos?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
+    function limparTudo() { if(confirm("Deseja limpar todos os dados?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
     function renderCondutoresChecklist() { const s = document.getElementById('condutor1'); const v = s.value; s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join(''); if(v) s.value = v; }
     function renderCondutoresAdmin() { document.getElementById('listaCondutoresAdmin').innerHTML = condutores.map((c, i) => `<div class="admin-item"><span>${c}</span><button class="btn-delete" onclick="removerCondutor(${i})">Excluir</button></div>`).join(''); }
     function addCondutor() { const n = document.getElementById('novoNome').value.trim(); if(n) { condutores.push(n); condutores.sort(); localStorage.setItem('condutores', JSON.stringify(condutores)); document.getElementById('novoNome').value = ""; renderInterface(); } }
-    function removerCondutor(i) { if(confirm("Remover este condutor?")) { condutores.splice(i, 1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); } }
+    function removerCondutor(i) { if(confirm("Remover condutor?")) { condutores.splice(i, 1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); } }
     function solicitarAcessoAdmin() { if (prompt("Senha Admin:") === SENHA_MESTRA) switchTab('admin'); }
     function switchTab(t) {
         document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
