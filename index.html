@@ -162,8 +162,9 @@
 
         if (proxOleo.value) {
             if (proxOleo.type === 'date') {
-                const dProx = new Date(proxOleo.value);
-                const diff = Math.ceil((dProx - hoje) / (1000 * 60 * 60 * 24));
+                const dAux = new Date(proxOleo.value + "T00:00:00");
+                const dUltimoDia = new Date(dAux.getFullYear(), dAux.getMonth() + 1, 0); // Define o último dia do mês
+                const diff = Math.ceil((dUltimoDia - hoje) / (1000 * 60 * 60 * 24));
                 displayOleo.innerText = diff < 0 ? `Vencido ha ${Math.abs(diff)} dias` : `Faltam ${diff} dias`;
                 displayOleo.style.color = diff < 0 ? "red" : "green";
             } else if (kmAtual > 0) {
@@ -175,7 +176,7 @@
 
         const valSelo = document.getElementById('val_selo').value;
         if (valSelo) {
-            const dSelo = new Date(valSelo);
+            const dSelo = new Date(valSelo + "T00:00:00");
             const diffSelo = Math.ceil((dSelo - hoje) / (1000 * 60 * 60 * 24));
             document.getElementById('calc_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
             document.getElementById('calc_selo').style.color = diffSelo < 0 ? "red" : "green";
@@ -190,8 +191,8 @@
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
             const prox = document.getElementById('prox_oleo');
-            prox.type = v.tipoTroca === "data" ? "date" : "text";
-            document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Data Prox. Troca" : "Prox. Troca (KM)";
+            prox.type = v.tipoTroca === "data" ? "month" : "text"; // Mudado para month para facilitar
+            document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Mês Prox. Troca" : "Prox. Troca (KM)";
             calcularTudo();
         }
     }
@@ -227,16 +228,15 @@
         const c1 = document.getElementById('condutor1').value;
         const c2 = document.getElementById('condutor2').value || "Nao informado";
         const c3 = document.getElementById('condutor3').value || "Nao informado";
-        
         const kmI = formatarSemLink(document.getElementById('km_inicio').value);
         const kmF = formatarSemLink(kmFValue);
-        
         const oleo = document.getElementById('tipo_oleo').value;
         
         let prox = document.getElementById('prox_oleo').value;
-        if(document.getElementById('prox_oleo').type === 'date' && prox) {
-            const partes = prox.split('-');
-            prox = `${partes[1]}/${partes[0]}`;
+        if(document.getElementById('prox_oleo').type === 'month' && prox) {
+            const dAux = new Date(prox + "-01T00:00:00");
+            const dFim = new Date(dAux.getFullYear(), dAux.getMonth() + 1, 0);
+            prox = dFim.toLocaleDateString('pt-BR');
         } else {
             prox = formatarSemLink(prox);
         }
@@ -247,8 +247,9 @@
         const statusSelo = document.getElementById('calc_selo').innerText;
         const obs = document.getElementById('obs').value || "Sem observacoes";
 
-        let t = `*Checklist ${tag} - ${status === 'INI' ? 'inicio' : 'fim'} de trajeto*\n`;
-        t += `#############################\n\n`; // Destaque abaixo do título
+        const labelStatus = status === 'INI' ? 'Início de Trajeto' : 'Fim de Trajeto';
+        let t = `*Checklist ${tag} - ${labelStatus}*\n`;
+        t += `############################\n\n`; // Uma cerquilha a menos
         t += `*Placa:* ${placa}\n\n`;
         t += `*Condutor 1:* ${c1}\n`;
         t += `*Condutor 2:* ${c2}\n`;
@@ -271,35 +272,20 @@
 
     function enviarInicio() {
         if (!document.getElementById('chkForm').checkValidity()) return document.getElementById('chkForm').reportValidity();
-        const nome = document.getElementById('condutor1').value;
         const dados = {};
         document.querySelectorAll('#chkForm input, #chkForm select, #chkForm textarea').forEach(i => { if(i.id) dados[i.id] = i.value; });
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
-        
         tocarBip();
-        alert(`Ola, ${nome}! Inicio de trajeto registrado.`);
-        
-        const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('INI'));
-        window.open(url, '_blank');
+        window.open("https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('INI')), '_blank');
         renderInterface();
     }
 
     function enviarFim() {
         const kmF = document.getElementById('km_final').value;
-        const kmI = document.getElementById('km_inicio').value;
-        const nome = document.getElementById('condutor1').value;
-        
         if(!kmF) return alert("Por favor, preencha o KM Final.");
-        if(limparKM(kmF) < limparKM(kmI)) return alert("Erro: KM Final invalido!");
-        
+        if(limparKM(kmF) < limparKM(document.getElementById('km_inicio').value)) return alert("Erro: KM Final invalido!");
         tocarBip();
-        
-        alert(`Obrigado, ${nome}! Trajeto finalizado com sucesso. Bom descanso!`);
-        
-        const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmF));
-        
-        window.open(url, '_blank');
-        
+        window.open("https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmF)), '_blank');
         localStorage.removeItem('viagemAtiva'); 
         setTimeout(() => { location.reload(); }, 1000);
     }
