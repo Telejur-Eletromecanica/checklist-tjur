@@ -26,6 +26,7 @@
         .btn-finish { background: var(--finish); }
         .reset-user { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; display: block; margin-top: 5px; }
         .hidden { display: none; }
+        #calculo_oleo { font-size: 12px; font-weight: bold; margin-top: 5px; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -54,9 +55,15 @@
             </div>
 
             <div class="form-grid">
-                <div class="form-group"><label>Data</label><input type="text" id="data_hoje" readonly></div>
+                <div class="form-group"><label>Data Atual</label><input type="text" id="data_hoje" readonly></div>
                 <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
-                <div class="form-group"><label>Próx. Troca Óleo</label><input type="text" id="prox_oleo" required placeholder="Ex: 169.257"></div>
+                
+                <div class="form-group">
+                    <label>Próx. Troca Óleo</label>
+                    <input type="text" id="prox_oleo" required placeholder="KM ou DD/MM/AAAA" oninput="calcularRestanteOleo()">
+                    <div id="calculo_oleo">Aguardando dados...</div>
+                </div>
+
                 <div class="form-group">
                     <label>Tipo de Óleo</label>
                     <select id="tipo_oleo" required>
@@ -65,15 +72,14 @@
                         <option value="10W40">10W40</option>
                     </select>
                 </div>
+
                 <div class="form-group full-width">
                     <label>Condutor 1</label>
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
                     <button type="button" class="reset-user" onclick="limparNomeSalvo()">Trocar motorista</button>
                 </div>
-                <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
-                <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
-                
-                <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required placeholder="Ex: 166.523"></div>
+
+                <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required placeholder="Ex: 166.523" oninput="calcularRestanteOleo()"></div>
                 <div class="form-group"><label>KM Final</label><input type="text" id="km_final" placeholder="Ex: 166.700"></div>
                 
                 <div class="form-group">
@@ -117,7 +123,49 @@
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
 
     function limparKM(valor) {
-        return Number(valor.toString().replace(/\./g, ''));
+        return Number(valor.toString().replace(/\./g, '').replace(',', '.'));
+    }
+
+    function calcularRestanteOleo() {
+        const kmIni = limparKM(document.getElementById('km_inicio').value);
+        const prox = document.getElementById('prox_oleo').value.trim();
+        const display = document.getElementById('calculo_oleo');
+
+        if (!prox || !kmIni) {
+            display.innerText = "Aguardando KM Início e Próxima Troca...";
+            display.style.color = "var(--accent)";
+            return;
+        }
+
+        // Verifica se é Data (possui /)
+        if (prox.includes('/')) {
+            const partes = prox.split('/');
+            const dataProx = new Date(partes[2], partes[1] - 1, partes[0]);
+            const hoje = new Date();
+            const diffTime = dataProx - hoje;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                display.innerText = `⚠️ Óleo VENCIDO há ${Math.abs(diffDays)} dias!`;
+                display.style.color = "var(--danger)";
+            } else {
+                display.innerText = `⏳ Faltam ${diffDays} dias para a troca.`;
+                display.style.color = "var(--success)";
+            }
+        } 
+        // Caso contrário, trata como KM
+        else {
+            const kmProx = limparKM(prox);
+            const saldo = kmProx - kmIni;
+
+            if (saldo < 0) {
+                display.innerText = `⚠️ Óleo PASSOU do prazo por ${Math.abs(saldo)} KM!`;
+                display.style.color = "var(--danger)";
+            } else {
+                display.innerText = `✅ Faltam ${saldo} KM para a troca.`;
+                display.style.color = "var(--success)";
+            }
+        }
     }
 
     function atualizarDadosVeiculo() {
@@ -127,10 +175,10 @@
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
-            // CAMPOS QUE FICAM EM BRANCO PARA PREENCHIMENTO MANUAL OBRIGATÓRIO
             document.getElementById('km_inicio').value = ""; 
             document.getElementById('prox_oleo').value = "";
             document.getElementById('val_selo').value = "";
+            calcularRestanteOleo();
         }
     }
 
@@ -165,6 +213,7 @@
             });
             statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
             containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-finish" onclick="enviarFim()">FINALIZAR TRAJETO (FIM)</button>`;
+            calcularRestanteOleo();
         } else {
             const nomeS = localStorage.getItem('nomeSalvo');
             if(nomeS) document.getElementById('condutor1').value = nomeS;
@@ -177,36 +226,28 @@
         const tag = document.getElementById('selectTag').value;
         const placa = document.getElementById('placa').value;
         const c1 = document.getElementById('condutor1').value;
-        const c2 = document.getElementById('condutor2').value || "---";
-        const c3 = document.getElementById('condutor3').value || "---";
         const kmI = document.getElementById('km_inicio').value;
         const prox = document.getElementById('prox_oleo').value;
-        const tipo = document.getElementById('tipo_oleo').value;
+        const statusOleo = document.getElementById('calculo_oleo').innerText;
         const cor = document.getElementById('cor_selo').value;
         const val = document.getElementById('val_selo').value.split('-').reverse().join('/');
         const obs = document.getElementById('obs').value || "Sem observações";
-        const data = document.getElementById('data_hoje').value;
 
         let texto = `*${status === 'INI' ? '🟢 INÍCIO' : '🔴 FIM'} DE TRAJETO - ${tag}*%0A`;
-        texto += `--------------------------------%0A`;
-        texto += `📅 Data: ${data}%0A`;
-        texto += `🚗 Placa: ${placa}%0A%0A`;
-        texto += `👤 Condutor 1: ${c1}%0A`;
-        texto += `👤 Condutor 2: ${c2}%0A`;
-        texto += `👤 Condutor 3: ${c3}%0A%0A`;
+        texto += `🚗 Placa: ${placa}%0A`;
+        texto += `👤 Condutor: ${c1}%0A%0A`;
         texto += `🛣️ KM Início: ${kmI}%0A`;
         
         if(status === 'FIM') {
             const perc = limparKM(kmF_bruto) - limparKM(kmI);
             texto += `🏁 KM Final: ${kmF_bruto}%0A`;
-            texto += `📏 Percorrido: ${perc} km%0A%0A`;
+            texto += `📏 Percorrido: ${perc} km%0A`;
         }
 
         texto += `🛢️ Próx. Troca: ${prox}%0A`;
-        texto += `🧪 Tipo Óleo: ${tipo}%0A`;
-        texto += `🏷️ Selo: ${cor} (${val})%0A%0A`;
-        texto += `📝 Obs: ${obs}%0A`;
-        texto += `--------------------------------`;
+        texto += `📊 Status Óleo: ${statusOleo}%0A`;
+        texto += `🏷️ Selo: ${cor} (${val})%0A`;
+        texto += `📝 Obs: ${obs}`;
         return texto;
     }
 
@@ -220,32 +261,27 @@
             prox_oleo: document.getElementById('prox_oleo').value,
             tipo_oleo: document.getElementById('tipo_oleo').value,
             condutor1: document.getElementById('condutor1').value,
-            condutor2: document.getElementById('condutor2').value,
-            condutor3: document.getElementById('condutor3').value,
             km_inicio: document.getElementById('km_inicio').value,
             cor_selo: document.getElementById('cor_selo').value,
-            val_selo: document.getElementById('val_selo').value, // Salva a validade aqui
+            val_selo: document.getElementById('val_selo').value,
             obs: document.getElementById('obs').value
         };
 
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         localStorage.setItem('nomeSalvo', dados.condutor1);
-        
         window.open(`https://wa.me/?text=${gerarTextoRelatorio('INI')}`, '_blank');
         renderInterface();
     }
 
     function enviarFim() {
-        const kmF_bruto = document.getElementById('km_final').value;
-        const kmI_bruto = document.getElementById('km_inicio').value;
+        const kmF = document.getElementById('km_final').value;
+        if(!kmF) return alert("Informe o KM Final!");
+        if(limparKM(kmF) < limparKM(document.getElementById('km_inicio').value)) return alert("KM Final inválido!");
 
-        if(!kmF_bruto) return alert("Informe o KM Final!");
-        if(limparKM(kmF_bruto) < limparKM(kmI_bruto)) return alert("KM Final não pode ser menor que o Inicial!");
-
-        window.open(`https://wa.me/?text=${gerarTextoRelatorio('FIM', kmF_bruto)}`, '_blank');
+        window.open(`https://wa.me/?text=${gerarTextoRelatorio('FIM', kmF)}`, '_blank');
         
         setTimeout(() => {
-            if(confirm("Relatório enviado! Resetar formulário para o próximo?")) {
+            if(confirm("Deseja encerrar este trajeto?")) {
                 localStorage.removeItem('viagemAtiva');
                 location.reload();
             }
@@ -253,7 +289,7 @@
     }
 
     function limparTudo() {
-        if(confirm("Deseja resetar o veículo selecionado?")) {
+        if(confirm("Resetar formulário?")) {
             localStorage.removeItem('viagemAtiva');
             location.reload();
         }
@@ -261,20 +297,20 @@
 
     function renderCondutores() {
         const c1 = document.getElementById('condutor1');
-        const lista = document.getElementById('listaCondutores');
         c1.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
-        lista.innerHTML = condutores.map((c, i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee">${c} <b style="color:red; cursor:pointer" onclick="remover(${i})">✕</b></div>`).join('');
     }
+
     function addCondutor() {
         const n = document.getElementById('novoNome').value;
         if(n) { condutores.push(n); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); document.getElementById('novoNome').value=""; }
     }
-    function remover(i) { condutores.splice(i,1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); }
+
     function solicitarAcessoAdmin() {
         const pass = prompt("Senha Admin:");
         if (pass === SENHA_MESTRA) switchTab('admin');
         else if (pass !== null) alert("Senha incorreta!");
     }
+
     function switchTab(t) {
         document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
         document.getElementById('tab-admin').className = t === 'admin' ? '' : 'hidden';
