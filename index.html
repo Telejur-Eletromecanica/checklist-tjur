@@ -147,7 +147,6 @@
 
     function limparKM(v) { return Number(v.toString().replace(/\./g, '').replace(',', '.')); }
     
-    // Ponto com largura zero (ZWSP) para quebrar o link sem espaçamento visual
     function formatarSemLink(texto) {
         if (!texto) return "";
         return texto.toString().replace(/\./g, '.\u200B'); 
@@ -248,7 +247,8 @@
         const statusSelo = document.getElementById('calc_selo').innerText;
         const obs = document.getElementById('obs').value || "Sem observacoes";
 
-        let t = `*Checklist ${tag} - ${status === 'INI' ? 'inicio' : 'fim'} de trajeto*\n\n`;
+        let t = `*Checklist ${tag} - ${status === 'INI' ? 'inicio' : 'fim'} de trajeto*\n`;
+        t += `#############################\n\n`; // Destaque abaixo do título
         t += `*Placa:* ${placa}\n\n`;
         t += `*Condutor 1:* ${c1}\n`;
         t += `*Condutor 2:* ${c2}\n`;
