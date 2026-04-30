@@ -105,7 +105,7 @@
                 </div>
             </div>
             <div id="botoesAcao"></div>
-            <button type="button" class="reset-user" style="margin: 15px auto; text-align: center; width: 100%;" onclick="limparTudo()">Resetar Veículo</button>
+            <button type="button" class="reset-user" style="margin: 15px auto; text-align: center; width: 100%;" onclick="limparTudo()">Resetar Formulário</button>
         </form>
     </div>
 
@@ -132,7 +132,10 @@
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
 
-    function limparKM(v) { return Number(v.toString().replace(/\./g, '').replace(',', '.')); }
+    function limparKM(v) { 
+        if(!v) return 0;
+        return Number(v.toString().replace(/\./g, '').replace(',', '.')); 
+    }
 
     function calcularTudo() {
         const hoje = new Date();
@@ -208,21 +211,22 @@
                 }
             });
             statusMsg.innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-finish" onclick="enviarFim()">ENVIAR RELATÓRIO FINAL (FIM)</button>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-finish" onclick="enviarFim()">FINALIZAR TRAJETO (FIM)</button>`;
             calcularTudo();
         } else {
             const nomeS = localStorage.getItem('nomeSalvo');
             if(nomeS) document.getElementById('condutor1').value = nomeS;
             statusMsg.innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
-            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">ENVIAR RELATÓRIO INICIAL (START)</button>`;
+            containerBotoes.innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR TRAJETO (START)</button>`;
         }
     }
 
-    function gerarTextoRelatorio(status, kmF = null) {
+    function gerarTextoRelatorio(status, kmF_input = null) {
         const tag = document.getElementById('selectTag').value;
+        const placa = document.getElementById('placa').value;
         const c1 = document.getElementById('condutor1').value;
-        const c2 = document.getElementById('condutor2').value || "---";
-        const c3 = document.getElementById('condutor3').value || "---";
+        const c2 = document.getElementById('condutor2').value || "Não informado";
+        const c3 = document.getElementById('condutor3').value || "Não informado";
         const kmI = document.getElementById('km_inicio').value;
         const tipoOleo = document.getElementById('tipo_oleo').value;
         
@@ -236,19 +240,22 @@
         const obs = document.getElementById('obs').value || "Sem observações";
 
         let t = `*${status === 'INI' ? '🟢 INÍCIO' : '🔴 FIM'} DE TRAJETO - ${tag}*%0A`;
-        t += `👤 Condutores: ${c1}${c2 !== "---" ? ", " + c2 : ""}${c3 !== "---" ? ", " + c3 : ""}%0A%0A`;
+        t += `🚗 Placa: ${placa}%0A%0A`;
+        t += `👤 Condutor 1: ${c1}%0A`;
+        t += `👤 Condutor 2: ${c2}%0A`;
+        t += `👤 Condutor 3: ${c3}%0A%0A`;
         t += `🛣️ KM Início: ${kmI}%0A`;
         
         if(status === 'FIM') {
-            t += `🏁 KM Final: ${kmF}%0A`;
-            t += `📏 Percorrido: ${limparKM(kmF) - limparKM(kmI)} km%0A%0A`;
+            const saldoKm = limparKM(kmF_input) - limparKM(kmI);
+            t += `🏁 KM Final: ${kmF_input}%0A`;
+            t += `📏 Percorrido no trajeto: ${saldoKm} km%0A%0A`;
         }
 
         t += `🛢️ Tipo Óleo: ${tipoOleo}%0A`;
         t += `🔧 Próx. Troca: ${prox}%0A`;
         t += `📊 Status Óleo: ${statusOleo}%0A%0A`;
         
-        // SEPARAÇÃO DA COR E VALIDADE DO SELO
         t += `🏷️ Cor do Selo: ${corSelo}%0A`;
         t += `📅 Validade Selo: ${valSelo}%0A`;
         t += `⚠️ Status Selo: ${statusSelo}%0A%0A`;
@@ -258,9 +265,14 @@
     }
 
     function enviarInicio() {
-        if (!document.getElementById('chkForm').checkValidity()) return document.getElementById('chkForm').reportValidity();
+        const form = document.getElementById('chkForm');
+        if (!form.checkValidity()) return form.reportValidity();
+        
         const dados = {};
-        document.querySelectorAll('input, select, textarea').forEach(i => dados[i.id] = i.value);
+        document.querySelectorAll('input, select, textarea').forEach(i => {
+            if(i.id) dados[i.id] = i.value;
+        });
+
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         window.open(`https://wa.me/?text=${gerarTextoRelatorio('INI')}`, '_blank');
         renderInterface();
@@ -268,12 +280,26 @@
 
     function enviarFim() {
         const kmF = document.getElementById('km_final').value;
-        if(!kmF) return alert("Informe o KM Final!");
+        const kmI = document.getElementById('km_inicio').value;
+
+        if(!kmF) return alert("Por favor, informe o KM Final!");
+        
+        if(limparKM(kmF) < limparKM(kmI)) {
+            alert(`ERRO: O KM Final (${kmF}) não pode ser menor que o KM Inicial (${kmI}). Verifique a digitação.`);
+            return;
+        }
+
         window.open(`https://wa.me/?text=${gerarTextoRelatorio('FIM', kmF)}`, '_blank');
-        setTimeout(() => { if(confirm("Encerrar trajeto?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }, 1000);
+        
+        setTimeout(() => { 
+            if(confirm("Deseja encerrar este trajeto e limpar os campos?")) { 
+                localStorage.removeItem('viagemAtiva'); 
+                location.reload(); 
+            } 
+        }, 1000);
     }
 
-    function limparTudo() { if(confirm("Resetar?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
+    function limparTudo() { if(confirm("Isso apagará o trajeto atual. Confirmar?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
     function renderCondutores() { document.getElementById('condutor1').innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join(''); }
     function addCondutor() { 
         const n = document.getElementById('novoNome').value;
