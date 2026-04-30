@@ -26,7 +26,7 @@
         .btn-finish { background: var(--finish); }
         .reset-user { font-size: 11px; color: var(--danger); background: none; border: none; text-decoration: underline; cursor: pointer; display: block; margin-top: 5px; }
         .hidden { display: none; }
-        #calculo_oleo { font-size: 12px; font-weight: bold; margin-top: 5px; }
+        #calculo_oleo { font-size: 12px; font-weight: bold; margin-top: 5px; min-height: 15px; }
     </style>
 </head>
 <body>
@@ -51,6 +51,7 @@
                     <option value="TJUR 08">TJUR 08</option>
                     <option value="TJUR 09">TJUR 09</option>
                     <option value="TJUR 10">TJUR 10</option>
+                    <option value="SKY 01">SKY 01 (Skymunk)</option>
                 </select>
             </div>
 
@@ -59,8 +60,8 @@
                 <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
                 
                 <div class="form-group">
-                    <label>Próx. Troca Óleo</label>
-                    <input type="text" id="prox_oleo" required placeholder="KM ou DD/MM/AAAA" oninput="calcularRestanteOleo()">
+                    <label id="labelProxOleo">Próx. Troca Óleo</label>
+                    <input type="text" id="prox_oleo" required oninput="calcularRestanteOleo()" onchange="calcularRestanteOleo()">
                     <div id="calculo_oleo">Aguardando dados...</div>
                 </div>
 
@@ -76,7 +77,6 @@
                 <div class="form-group full-width">
                     <label>Condutor 1</label>
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
-                    <button type="button" class="reset-user" onclick="limparNomeSalvo()">Trocar motorista</button>
                 </div>
                 <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
                 <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
@@ -117,9 +117,10 @@
 <script>
     const SENHA_MESTRA = "1234";
     const frota = {
-        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul" },
-        "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Verde" },
-        "TJUR 04": { placa: "QVD4I22", oleo: "15W40", cor: "Verde" }
+        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul", tipoTroca: "km" },
+        "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Verde", tipoTroca: "km" },
+        "TJUR 04": { placa: "QVD4I22", oleo: "15W40", cor: "Verde", tipoTroca: "km" },
+        "SKY 01": { placa: "SKY-2024", oleo: "10W40", cor: "Amarelo", tipoTroca: "data" }
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
@@ -130,29 +131,29 @@
     }
 
     function calcularRestanteOleo() {
+        const proxInput = document.getElementById('prox_oleo');
         const kmIni = limparKM(document.getElementById('km_inicio').value);
         const kmFin = limparKM(document.getElementById('km_final').value);
-        const prox = document.getElementById('prox_oleo').value.trim();
         const display = document.getElementById('calculo_oleo');
         
-        // Se houver KM Final, o cálculo usa o KM Final. Se não, usa o Inicial.
         const kmAtual = kmFin > 0 ? kmFin : kmIni;
 
-        if (!prox || kmAtual === 0) {
+        if (!proxInput.value) {
             display.innerText = "Aguardando dados...";
             display.style.color = "gray";
             return;
         }
 
-        if (prox.includes('/')) {
-            const partes = prox.split('/');
-            const dataProx = new Date(partes[2], partes[1] - 1, partes[0]);
+        if (proxInput.type === 'date') {
+            const dataProx = new Date(proxInput.value);
             const hoje = new Date();
+            hoje.setHours(0,0,0,0);
             const diffDays = Math.ceil((dataProx - hoje) / (1000 * 60 * 60 * 24));
             display.innerText = diffDays < 0 ? `⚠️ Vencido há ${Math.abs(diffDays)} dias!` : `⏳ Faltam ${diffDays} dias para troca.`;
             display.style.color = diffDays < 0 ? "red" : "green";
         } else {
-            const saldo = limparKM(prox) - kmAtual;
+            if(kmAtual === 0) return;
+            const saldo = limparKM(proxInput.value) - kmAtual;
             display.innerText = saldo < 0 ? `⚠️ Passou ${Math.abs(saldo)} KM!` : `✅ Faltam ${saldo} KM para troca.`;
             display.style.color = saldo < 0 ? "red" : "green";
         }
@@ -160,15 +161,28 @@
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
-        const v = frota[document.getElementById('selectTag').value];
+        const tag = document.getElementById('selectTag').value;
+        const v = frota[tag];
+        const proxInput = document.getElementById('prox_oleo');
+
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
             document.getElementById('km_inicio').value = ""; 
-            document.getElementById('prox_oleo').value = "";
-            document.getElementById('val_selo').value = "";
             document.getElementById('km_final').value = "";
+            document.getElementById('val_selo').value = "";
+            
+            // Lógica Skymunk vs Frota Normal
+            if (v.tipoTroca === "data") {
+                proxInput.type = "date";
+                document.getElementById('labelProxOleo').innerText = "Data Próx. Troca";
+            } else {
+                proxInput.type = "text";
+                proxInput.placeholder = "Ex: 169.257";
+                document.getElementById('labelProxOleo').innerText = "Próx. Troca (KM)";
+            }
+            proxInput.value = "";
             calcularRestanteOleo();
         }
     }
@@ -176,12 +190,6 @@
     function salvarSomenteNome() {
         const nome = document.getElementById('condutor1').value;
         if(nome) localStorage.setItem('nomeSalvo', nome);
-    }
-
-    function limparNomeSalvo() {
-        localStorage.removeItem('nomeSalvo');
-        document.getElementById('condutor1').value = "";
-        alert("Motorista removido!");
     }
 
     function renderInterface() {
@@ -252,19 +260,9 @@
         const form = document.getElementById('chkForm');
         if (!form.checkValidity()) return form.reportValidity();
         
-        const dados = {
-            selectTag: document.getElementById('selectTag').value,
-            placa: document.getElementById('placa').value,
-            prox_oleo: document.getElementById('prox_oleo').value,
-            tipo_oleo: document.getElementById('tipo_oleo').value,
-            condutor1: document.getElementById('condutor1').value,
-            condutor2: document.getElementById('condutor2').value,
-            condutor3: document.getElementById('condutor3').value,
-            km_inicio: document.getElementById('km_inicio').value,
-            cor_selo: document.getElementById('cor_selo').value,
-            val_selo: document.getElementById('val_selo').value,
-            obs: document.getElementById('obs').value
-        };
+        const dados = {};
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(i => dados[i.id] = i.value);
 
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         window.open(`https://wa.me/?text=${gerarTextoRelatorio('INI')}`, '_blank');
@@ -278,7 +276,7 @@
         window.open(`https://wa.me/?text=${gerarTextoRelatorio('FIM', kmF)}`, '_blank');
         
         setTimeout(() => {
-            if(confirm("Deseja encerrar e resetar para o próximo motorista?")) {
+            if(confirm("Deseja encerrar este trajeto?")) {
                 localStorage.removeItem('viagemAtiva');
                 location.reload();
             }
