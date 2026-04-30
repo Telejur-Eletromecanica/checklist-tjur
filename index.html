@@ -44,14 +44,13 @@
                 <label>Veículo (TAG)</label>
                 <select id="selectTag" required onchange="atualizarDadosVeiculo()">
                     <option value="">-- Selecione --</option>
-                    <option value="TJUR 13">TJUR 13</option>
-                    <option value="TJUR 04">TJUR 04</option>
-                    <option value="TJUR 06">TJUR 06</option>
-                    <option value="TJUR 07">TJUR 07</option>
-                    <option value="TJUR 08">TJUR 08</option>
-                    <option value="TJUR 09">TJUR 09</option>
-                    <option value="TJUR 10">TJUR 10</option>
-                    <option value="SKY 01">SKY 01 (Skymunk)</option>
+                    <option value="TJUR 04">TJUR 04 (SKY MUNCK)</option>
+                    <option value="TJUR 06">TJUR 06 (SAVEIRO)</option>
+                    <option value="TJUR 07">TJUR 07 (SKY MUNCK)</option>
+                    <option value="TJUR 08">TJUR 08 (HILUX)</option>
+                    <option value="TJUR 09">TJUR 09 (SKY MUNCK)</option>
+                    <option value="TJUR 10">TJUR 10 (CAMINHONETE)</option>
+                    <option value="TJUR 13">TJUR 13 (CAMINHONETE)</option>
                 </select>
             </div>
 
@@ -116,11 +115,16 @@
 
 <script>
     const SENHA_MESTRA = "1234";
+    
+    // Frota atualizada conforme a imagem fornecida
     const frota = {
-        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul", tipoTroca: "km" },
+        "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", tipoTroca: "data" },
+        "TJUR 06": { placa: "QUJ3E02", oleo: "5W30", cor: "Verde", tipoTroca: "km" },
+        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Verde", tipoTroca: "data" },
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Verde", tipoTroca: "km" },
-        "TJUR 04": { placa: "QVD4I22", oleo: "15W40", cor: "Verde", tipoTroca: "km" },
-        "SKY 01": { placa: "SKY-2024", oleo: "10W40", cor: "Amarelo", tipoTroca: "data" }
+        "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", tipoTroca: "data" },
+        "TJUR 10": { placa: "PHU1I37", oleo: "15W40", cor: "Verde", tipoTroca: "km" },
+        "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul", tipoTroca: "km" }
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
@@ -173,7 +177,6 @@
             document.getElementById('km_final').value = "";
             document.getElementById('val_selo').value = "";
             
-            // Lógica Skymunk vs Frota Normal
             if (v.tipoTroca === "data") {
                 proxInput.type = "date";
                 document.getElementById('labelProxOleo').innerText = "Data Próx. Troca";
@@ -228,7 +231,9 @@
         const c2 = document.getElementById('condutor2').value || "---";
         const c3 = document.getElementById('condutor3').value || "---";
         const kmI = document.getElementById('km_inicio').value;
-        const prox = document.getElementById('prox_oleo').value;
+        let prox = document.getElementById('prox_oleo').value;
+        if(document.getElementById('prox_oleo').type === 'date') prox = prox.split('-').reverse().join('/');
+        
         const tipo = document.getElementById('tipo_oleo').value;
         const statusOleo = document.getElementById('calculo_oleo').innerText;
         const cor = document.getElementById('cor_selo').value;
