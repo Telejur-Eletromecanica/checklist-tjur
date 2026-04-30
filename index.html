@@ -147,9 +147,10 @@
 
     function limparKM(v) { return Number(v.toString().replace(/\./g, '').replace(',', '.')); }
     
+    // Ponto com largura zero (ZWSP) para quebrar o link sem espaçamento visual
     function formatarSemLink(texto) {
         if (!texto) return "";
-        return texto.toString().replace(/\./g, '．'); 
+        return texto.toString().replace(/\./g, '.\u200B'); 
     }
 
     function calcularTudo() {
@@ -247,7 +248,7 @@
         const statusSelo = document.getElementById('calc_selo').innerText;
         const obs = document.getElementById('obs').value || "Sem observacoes";
 
-        let t = `*${status === 'INI' ? 'INICIO' : 'FIM'} DE TRAJETO - ${tag}*\n\n`;
+        let t = `*Checklist ${tag} - ${status === 'INI' ? 'inicio' : 'fim'} de trajeto*\n\n`;
         t += `*Placa:* ${placa}\n\n`;
         t += `*Condutor 1:* ${c1}\n`;
         t += `*Condutor 2:* ${c2}\n`;
@@ -276,7 +277,7 @@
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         
         tocarBip();
-        alert(`Ola, ${nome}! Inicio de trajeto registrado. Enviando ao WhatsApp...`);
+        alert(`Ola, ${nome}! Inicio de trajeto registrado.`);
         
         const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('INI'));
         window.open(url, '_blank');
@@ -293,15 +294,12 @@
         
         tocarBip();
         
-        // Exibe a confirmação ANTES de tudo para garantir que o usuário veja
         alert(`Obrigado, ${nome}! Trajeto finalizado com sucesso. Bom descanso!`);
         
         const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmF));
         
-        // Abre o WhatsApp
         window.open(url, '_blank');
         
-        // Limpa e reseta o sistema
         localStorage.removeItem('viagemAtiva'); 
         setTimeout(() => { location.reload(); }, 1000);
     }
