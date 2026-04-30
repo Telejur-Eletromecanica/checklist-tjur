@@ -21,7 +21,6 @@
         .status-novo { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full-width { grid-column: span 2; }
-        .form-group { margin-bottom: 12px; }
         label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--primary); font-size: 13px; }
         select, input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
         .btn-whatsapp { width: 100%; padding: 15px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
@@ -65,13 +64,11 @@
             <div class="form-grid">
                 <div class="form-group"><label>Data Checklist</label><input type="text" id="data_hoje" readonly></div>
                 <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
-                
                 <div class="form-group">
                     <label id="labelProxOleo">Próx. Troca Óleo</label>
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
                     <span id="calc_oleo" class="status-calc"></span>
                 </div>
-
                 <div class="form-group">
                     <label>Tipo de Óleo</label>
                     <select id="tipo_oleo" required>
@@ -80,17 +77,14 @@
                         <option value="10W40">10W40</option>
                     </select>
                 </div>
-
                 <div class="form-group full-width">
                     <label>Condutor 1</label>
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
                 </div>
                 <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
                 <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
-
                 <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required placeholder="KM" oninput="calcularTudo()"></div>
                 <div class="form-group"><label>KM Final</label><input type="text" id="km_final" placeholder="KM" oninput="calcularTudo()"></div>
-                
                 <div class="form-group">
                     <label>Cor do Selo</label>
                     <select id="cor_selo" required>
@@ -100,13 +94,11 @@
                         <option value="Vermelho">Vermelho</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Validade Selo</label>
                     <input type="date" id="val_selo" required onchange="calcularTudo()">
                     <span id="calc_selo" class="status-calc"></span>
                 </div>
-                
                 <div class="form-group full-width">
                     <label>Observações</label>
                     <textarea id="obs" placeholder="Avarias ou observações"></textarea>
@@ -167,7 +159,7 @@
             if (proxOleo.type === 'date') {
                 const dProx = new Date(proxOleo.value);
                 const diff = Math.ceil((dProx - hoje) / (1000 * 60 * 60 * 24));
-                displayOleo.innerText = diff < 0 ? `Vencido há ${Math.abs(diff)} dias` : `Faltam ${diff} dias`;
+                displayOleo.innerText = diff < 0 ? `Vencido ha ${Math.abs(diff)} dias` : `Faltam ${diff} dias`;
                 displayOleo.style.color = diff < 0 ? "red" : "green";
             } else if (kmAtual > 0) {
                 const saldo = limparKM(proxOleo.value) - kmAtual;
@@ -194,7 +186,7 @@
             document.getElementById('cor_selo').value = v.cor;
             const prox = document.getElementById('prox_oleo');
             prox.type = v.tipoTroca === "data" ? "date" : "text";
-            document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Data Próx. Troca" : "Próx. Troca (KM)";
+            document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Data Prox. Troca" : "Prox. Troca (KM)";
             calcularTudo();
         }
     }
@@ -214,12 +206,12 @@
                     if(id !== 'km_final' && id !== 'obs') { el.readOnly = true; if(el.tagName === 'SELECT') el.disabled = true; }
                 }
             });
-            document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-aberto">⚠️ TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
+            document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-aberto">TRAJETO EM ABERTO: ${viagem.selectTag}</div>`;
             document.getElementById('botoesAcao').innerHTML = `<button type="button" class="btn-whatsapp btn-finish" onclick="enviarFim()">FINALIZAR TRAJETO (FIM)</button>`;
             calcularTudo();
         } else {
             document.getElementById('condutor1').value = localStorage.getItem('nomeSalvo') || "";
-            document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-novo">✅ AGUARDANDO INÍCIO</div>`;
+            document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-novo">AGUARDANDO INICIO</div>`;
             document.getElementById('botoesAcao').innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR TRAJETO (START)</button>`;
         }
     }
@@ -228,8 +220,8 @@
         const tag = document.getElementById('selectTag').value;
         const placa = document.getElementById('placa').value;
         const c1 = document.getElementById('condutor1').value;
-        const c2 = document.getElementById('condutor2').value || "Não informado";
-        const c3 = document.getElementById('condutor3').value || "Não informado";
+        const c2 = document.getElementById('condutor2').value || "Nao informado";
+        const c3 = document.getElementById('condutor3').value || "Nao informado";
         const kmI = document.getElementById('km_inicio').value;
         const oleo = document.getElementById('tipo_oleo').value;
         let prox = document.getElementById('prox_oleo').value;
@@ -239,29 +231,27 @@
         const cor = document.getElementById('cor_selo').value;
         const val = document.getElementById('val_selo').value.split('-').reverse().join('/');
         const statusSelo = document.getElementById('calc_selo').innerText;
-        const obs = document.getElementById('obs').value || "Sem observações";
+        const obs = document.getElementById('obs').value || "Sem observacoes";
 
-        let t = `*${status === 'INI' ? '🟢 START' : '🔴 FIM'} - ${tag}*\n`;
-        t += `🚗 *Placa:* ${placa}\n\n`;
-        t += `👤 *Condutor 1:* ${c1}\n`;
-        t += `👤 *Condutor 2:* ${c2}\n`;
-        t += `👤 *Condutor 3:* ${c3}\n\n`;
-        t += `🛣️ *KM Início:* ${kmI}\n`;
+        let t = `*${status === 'INI' ? 'START' : 'FIM'} - ${tag}*\n`;
+        t += `Placa: ${placa}\n\n`;
+        t += `Condutor 1: ${c1}\n`;
+        t += `Condutor 2: ${c2}\n`;
+        t += `Condutor 3: ${c3}\n\n`;
+        t += `KM Inicio: ${kmI}\n`;
         
         if(status === 'FIM') {
-            t += `🏁 *KM Final:* ${kmF}\n`;
-            t += `📏 *Km Percorrido:* ${limparKM(kmF) - limparKM(kmI)} km\n\n`;
+            t += `KM Final: ${kmF}\n`;
+            t += `Km Percorrido: ${limparKM(kmF) - limparKM(kmI)} km\n\n`;
         }
 
-        t += `🛢️ *Tipo Óleo:* ${oleo}\n`;
-        t += `🔧 *Próx. Troca:* ${prox}\n`;
-        t += `📊 *Status Óleo:* ${statusOleo}\n\n`;
-        
-        t += `🏷️ *Cor do Selo:* ${cor}\n`;
-        t += `📅 *Validade Selo:* ${val}\n`;
-        t += `⚠️ *Status Selo:* ${statusSelo}\n\n`;
-        
-        t += `📝 *Obs:* ${obs}`;
+        t += `Tipo Oleo: ${oleo}\n`;
+        t += `Prox. Troca: ${prox}\n`;
+        t += `Status Oleo: ${statusOleo}\n\n`;
+        t += `Cor do Selo: ${cor}\n`;
+        t += `Validade Selo: ${val}\n`;
+        t += `Status Selo: ${statusSelo}\n\n`;
+        t += `Obs: ${obs}`;
         return t;
     }
 
@@ -273,7 +263,7 @@
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         
         tocarBip();
-        alert(`Obrigado, ${nome}! Início de trajeto registrado com sucesso.`);
+        alert(`Ola, ${nome}! Inicio registrado. Enviando dados ao WhatsApp...`);
         
         const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('INI'));
         window.open(url, '_blank');
@@ -285,19 +275,24 @@
         const kmI = document.getElementById('km_inicio').value;
         const nome = document.getElementById('condutor1').value;
         
-        if(!kmF) return alert("Por favor, preencha o KM Final para encerrar.");
-        if(limparKM(kmF) < limparKM(kmI)) return alert("Erro: KM Final não pode ser menor que o Inicial!");
+        if(!kmF) return alert("Por favor, preencha o KM Final.");
+        if(limparKM(kmF) < limparKM(kmI)) return alert("Erro: KM Final invalido!");
         
         tocarBip();
-        const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmF));
+        const texto = montarTextoWhatsapp('FIM', kmF);
+        const url = "https://wa.me/?text=" + encodeURIComponent(texto);
+        
         window.open(url, '_blank');
         
-        alert(`Obrigado, ${nome}! Trajeto encerrado. Excelente descanso!`);
-        localStorage.removeItem('viagemAtiva'); 
-        location.reload();
+        // Mensagem de confirmação final e limpeza
+        setTimeout(() => {
+            alert(`Obrigado, ${nome}! Trajeto finalizado com sucesso. Sistema resetado.`);
+            localStorage.removeItem('viagemAtiva'); 
+            location.reload();
+        }, 500);
     }
 
-    function limparTudo() { if(confirm("Isso apagará todos os dados atuais. Confirmar?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
+    function limparTudo() { if(confirm("Deseja limpar todos os campos?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
     function renderCondutoresChecklist() { const s = document.getElementById('condutor1'); const v = s.value; s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join(''); if(v) s.value = v; }
     function renderCondutoresAdmin() { document.getElementById('listaCondutoresAdmin').innerHTML = condutores.map((c, i) => `<div class="admin-item"><span>${c}</span><button class="btn-delete" onclick="removerCondutor(${i})">Excluir</button></div>`).join(''); }
     function addCondutor() { const n = document.getElementById('novoNome').value.trim(); if(n) { condutores.push(n); condutores.sort(); localStorage.setItem('condutores', JSON.stringify(condutores)); document.getElementById('novoNome').value = ""; renderInterface(); } }
