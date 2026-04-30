@@ -216,20 +216,23 @@
         }
     }
 
-    function montarTextoWhatsapp(status, kmF = null) {
+    function montarTextoWhatsapp(status, kmFValue = null) {
         const tag = document.getElementById('selectTag').value;
         const placa = document.getElementById('placa').value;
         const c1 = document.getElementById('condutor1').value;
         const c2 = document.getElementById('condutor2').value || "Nao informado";
         const c3 = document.getElementById('condutor3').value || "Nao informado";
-        const kmI = document.getElementById('km_inicio').value;
+        
+        // Anti-sublinhado: Adiciona caractere invisível após o número se houver ponto
+        const kmI = document.getElementById('km_inicio').value.replace(/\./g, '.\u200B');
+        const kmF = kmFValue ? kmFValue.replace(/\./g, '.\u200B') : "";
+        
         const oleo = document.getElementById('tipo_oleo').value;
         
-        // LOGICA PARA MES E ANO NO WHATSAPP
         let prox = document.getElementById('prox_oleo').value;
         if(document.getElementById('prox_oleo').type === 'date' && prox) {
-            const partes = prox.split('-'); // yyyy-mm-dd
-            prox = `${partes[1]}/${partes[0]}`; // mm/yyyy
+            const partes = prox.split('-');
+            prox = `${partes[1]}/${partes[0]}`;
         }
         
         const statusOleo = document.getElementById('calc_oleo').innerText;
@@ -238,25 +241,31 @@
         const statusSelo = document.getElementById('calc_selo').innerText;
         const obs = document.getElementById('obs').value || "Sem observacoes";
 
-        let t = `*${status === 'INI' ? 'START' : 'FIM'} - ${tag}*\n`;
-        t += `Placa: ${placa}\n\n`;
-        t += `Condutor 1: ${c1}\n`;
-        t += `Condutor 2: ${c2}\n`;
-        t += `Condutor 3: ${c3}\n\n`;
-        t += `KM Inicio: ${kmI}\n`;
+        // Montagem com negrito (*) e "sublinhado" (_) do WhatsApp
+        let t = `*${status === 'INI' ? 'INICIO' : 'FIM'} DE TRAJETO - ${tag}*\n\n`;
         
+        t += `_*Placa:*_ ${placa}\n\n`;
+        t += `_*Condutor 1:*_ ${c1}\n`;
+        t += `_*Condutor 2:*_ ${c2}\n`;
+        t += `_*Condutor 3:*_ ${c3}\n\n`;
+        
+        t += `_*KM Inicio:*_ ${kmI}\n`;
         if(status === 'FIM') {
-            t += `KM Final: ${kmF}\n`;
-            t += `Km Percorrido: ${limparKM(kmF) - limparKM(kmI)} km\n\n`;
+            t += `_*KM Final:*_ ${kmF}\n`;
+            const diff = limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value);
+            t += `_*Km Percorrido:*_ ${diff} km\n\n`;
         }
 
-        t += `Tipo Oleo: ${oleo}\n`;
-        t += `Prox. Troca: ${prox}\n`;
-        t += `Status Oleo: ${statusOleo}\n\n`;
-        t += `Cor do Selo: ${cor}\n`;
-        t += `Validade Selo: ${val}\n`;
-        t += `Status Selo: ${statusSelo}\n\n`;
-        t += `Obs: ${obs}`;
+        t += `_*Tipo Oleo:*_ ${oleo}\n`;
+        t += `_*Prox. Troca:*_ ${prox}\n`;
+        t += `_*Status Oleo:*_ ${statusOleo}\n\n`;
+        
+        t += `_*Cor do Selo:*_ ${cor}\n`;
+        t += `_*Validade Selo:*_ ${val}\n`;
+        t += `_*Status Selo:*_ ${statusSelo}\n\n`;
+        
+        t += `_*Obs:*_ ${obs}`;
+        
         return t;
     }
 
