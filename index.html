@@ -148,8 +148,8 @@
             const osc = context.createOscillator();
             const gain = context.createGain();
             osc.connect(gain); gain.connect(context.destination);
-            osc.frequency.value = 800; gain.gain.value = 0.1;
-            osc.start(); osc.stop(context.currentTime + 0.2);
+            osc.frequency.value = 880; gain.gain.value = 0.1;
+            osc.start(); osc.stop(context.currentTime + 0.15);
         } catch (e) {}
     }
 
@@ -224,6 +224,47 @@
         }
     }
 
+    function montarTextoWhatsapp(status, kmF = null) {
+        const tag = document.getElementById('selectTag').value;
+        const placa = document.getElementById('placa').value;
+        const c1 = document.getElementById('condutor1').value;
+        const c2 = document.getElementById('condutor2').value || "Não informado";
+        const c3 = document.getElementById('condutor3').value || "Não informado";
+        const kmI = document.getElementById('km_inicio').value;
+        const oleo = document.getElementById('tipo_oleo').value;
+        let prox = document.getElementById('prox_oleo').value;
+        if(document.getElementById('prox_oleo').type === 'date') prox = prox.split('-').reverse().join('/');
+        
+        const statusOleo = document.getElementById('calc_oleo').innerText;
+        const cor = document.getElementById('cor_selo').value;
+        const val = document.getElementById('val_selo').value.split('-').reverse().join('/');
+        const statusSelo = document.getElementById('calc_selo').innerText;
+        const obs = document.getElementById('obs').value || "Sem observações";
+
+        let t = `*${status === 'INI' ? '🟢 START' : '🔴 FIM'} - ${tag}*\n`;
+        t += `🚗 *Placa:* ${placa}\n\n`;
+        t += `👤 *Condutor 1:* ${c1}\n`;
+        t += `👤 *Condutor 2:* ${c2}\n`;
+        t += `👤 *Condutor 3:* ${c3}\n\n`;
+        t += `🛣️ *KM Início:* ${kmI}\n`;
+        
+        if(status === 'FIM') {
+            t += `🏁 *KM Final:* ${kmF}\n`;
+            t += `📏 *Km Percorrido:* ${limparKM(kmF) - limparKM(kmI)} km\n\n`;
+        }
+
+        t += `🛢️ *Tipo Óleo:* ${oleo}\n`;
+        t += `🔧 *Próx. Troca:* ${prox}\n`;
+        t += `📊 *Status Óleo:* ${statusOleo}\n\n`;
+        
+        t += `🏷️ *Cor do Selo:* ${cor}\n`;
+        t += `📅 *Validade Selo:* ${val}\n`;
+        t += `⚠️ *Status Selo:* ${statusSelo}\n\n`;
+        
+        t += `📝 *Obs:* ${obs}`;
+        return t;
+    }
+
     function enviarInicio() {
         if (!document.getElementById('chkForm').checkValidity()) return document.getElementById('chkForm').reportValidity();
         const nome = document.getElementById('condutor1').value;
@@ -232,10 +273,10 @@
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         
         tocarBip();
-        alert(`Obrigado, ${nome}! Início registrado.`);
+        alert(`Obrigado, ${nome}! Início de trajeto registrado com sucesso.`);
         
-        const texto = encodeURIComponent(montarTexto('INI'));
-        window.open(`https://wa.me/?text=${texto}`, '_blank');
+        const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('INI'));
+        window.open(url, '_blank');
         renderInterface();
     }
 
@@ -244,42 +285,23 @@
         const kmI = document.getElementById('km_inicio').value;
         const nome = document.getElementById('condutor1').value;
         
-        if(!kmF) return alert("Informe o KM Final!");
-        if(limparKM(kmF) < limparKM(kmI)) return alert("KM Final não pode ser menor que o Inicial!");
+        if(!kmF) return alert("Por favor, preencha o KM Final para encerrar.");
+        if(limparKM(kmF) < limparKM(kmI)) return alert("Erro: KM Final não pode ser menor que o Inicial!");
         
         tocarBip();
-        const texto = encodeURIComponent(montarTexto('FIM', kmF));
-        window.open(`https://wa.me/?text=${texto}`, '_blank');
+        const url = "https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmF));
+        window.open(url, '_blank');
         
-        // Limpeza imediata após confirmação do alerta
-        alert(`Obrigado, ${nome}! Trajeto finalizado.`);
+        alert(`Obrigado, ${nome}! Trajeto encerrado. Excelente descanso!`);
         localStorage.removeItem('viagemAtiva'); 
         location.reload();
     }
 
-    function montarTexto(status, kmF = null) {
-        const tag = document.getElementById('selectTag').value;
-        const c1 = document.getElementById('condutor1').value;
-        const kmI = document.getElementById('km_inicio').value;
-        const prox = document.getElementById('prox_oleo').value;
-        const cor = document.getElementById('cor_selo').value;
-        const val = document.getElementById('val_selo').value.split('-').reverse().join('/');
-        
-        let t = `*${status === 'INI' ? '🟢 START' : '🔴 FIM'} - ${tag}*\n`;
-        t += `👤 Condutor: ${c1}\n`;
-        t += `🛣️ KM Início: ${kmI}\n`;
-        if(status === 'FIM') t += `🏁 KM Final: ${kmF}\n📏 Percorrido: ${limparKM(kmF) - limparKM(kmI)} km\n`;
-        t += `🔧 Próx. Troca: ${prox}\n`;
-        t += `🏷️ Selo: ${cor} | Val: ${val}\n`;
-        t += `📝 Obs: ${document.getElementById('obs').value || "N/A"}`;
-        return t;
-    }
-
-    function limparTudo() { if(confirm("Deseja realmente limpar tudo?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
+    function limparTudo() { if(confirm("Isso apagará todos os dados atuais. Confirmar?")) { localStorage.removeItem('viagemAtiva'); location.reload(); } }
     function renderCondutoresChecklist() { const s = document.getElementById('condutor1'); const v = s.value; s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join(''); if(v) s.value = v; }
     function renderCondutoresAdmin() { document.getElementById('listaCondutoresAdmin').innerHTML = condutores.map((c, i) => `<div class="admin-item"><span>${c}</span><button class="btn-delete" onclick="removerCondutor(${i})">Excluir</button></div>`).join(''); }
     function addCondutor() { const n = document.getElementById('novoNome').value.trim(); if(n) { condutores.push(n); condutores.sort(); localStorage.setItem('condutores', JSON.stringify(condutores)); document.getElementById('novoNome').value = ""; renderInterface(); } }
-    function removerCondutor(i) { if(confirm("Excluir condutor?")) { condutores.splice(i, 1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); } }
+    function removerCondutor(i) { if(confirm("Remover este condutor?")) { condutores.splice(i, 1); localStorage.setItem('condutores', JSON.stringify(condutores)); renderInterface(); } }
     function solicitarAcessoAdmin() { if (prompt("Senha Admin:") === SENHA_MESTRA) switchTab('admin'); }
     function switchTab(t) {
         document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
