@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telejur - Checklist de Veículos</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --success: #25D366; --admin: #e67e22; --finish: #9b59b6; }
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #25D366; --admin: #e67e22; --finish: #9b59b6; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; display: flex; justify-content: center; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
         .brand-header { text-align: center; margin-bottom: 20px; }
@@ -27,6 +27,11 @@
         .btn-finish { background: var(--finish); }
         .status-calc { font-size: 11px; font-weight: bold; margin-top: 4px; display: block; }
         .hidden { display: none; }
+        /* Estilos do Admin */
+        .admin-actions { margin-bottom: 20px; display: flex; gap: 5px; }
+        .condutor-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; background: #f9f9f9; margin-bottom: 5px; border-radius: 4px; }
+        .btn-del { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .btn-add { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -125,8 +130,13 @@
 
     <div id="tab-admin" class="hidden">
         <h3>Gerenciar Condutores</h3>
+        <div class="admin-actions">
+            <input type="text" id="novoCondutorNome" placeholder="Nome do novo condutor">
+            <button class="btn-add" onclick="adicionarCondutor()">ADICIONAR</button>
+        </div>
         <div id="listaCondutoresAdmin"></div>
-        <button onclick="switchTab('checklist')">Voltar</button>
+        <br>
+        <button class="btn-whatsapp" style="background: var(--primary);" onclick="switchTab('checklist')">VOLTAR</button>
     </div>
 </div>
 
@@ -330,6 +340,7 @@
         document.getElementById('tab-admin').className = t === 'admin' ? '' : 'hidden';
         document.getElementById('btn-chk').className = t === 'checklist' ? 'tab-btn active' : 'tab-btn';
         document.getElementById('btn-adm').className = t === 'admin' ? 'tab-btn active' : 'tab-btn';
+        if(t === 'admin') renderListaAdmin();
     }
 
     function renderCondutoresChecklist() {
@@ -337,6 +348,36 @@
         const valorAtual = s.value;
         s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
         if(valorAtual) s.value = valorAtual;
+    }
+
+    // Funções de Admin Restauradas
+    function renderListaAdmin() {
+        const div = document.getElementById('listaCondutoresAdmin');
+        div.innerHTML = condutores.map((c, i) => `
+            <div class="condutor-item">
+                <span>${c}</span>
+                <button class="btn-del" onclick="removerCondutor(${i})">Remover</button>
+            </div>
+        `).join('');
+    }
+
+    function adicionarCondutor() {
+        const nome = document.getElementById('novoCondutorNome').value.trim();
+        if(!nome) return alert("Digite um nome.");
+        condutores.push(nome);
+        localStorage.setItem('condutores', JSON.stringify(condutores));
+        document.getElementById('novoCondutorNome').value = "";
+        renderListaAdmin();
+        renderCondutoresChecklist();
+    }
+
+    function removerCondutor(index) {
+        if(confirm("Deseja remover este condutor?")) {
+            condutores.splice(index, 1);
+            localStorage.setItem('condutores', JSON.stringify(condutores));
+            renderListaAdmin();
+            renderCondutoresChecklist();
+        }
     }
 
     function salvarSomenteNome() { localStorage.setItem('nomeSalvo', document.getElementById('condutor1').value); }
