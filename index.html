@@ -60,7 +60,9 @@
             </div>
 
             <div class="form-grid">
-                <div class="form-group full-width"><label>Data e Hora Automática</label><input type="text" id="data_hora" readonly></div>
+                <div class="form-group"><label>Data</label><input type="text" id="data_dia" readonly></div>
+                <div class="form-group"><label>Hora</label><input type="text" id="hora_dia" readonly></div>
+                
                 <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
                 <div class="form-group">
                     <label>Tipo de Óleo</label>
@@ -73,19 +75,6 @@
                     <span id="calc_oleo" class="status-calc"></span>
                 </div>
                 
-                <div class="form-group full-width">
-                    <label>Condutor 1</label>
-                    <select id="condutor1" required onchange="salvarSomenteNome()"></select>
-                </div>
-                <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
-                <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
-                
-                <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required oninput="calcularTudo()"></div>
-                <div class="form-group">
-                    <label>KM Final</label>
-                    <input type="text" id="km_final" disabled oninput="calcularTudo()">
-                </div>
-                
                 <div class="form-group">
                     <label>Cor do Selo</label>
                     <select id="cor_selo" required>
@@ -95,8 +84,21 @@
                         <option value="Vermelho">Vermelho</option>
                     </select>
                 </div>
+
+                <div class="form-group full-width">
+                    <label>Condutor 1</label>
+                    <select id="condutor1" required onchange="salvarSomenteNome()"></select>
+                </div>
+                <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
+                
+                <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required oninput="calcularTudo()"></div>
                 <div class="form-group">
-                    <label>Validade Selo (dia/mes/ano)</label>
+                    <label>KM Final</label>
+                    <input type="text" id="km_final" disabled oninput="calcularTudo()">
+                </div>
+                
+                <div class="form-group full-width">
+                    <label>Validade Selo</label>
                     <input type="date" id="val_selo" required onchange="calcularTudo()">
                     <span id="calc_selo" class="status-calc"></span>
                 </div>
@@ -189,10 +191,9 @@
             document.getElementById('cor_selo').value = v.cor;
             const prox = document.getElementById('prox_oleo');
             
-            // Configura o formato mes/ano caso seja por data (SkyMunck)
             if (v.tipoTroca === "data") {
                 prox.type = "month";
-                document.getElementById('labelProxOleo').innerText = "Mês Prox. Troca (MM/AAAA)";
+                document.getElementById('labelProxOleo').innerText = "Prox. Troca";
             } else {
                 prox.type = "text";
                 document.getElementById('labelProxOleo').innerText = "Prox. Troca (KM)";
@@ -220,11 +221,11 @@
 
     function montarTextoWhatsapp(status, kmFValue = null) {
         const tag = document.getElementById('selectTag').value;
-        const dataHora = document.getElementById('data_hora').value;
+        const data = document.getElementById('data_dia').value;
+        const hora = document.getElementById('hora_dia').value;
         const placa = document.getElementById('placa').value;
         const c1 = document.getElementById('condutor1').value;
         const c2 = document.getElementById('condutor2').value || "Nao informado";
-        const c3 = document.getElementById('condutor3').value || "Nao informado";
         const kmI = formatarSemLink(document.getElementById('km_inicio').value);
         const tipoOleo = document.getElementById('tipo_oleo').value;
         const corS = document.getElementById('cor_selo').value;
@@ -235,11 +236,11 @@
 
         let t = `*Checklist ${tag} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
         t += `############################\n\n`;
-        t += `*Data/Hora:* ${dataHora}\n`;
+        t += `*Data:* ${data}\n`;
+        t += `*Hora:* ${hora}\n`;
         t += `*Placa:* ${placa}\n\n`;
         t += `*Condutor 1:* ${c1}\n`;
-        t += `*Condutor 2:* ${c2}\n`;
-        t += `*Condutor 3:* ${c3}\n\n`;
+        t += `*Condutor 2:* ${c2}\n\n`;
         t += `*KM Inicio:* ${kmI}\n`;
         if(status === 'FIM') {
             t += `*KM Final:* ${formatarSemLink(kmFValue)}\n`;
@@ -260,9 +261,10 @@
         const viagem = JSON.parse(localStorage.getItem('viagemAtiva'));
         renderCondutoresChecklist();
         
-        // Atualiza Data e Hora em tempo real se for novo checklist
         if (!viagem) {
-            document.getElementById('data_hora').value = new Date().toLocaleString('pt-BR');
+            const agora = new Date();
+            document.getElementById('data_dia').value = agora.toLocaleDateString('pt-BR');
+            document.getElementById('hora_dia').value = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         }
         
         if (viagem) {
@@ -270,7 +272,7 @@
                 const el = document.getElementById(id); 
                 if(el) { 
                     el.value = viagem[id]; 
-                    if(id !== 'km_final' && id !== 'obs' && id !== 'data_hora') { 
+                    if(id !== 'km_final' && id !== 'obs' && id !== 'data_dia' && id !== 'hora_dia') { 
                         el.readOnly = true; 
                         if(el.tagName === 'SELECT') el.disabled = true; 
                     } 
