@@ -74,7 +74,7 @@
                         <option value="15W40">15W40</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Trocado com (KM)</label><input type="text" id="trocado_com" required></div>
+                <div class="form-group"><label>Trocado com (KM)</label><input type="text" id="trocado_com" required oninput="calcularTudo()"></div>
                 <div class="form-group">
                     <label id="labelProxOleo">Prox. Troca (KM)</label>
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
@@ -137,7 +137,6 @@
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira"];
 
-    // FUNÇÃO CORRIGIDA: Remove pontos de milhar para cálculo preciso
     function limparKM(valor) {
         if (!valor) return 0;
         let str = valor.toString().replace(/\./g, '').replace(',', '.');
@@ -151,10 +150,8 @@
     function calcularTudo() {
         const hoje = new Date(); hoje.setHours(0,0,0,0);
         const proxOleoField = document.getElementById('prox_oleo');
-        const kmIni = limparKM(document.getElementById('km_inicio').value);
-        const kmFin = limparKM(document.getElementById('km_final').value);
+        const trocadoCom = limparKM(document.getElementById('trocado_com').value);
         const displayOleo = document.getElementById('calc_oleo');
-        const kmAtual = kmFin > 0 ? kmFin : kmIni;
 
         if (proxOleoField.value) {
             if (proxOleoField.type === 'month') {
@@ -163,9 +160,9 @@
                 const diff = Math.ceil((dUltimoDia - hoje) / (1000 * 60 * 60 * 24));
                 displayOleo.innerText = diff < 0 ? `Vencido há ${Math.abs(diff)} dias` : `Faltam ${diff} dias`;
                 displayOleo.style.color = diff < 0 ? "red" : "green";
-            } else if (kmAtual > 0) {
-                // Cálculo de saldo arredondado para visualização limpa
-                const saldo = Math.round(limparKM(proxOleoField.value) - kmAtual);
+            } else if (trocadoCom > 0) {
+                // NOVA LÓGICA: Prox. Troca - Trocado com (KM)
+                const saldo = Math.round(limparKM(proxOleoField.value) - trocadoCom);
                 displayOleo.innerText = saldo < 0 ? `Passou ${Math.abs(saldo)} KM` : `Faltam ${saldo} KM`;
                 displayOleo.style.color = saldo < 0 ? "red" : "green";
             }
@@ -190,7 +187,9 @@
             const prox = document.getElementById('prox_oleo');
             prox.type = v.tipoTroca === "data" ? "month" : "text";
             document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Prox. Troca" : "Prox. Troca (KM)";
-            prox.value = ""; document.getElementById('km_inicio').value = "";
+            prox.value = ""; 
+            document.getElementById('km_inicio').value = "";
+            document.getElementById('trocado_com').value = "";
             document.getElementById('calc_oleo').innerText = "";
         }
     }
@@ -214,7 +213,6 @@
         
         if(status === 'FIM') {
             t += `KM Final: ${formatarSemLink(kmF)}\n${sep}`;
-            // Cálculo de percurso percorrido formatado com 2 casas decimais
             t += `Km Percorrido: ${(limparKM(kmF) - limparKM(kmI)).toFixed(2)} km\n${sep}`;
         }
         
@@ -263,7 +261,6 @@
         const kmFValue = document.getElementById('km_final').value;
         const kmF = limparKM(kmFValue);
         if(!kmFValue) return alert("Preencha o KM Final.");
-        // Trava para impedir KM final menor que o inicial
         if(kmF < kmI) return alert("Erro: O KM Final não pode ser menor que o Inicial!");
         window.open("https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmFValue)), '_blank');
         localStorage.removeItem('viagemAtiva');
