@@ -137,15 +137,10 @@
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira"];
 
+    // FUNÇÃO CORRIGIDA: Remove pontos de milhar para cálculo preciso
     function limparKM(valor) {
         if (!valor) return 0;
-        let str = valor.toString().replace(/\s/g, '').replace(',', '.');
-        const partes = str.split('.');
-        if (partes.length > 2) {
-            const decimal = partes.pop();
-            const inteiro = partes.join('');
-            str = inteiro + '.' + decimal;
-        }
+        let str = valor.toString().replace(/\./g, '').replace(',', '.');
         return isNaN(parseFloat(str)) ? 0 : parseFloat(str);
     }
 
@@ -169,6 +164,7 @@
                 displayOleo.innerText = diff < 0 ? `Vencido há ${Math.abs(diff)} dias` : `Faltam ${diff} dias`;
                 displayOleo.style.color = diff < 0 ? "red" : "green";
             } else if (kmAtual > 0) {
+                // Cálculo de saldo arredondado para visualização limpa
                 const saldo = Math.round(limparKM(proxOleoField.value) - kmAtual);
                 displayOleo.innerText = saldo < 0 ? `Passou ${Math.abs(saldo)} KM` : `Faltam ${saldo} KM`;
                 displayOleo.style.color = saldo < 0 ? "red" : "green";
@@ -218,6 +214,7 @@
         
         if(status === 'FIM') {
             t += `KM Final: ${formatarSemLink(kmF)}\n${sep}`;
+            // Cálculo de percurso percorrido formatado com 2 casas decimais
             t += `Km Percorrido: ${(limparKM(kmF) - limparKM(kmI)).toFixed(2)} km\n${sep}`;
         }
         
@@ -266,6 +263,7 @@
         const kmFValue = document.getElementById('km_final').value;
         const kmF = limparKM(kmFValue);
         if(!kmFValue) return alert("Preencha o KM Final.");
+        // Trava para impedir KM final menor que o inicial
         if(kmF < kmI) return alert("Erro: O KM Final não pode ser menor que o Inicial!");
         window.open("https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmFValue)), '_blank');
         localStorage.removeItem('viagemAtiva');
