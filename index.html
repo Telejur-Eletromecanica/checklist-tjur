@@ -93,12 +93,12 @@
                 <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required oninput="calcularTudo()"></div>
                 <div class="form-group">
                     <label>KM Final</label>
-                    <input type="text" id="km_final" disabled oninput="calcularTudo()"> <!-- Campo Travado[cite: 1] -->
+                    <input type="text" id="km_final" disabled oninput="calcularTudo()">
                 </div>
                 
                 <div class="form-group">
                     <label>Cor do Selo</label>
-                    <select id="cor_selo" required> <!-- Lista Suspensa[cite: 1] -->
+                    <select id="cor_selo" required>
                         <option value="Verde">Verde</option>
                         <option value="Amarelo">Amarelo</option>
                         <option value="Azul">Azul</option>
@@ -210,19 +210,32 @@
         const c2 = document.getElementById('condutor2').value || "Não informado";
         const c3 = document.getElementById('condutor3').value || "Não informado";
         const kmI = formatarSemLink(document.getElementById('km_inicio').value);
+        const corS = document.getElementById('cor_selo').value; // Recupera cor[cite: 1]
         
         let t = `*Checklist ${tag} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
-        t += `############################\n\n`;
-        t += `*Condutor 1:* ${c1}\n*Condutor 2:* ${c2}\n*Condutor 3:* ${c3}\n\n`;
-        t += `*KM Início:* ${kmI}\n`;
+        t += `----------------------------------------------\n\n`; // Espaçamento visual[cite: 1]
+        
+        t += `*EQUIPE:*\n`;
+        t += `• Condutor 1: ${c1}\n`;
+        t += `• Condutor 2: ${c2}\n`;
+        t += `• Condutor 3: ${c3}\n\n`;
+        
+        t += `*ODÔMETRO:*\n`;
+        t += `• KM Início: ${kmI}\n`;
         if(status === 'FIM') {
-            t += `*KM Final:* ${formatarSemLink(kmFValue)}\n`;
-            t += `*Km Percorrido:* ${formatarSemLink((limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value)).toFixed(2))} km\n\n`;
+            t += `• KM Final: ${formatarSemLink(kmFValue)}\n`;
+            t += `• Km Percorrido: ${formatarSemLink((limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value)).toFixed(2))} km\n`;
         }
-        t += `*Status Oleo:* ${document.getElementById('calc_oleo').innerText}\n`;
-        t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n\n`;
-        t += `*Obs:* ${document.getElementById('obs').value || "Sem observações"}\n`;
-        // Frase de alerta removida da mensagem[cite: 1]
+        t += `\n`;
+
+        t += `*MANUTENÇÃO E SELO:*\n`;
+        t += `• Cor do Selo: ${corS}\n`; // Campo Adicionado[cite: 1]
+        t += `• Status Selo: ${document.getElementById('calc_selo').innerText}\n`;
+        t += `• Status Oleo: ${document.getElementById('calc_oleo').innerText}\n\n`;
+        
+        t += `*OBSERVAÇÕES:*\n`;
+        t += `${document.getElementById('obs').value || "Sem observações"}\n`;
+        
         return t;
     }
 
@@ -242,13 +255,13 @@
                     } 
                 } 
             });
-            document.getElementById('km_final').disabled = false; // Destrava no fim[cite: 1]
+            document.getElementById('km_final').disabled = false;
             document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-aberto">EM TRAJETO: ${viagem.selectTag}</div>`;
             document.getElementById('botoesAcao').innerHTML = `<button type="button" class="btn-whatsapp btn-finish" onclick="enviarFim()">FINALIZAR E ENVIAR FOTO</button>`;
             calcularTudo();
         } else {
             document.getElementById('condutor1').value = localStorage.getItem('nomeSalvo') || "";
-            document.getElementById('km_final').disabled = true; // Trava no início[cite: 1]
+            document.getElementById('km_final').disabled = true;
             document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-novo">NOVO CHECKLIST</div>`;
             document.getElementById('botoesAcao').innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR E ENVIAR FOTO</button>`;
         }
