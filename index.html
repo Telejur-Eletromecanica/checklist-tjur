@@ -90,6 +90,7 @@
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
                 </div>
                 <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
+                <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
                 
                 <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required oninput="calcularTudo()"></div>
                 <div class="form-group">
@@ -225,7 +226,8 @@
         const hora = document.getElementById('hora_dia').value;
         const placa = document.getElementById('placa').value;
         const c1 = document.getElementById('condutor1').value;
-        const c2 = document.getElementById('condutor2').value || "Nao informado";
+        const c2 = document.getElementById('condutor2').value || "Não informado";
+        const c3 = document.getElementById('condutor3').value || "Não informado";
         const kmI = formatarSemLink(document.getElementById('km_inicio').value);
         const tipoOleo = document.getElementById('tipo_oleo').value;
         const corS = document.getElementById('cor_selo').value;
@@ -233,26 +235,29 @@
         const proxOleoRaw = document.getElementById('prox_oleo').value;
         const proxOleoStr = document.getElementById('prox_oleo').type === 'month' ? formatarMesAnoBR(proxOleoRaw) : formatarSemLink(proxOleoRaw);
         const valSeloStr = formatarDataBR(document.getElementById('val_selo').value);
+        const separador = "--------------------------------\n";
 
         let t = `*Checklist ${tag} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
         t += `############################\n\n`;
-        t += `*Data:* ${data}\n`;
-        t += `*Hora:* ${hora}\n`;
-        t += `*Placa:* ${placa}\n\n`;
-        t += `*Condutor 1:* ${c1}\n`;
-        t += `*Condutor 2:* ${c2}\n\n`;
-        t += `*KM Inicio:* ${kmI}\n`;
+        t += `*Data:* ${data}\n${separador}`;
+        t += `*Hora:* ${hora}\n${separador}`;
+        t += `*Placa:* ${placa}\n${separador}`;
+        t += `*Condutor 1:* ${c1}\n${separador}`;
+        t += `*Condutor 2:* ${c2}\n${separador}`;
+        t += `*Condutor 3:* ${c3}\n${separador}`;
+        t += `*KM Inicio:* ${kmI}\n${separador}`;
+        
         if(status === 'FIM') {
-            t += `*KM Final:* ${formatarSemLink(kmFValue)}\n`;
-            t += `*Km Percorrido:* ${formatarSemLink((limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value)).toFixed(2))} km\n`;
+            t += `*KM Final:* ${formatarSemLink(kmFValue)}\n${separador}`;
+            t += `*Km Percorrido:* ${formatarSemLink((limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value)).toFixed(2))} km\n${separador}`;
         }
-        t += `\n`;
-        t += `*Tipo Oleo:* ${tipoOleo}\n`;
-        t += `*Prox. Troca:* ${proxOleoStr}\n`;
-        t += `*Status Oleo:* ${document.getElementById('calc_oleo').innerText}\n\n`;
-        t += `*Cor do Selo:* ${corS}\n`;
-        t += `*Validade Selo:* ${valSeloStr}\n`;
-        t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n\n`;
+        
+        t += `*Tipo Oleo:* ${tipoOleo}\n${separador}`;
+        t += `*Prox. Troca:* ${proxOleoStr}\n${separador}`;
+        t += `*Status Oleo:* ${document.getElementById('calc_oleo').innerText}\n${separador}`;
+        t += `*Cor do Selo:* ${corS}\n${separador}`;
+        t += `*Validade Selo:* ${valSeloStr}\n${separador}`;
+        t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n${separador}`;
         t += `*Obs:* ${document.getElementById('obs').value || "Sem observacoes"}`;
         return t;
     }
