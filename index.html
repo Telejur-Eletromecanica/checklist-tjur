@@ -12,26 +12,27 @@
         .brand-header h1 { color: var(--primary); margin: 0; font-size: 28px; letter-spacing: 1px; text-transform: uppercase; }
         .brand-header p { color: var(--accent); margin: 0; font-size: 14px; font-weight: bold; }
         
-        /* Alerta de Foto */
-        .foto-alerta { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; border: 1px solid #ffeeba; margin-bottom: 15px; font-size: 13px; text-align: center; font-weight: bold; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .foto-alerta { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; border: 1px solid #ffeeba; margin-bottom: 15px; font-size: 13px; text-align: center; font-weight: bold; }
 
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; background: #ddd; }
         .tab-btn.active { background: var(--primary); color: white; }
+        
         .status-badge { text-align: center; padding: 8px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
         .status-aberto { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .status-novo { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full-width { grid-column: span 2; }
         label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--primary); font-size: 13px; }
         select, input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        input:disabled, select:disabled { background-color: #eeeeee; cursor: not-allowed; }
+
         .btn-whatsapp { width: 100%; padding: 15px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-inicio { background: var(--success); }
         .btn-finish { background: var(--finish); }
         .status-calc { font-size: 11px; font-weight: bold; margin-top: 4px; display: block; }
         .hidden { display: none; }
-        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-bottom: 1px solid #eee; margin-bottom: 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -39,10 +40,9 @@
 <div class="container">
     <div class="brand-header">
         <h1>Telejur</h1>
-        <p>CHECKLIST DE VEÍCULOS</p> <!-- Título Alterado[cite: 1] -->
+        <p>CHECKLIST DE VEÍCULOS</p>
     </div>
 
-    <!-- Alerta de Foto Físico[cite: 1] -->
     <div class="foto-alerta">
         ⚠️ ATENÇÃO: Não esqueça de enviar a foto do checklist físico após a mensagem!
     </div>
@@ -72,6 +72,7 @@
             <div class="form-grid">
                 <div class="form-group"><label>Data</label><input type="text" id="data_hoje" readonly></div>
                 <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
+                
                 <div class="form-group">
                     <label id="labelProxOleo">Prox. Troca Oleo</label>
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
@@ -81,25 +82,35 @@
                     <label>Tipo de Óleo</label>
                     <input type="text" id="tipo_oleo" readonly>
                 </div>
+
                 <div class="form-group full-width">
                     <label>Condutor 1</label>
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
                 </div>
                 <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" placeholder="Opcional"></div>
-                <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div> <!-- Campo Preservado[cite: 1] -->
+                <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" placeholder="Opcional"></div>
                 
                 <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required oninput="calcularTudo()"></div>
-                <div class="form-group"><label>KM Final</label><input type="text" id="km_final" oninput="calcularTudo()"></div>
+                <div class="form-group">
+                    <label>KM Final</label>
+                    <input type="text" id="km_final" disabled oninput="calcularTudo()"> <!-- Campo Travado[cite: 1] -->
+                </div>
                 
                 <div class="form-group">
                     <label>Cor do Selo</label>
-                    <input type="text" id="cor_selo" readonly>
+                    <select id="cor_selo" required> <!-- Lista Suspensa[cite: 1] -->
+                        <option value="Verde">Verde</option>
+                        <option value="Amarelo">Amarelo</option>
+                        <option value="Azul">Azul</option>
+                        <option value="Vermelho">Vermelho</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Validade Selo</label>
                     <input type="date" id="val_selo" required onchange="calcularTudo()">
                     <span id="calc_selo" class="status-calc"></span>
                 </div>
+
                 <div class="form-group full-width">
                     <label>Observações</label>
                     <textarea id="obs" placeholder="Avarias ou observações"></textarea>
@@ -130,7 +141,6 @@
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Nascimento"];
 
-    // FUNÇÃO DE LIMPEZA UNIVERSAL (Ponto e Vírgula)[cite: 1]
     function limparKM(valor) {
         if (!valor) return 0;
         let str = valor.toString().replace(',', '.');
@@ -198,12 +208,12 @@
         const tag = document.getElementById('selectTag').value;
         const c1 = document.getElementById('condutor1').value;
         const c2 = document.getElementById('condutor2').value || "Não informado";
-        const c3 = document.getElementById('condutor3').value || "Não informado"; // Preservado[cite: 1]
+        const c3 = document.getElementById('condutor3').value || "Não informado";
         const kmI = formatarSemLink(document.getElementById('km_inicio').value);
         
         let t = `*Checklist ${tag} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
         t += `############################\n\n`;
-        t += `*Condutor 1:* ${c1}\n*Condutor 2:* ${c2}\n*Condutor 3:* ${c3}\n\n`; // Incluído[cite: 1]
+        t += `*Condutor 1:* ${c1}\n*Condutor 2:* ${c2}\n*Condutor 3:* ${c3}\n\n`;
         t += `*KM Início:* ${kmI}\n`;
         if(status === 'FIM') {
             t += `*KM Final:* ${formatarSemLink(kmFValue)}\n`;
@@ -211,8 +221,8 @@
         }
         t += `*Status Oleo:* ${document.getElementById('calc_oleo').innerText}\n`;
         t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n\n`;
-        t += `*Obs:* ${document.getElementById('obs').value || "Sem observações"}\n\n`;
-        t += `📸 *NÃO ESQUEÇA A FOTO DO CHECKLIST FÍSICO!*`; // Alerta no WhatsApp[cite: 1]
+        t += `*Obs:* ${document.getElementById('obs').value || "Sem observações"}\n`;
+        // Frase de alerta removida da mensagem[cite: 1]
         return t;
     }
 
@@ -220,13 +230,25 @@
         const viagem = JSON.parse(localStorage.getItem('viagemAtiva'));
         renderCondutoresChecklist();
         document.getElementById('data_hoje').value = new Date().toLocaleDateString('pt-BR');
+        
         if (viagem) {
-            Object.keys(viagem).forEach(id => { const el = document.getElementById(id); if(el) { el.value = viagem[id]; if(id !== 'km_final' && id !== 'obs') { el.readOnly = true; if(el.tagName === 'SELECT') el.disabled = true; } } });
+            Object.keys(viagem).forEach(id => { 
+                const el = document.getElementById(id); 
+                if(el) { 
+                    el.value = viagem[id]; 
+                    if(id !== 'km_final' && id !== 'obs') { 
+                        el.readOnly = true; 
+                        if(el.tagName === 'SELECT') el.disabled = true; 
+                    } 
+                } 
+            });
+            document.getElementById('km_final').disabled = false; // Destrava no fim[cite: 1]
             document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-aberto">EM TRAJETO: ${viagem.selectTag}</div>`;
             document.getElementById('botoesAcao').innerHTML = `<button type="button" class="btn-whatsapp btn-finish" onclick="enviarFim()">FINALIZAR E ENVIAR FOTO</button>`;
             calcularTudo();
         } else {
             document.getElementById('condutor1').value = localStorage.getItem('nomeSalvo') || "";
+            document.getElementById('km_final').disabled = true; // Trava no início[cite: 1]
             document.getElementById('statusMensagem').innerHTML = `<div class="status-badge status-novo">NOVO CHECKLIST</div>`;
             document.getElementById('botoesAcao').innerHTML = `<button type="button" class="btn-whatsapp btn-inicio" onclick="enviarInicio()">INICIAR E ENVIAR FOTO</button>`;
         }
