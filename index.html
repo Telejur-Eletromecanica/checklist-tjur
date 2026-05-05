@@ -11,21 +11,17 @@
         .brand-header { text-align: center; margin-bottom: 20px; }
         .brand-header h1 { color: var(--primary); margin: 0; font-size: 28px; letter-spacing: 1px; text-transform: uppercase; }
         .brand-header p { color: var(--accent); margin: 0; font-size: 14px; font-weight: bold; }
-        
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; background: #ddd; }
         .tab-btn.active { background: var(--primary); color: white; }
-        
         .status-badge { text-align: center; padding: 8px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
         .status-aberto { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .status-novo { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full-width { grid-column: span 2; }
         label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--primary); font-size: 13px; }
         select, input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
         input:disabled, select:disabled { background-color: #eeeeee; cursor: not-allowed; }
-
         .btn-whatsapp { width: 100%; padding: 15px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-inicio { background: var(--success); }
         .btn-finish { background: var(--finish); }
@@ -186,16 +182,31 @@
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
-        const v = frota[document.getElementById('selectTag').value];
+        const tagValue = document.getElementById('selectTag').value;
+        const v = frota[tagValue];
+        
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
+            
             const prox = document.getElementById('prox_oleo');
             prox.type = v.tipoTroca === "data" ? "month" : "text";
             document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Mês Prox. Troca" : "Prox. Troca (KM)";
-            prox.value = ""; document.getElementById('km_inicio').value = ""; document.getElementById('val_selo').value = "";
+            
+            prox.value = ""; 
+            document.getElementById('km_inicio').value = ""; 
+            document.getElementById('val_selo').value = "";
+            document.getElementById('calc_oleo').innerText = "";
+            document.getElementById('calc_selo').innerText = "";
         }
+    }
+
+    function renderCondutoresChecklist() {
+        const s = document.getElementById('condutor1');
+        const valorAtual = s.value;
+        s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
+        if(valorAtual) s.value = valorAtual;
     }
 
     function montarTextoWhatsapp(status, kmFValue = null) {
@@ -216,33 +227,25 @@
             valSeloFormatada = `${dia}/${mes}/${ano}`;
         }
 
-        // Formatação com negritos solicitada[cite: 1]
-        let t = `*Checklist ${tag} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;[cite: 1]
+        let t = `*Checklist ${tag} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
         t += `############################\n\n`;
-        
-        t += `*Placa:* ${placa}\n\n`;[cite: 1]
-        
-        t += `*Condutor 1:* ${c1}\n`;[cite: 1]
-        t += `*Condutor 2:* ${c2}\n`;[cite: 1]
-        t += `*Condutor 3:* ${c3}\n\n`;[cite: 1]
-        
-        t += `*KM Inicio:* ${kmI}\n`;[cite: 1]
+        t += `*Placa:* ${placa}\n\n`;
+        t += `*Condutor 1:* ${c1}\n`;
+        t += `*Condutor 2:* ${c2}\n`;
+        t += `*Condutor 3:* ${c3}\n\n`;
+        t += `*KM Inicio:* ${kmI}\n`;
         if(status === 'FIM') {
-            t += `*KM Final:* ${formatarSemLink(kmFValue)}\n`;[cite: 1]
-            t += `*Km Percorrido:* ${formatarSemLink((limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value)).toFixed(2))} km\n`;[cite: 1]
+            t += `*KM Final:* ${formatarSemLink(kmFValue)}\n`;
+            t += `*Km Percorrido:* ${formatarSemLink((limparKM(kmFValue) - limparKM(document.getElementById('km_inicio').value)).toFixed(2))} km\n`;
         }
         t += `\n`;
-
-        t += `*Tipo Oleo:* ${tipoOleo}\n`;[cite: 1]
-        t += `*Prox. Troca:* ${proxOleo}\n`;[cite: 1]
-        t += `*Status Oleo:* ${document.getElementById('calc_oleo').innerText}\n\n`;[cite: 1]
-        
-        t += `*Cor do Selo:* ${corS}\n`;[cite: 1]
-        t += `*Validade Selo:* ${valSeloFormatada}\n`;[cite: 1]
-        t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n\n`;[cite: 1]
-        
-        t += `*Obs:* ${document.getElementById('obs').value || "Sem observacoes"}`;[cite: 1]
-        
+        t += `*Tipo Oleo:* ${tipoOleo}\n`;
+        t += `*Prox. Troca:* ${proxOleo}\n`;
+        t += `*Status Oleo:* ${document.getElementById('calc_oleo').innerText}\n\n`;
+        t += `*Cor do Selo:* ${corS}\n`;
+        t += `*Validade Selo:* ${valSeloFormatada}\n`;
+        t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n\n`;
+        t += `*Obs:* ${document.getElementById('obs').value || "Sem observacoes"}`;
         return t;
     }
 
@@ -287,7 +290,8 @@
         const kmF = document.getElementById('km_final').value;
         if(!kmF) return alert("Preencha o KM Final.");
         window.open("https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmF)), '_blank');
-        localStorage.removeItem('viagemAtiva'); location.reload();
+        localStorage.removeItem('viagemAtiva');
+        location.reload();
     }
 
     function switchTab(t) {
@@ -297,11 +301,13 @@
         document.getElementById('btn-adm').className = t === 'admin' ? 'tab-btn active' : 'tab-btn';
     }
 
-    function renderCondutoresChecklist() { const s = document.getElementById('condutor1'); const v = s.value; s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join(''); if(v) s.value = v; }
     function salvarSomenteNome() { localStorage.setItem('nomeSalvo', document.getElementById('condutor1').value); }
     function solicitarAcessoAdmin() { if (prompt("Senha:") === SENHA_MESTRA) switchTab('admin'); }
 
-    renderInterface();
+    // Inicialização ao carregar a página
+    window.onload = function() {
+        renderInterface();
+    };
 </script>
 </body>
 </html>
