@@ -66,11 +66,21 @@
                 <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
                 <div class="form-group">
                     <label>Tipo de Óleo</label>
-                    <input type="text" id="tipo_oleo" readonly>
+                    <select id="tipo_oleo" required>
+                        <option value="">-- Selecione --</option>
+                        <option value="5W30">5W30</option>
+                        <option value="10W40">10W40</option>
+                        <option value="15W40">15W40</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
-                    <label id="labelProxOleo">Prox. Troca Oleo</label>
+                    <label>Trocado com (KM)</label>
+                    <input type="text" id="trocado_com" required placeholder="KM da troca">
+                </div>
+
+                <div class="form-group">
+                    <label id="labelProxOleo">Prox. Troca</label>
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
                     <span id="calc_oleo" class="status-calc"></span>
                 </div>
@@ -202,6 +212,7 @@
             
             prox.value = ""; 
             document.getElementById('km_inicio').value = ""; 
+            document.getElementById('trocado_com').value = "";
             document.getElementById('val_selo').value = "";
             document.getElementById('calc_oleo').innerText = "";
             document.getElementById('calc_selo').innerText = "";
@@ -229,6 +240,7 @@
         const c2 = document.getElementById('condutor2').value || "Não informado";
         const c3 = document.getElementById('condutor3').value || "Não informado";
         const kmI = formatarSemLink(document.getElementById('km_inicio').value);
+        const trocadoKm = formatarSemLink(document.getElementById('trocado_com').value);
         const tipoOleo = document.getElementById('tipo_oleo').value;
         const corS = document.getElementById('cor_selo').value;
         
@@ -253,6 +265,7 @@
         }
         
         t += `*Tipo Oleo:* ${tipoOleo}\n${separador}`;
+        t += `*Trocado com (KM):* ${trocadoKm}\n${separador}`;
         t += `*Prox. Troca:* ${proxOleoStr}\n${separador}`;
         t += `*Status Oleo:* ${document.getElementById('calc_oleo').innerText}\n${separador}`;
         t += `*Cor do Selo:* ${corS}\n${separador}`;
