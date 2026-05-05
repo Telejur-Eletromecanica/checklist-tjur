@@ -60,19 +60,19 @@
             </div>
 
             <div class="form-grid">
-                <div class="form-group"><label>Data</label><input type="text" id="data_hoje" readonly></div>
+                <div class="form-group full-width"><label>Data e Hora Automática</label><input type="text" id="data_hora" readonly></div>
                 <div class="form-group"><label>Placa</label><input type="text" id="placa" readonly></div>
+                <div class="form-group">
+                    <label>Tipo de Óleo</label>
+                    <input type="text" id="tipo_oleo" readonly>
+                </div>
                 
                 <div class="form-group">
                     <label id="labelProxOleo">Prox. Troca Oleo</label>
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
                     <span id="calc_oleo" class="status-calc"></span>
                 </div>
-                <div class="form-group">
-                    <label>Tipo de Óleo</label>
-                    <input type="text" id="tipo_oleo" readonly>
-                </div>
-
+                
                 <div class="form-group full-width">
                     <label>Condutor 1</label>
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
@@ -96,7 +96,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Validade Selo</label>
+                    <label>Validade Selo (dia/mes/ano)</label>
                     <input type="date" id="val_selo" required onchange="calcularTudo()">
                     <span id="calc_selo" class="status-calc"></span>
                 </div>
@@ -182,17 +182,21 @@
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
-        const tagValue = document.getElementById('selectTag').value;
-        const v = frota[tagValue];
-        
+        const v = frota[document.getElementById('selectTag').value];
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
-            
             const prox = document.getElementById('prox_oleo');
-            prox.type = v.tipoTroca === "data" ? "month" : "text";
-            document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Mês Prox. Troca" : "Prox. Troca (KM)";
+            
+            // Configura o formato mes/ano caso seja por data (SkyMunck)
+            if (v.tipoTroca === "data") {
+                prox.type = "month";
+                document.getElementById('labelProxOleo').innerText = "Mês Prox. Troca (MM/AAAA)";
+            } else {
+                prox.type = "text";
+                document.getElementById('labelProxOleo').innerText = "Prox. Troca (KM)";
+            }
             
             prox.value = ""; 
             document.getElementById('km_inicio').value = ""; 
@@ -202,33 +206,36 @@
         }
     }
 
-    function renderCondutoresChecklist() {
-        const s = document.getElementById('condutor1');
-        const valorAtual = s.value;
-        s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
-        if(valorAtual) s.value = valorAtual;
+    function formatarDataBR(dataISO) {
+        if (!dataISO) return "Não informada";
+        const [ano, mes, dia] = dataISO.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    function formatarMesAnoBR(dataISO) {
+        if (!dataISO) return "Não informado";
+        const [ano, mes] = dataISO.split('-');
+        return `${mes}/${ano}`;
     }
 
     function montarTextoWhatsapp(status, kmFValue = null) {
         const tag = document.getElementById('selectTag').value;
+        const dataHora = document.getElementById('data_hora').value;
         const placa = document.getElementById('placa').value;
         const c1 = document.getElementById('condutor1').value;
         const c2 = document.getElementById('condutor2').value || "Nao informado";
         const c3 = document.getElementById('condutor3').value || "Nao informado";
         const kmI = formatarSemLink(document.getElementById('km_inicio').value);
         const tipoOleo = document.getElementById('tipo_oleo').value;
-        const proxOleo = formatarSemLink(document.getElementById('prox_oleo').value);
         const corS = document.getElementById('cor_selo').value;
         
-        const valSeloRaw = document.getElementById('val_selo').value;
-        let valSeloFormatada = "Não informada";
-        if (valSeloRaw) {
-            const [ano, mes, dia] = valSeloRaw.split('-');
-            valSeloFormatada = `${dia}/${mes}/${ano}`;
-        }
+        const proxOleoRaw = document.getElementById('prox_oleo').value;
+        const proxOleoStr = document.getElementById('prox_oleo').type === 'month' ? formatarMesAnoBR(proxOleoRaw) : formatarSemLink(proxOleoRaw);
+        const valSeloStr = formatarDataBR(document.getElementById('val_selo').value);
 
         let t = `*Checklist ${tag} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
         t += `############################\n\n`;
+        t += `*Data/Hora:* ${dataHora}\n`;
         t += `*Placa:* ${placa}\n\n`;
         t += `*Condutor 1:* ${c1}\n`;
         t += `*Condutor 2:* ${c2}\n`;
@@ -240,10 +247,10 @@
         }
         t += `\n`;
         t += `*Tipo Oleo:* ${tipoOleo}\n`;
-        t += `*Prox. Troca:* ${proxOleo}\n`;
+        t += `*Prox. Troca:* ${proxOleoStr}\n`;
         t += `*Status Oleo:* ${document.getElementById('calc_oleo').innerText}\n\n`;
         t += `*Cor do Selo:* ${corS}\n`;
-        t += `*Validade Selo:* ${valSeloFormatada}\n`;
+        t += `*Validade Selo:* ${valSeloStr}\n`;
         t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n\n`;
         t += `*Obs:* ${document.getElementById('obs').value || "Sem observacoes"}`;
         return t;
@@ -252,14 +259,18 @@
     function renderInterface() {
         const viagem = JSON.parse(localStorage.getItem('viagemAtiva'));
         renderCondutoresChecklist();
-        document.getElementById('data_hoje').value = new Date().toLocaleDateString('pt-BR');
+        
+        // Atualiza Data e Hora em tempo real se for novo checklist
+        if (!viagem) {
+            document.getElementById('data_hora').value = new Date().toLocaleString('pt-BR');
+        }
         
         if (viagem) {
             Object.keys(viagem).forEach(id => { 
                 const el = document.getElementById(id); 
                 if(el) { 
                     el.value = viagem[id]; 
-                    if(id !== 'km_final' && id !== 'obs') { 
+                    if(id !== 'km_final' && id !== 'obs' && id !== 'data_hora') { 
                         el.readOnly = true; 
                         if(el.tagName === 'SELECT') el.disabled = true; 
                     } 
@@ -301,13 +312,17 @@
         document.getElementById('btn-adm').className = t === 'admin' ? 'tab-btn active' : 'tab-btn';
     }
 
+    function renderCondutoresChecklist() {
+        const s = document.getElementById('condutor1');
+        const valorAtual = s.value;
+        s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
+        if(valorAtual) s.value = valorAtual;
+    }
+
     function salvarSomenteNome() { localStorage.setItem('nomeSalvo', document.getElementById('condutor1').value); }
     function solicitarAcessoAdmin() { if (prompt("Senha:") === SENHA_MESTRA) switchTab('admin'); }
 
-    // Inicialização ao carregar a página
-    window.onload = function() {
-        renderInterface();
-    };
+    window.onload = renderInterface;
 </script>
 </body>
 </html>
