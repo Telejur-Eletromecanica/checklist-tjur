@@ -74,7 +74,10 @@
                         <option value="15W40">15W40</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Trocado com (KM)</label><input type="text" id="trocado_com" required oninput="calcularTudo()"></div>
+                <div class="form-group">
+                    <label id="labelTrocadoCom">Trocado com (KM)</label>
+                    <input type="text" id="trocado_com" required oninput="calcularTudo()">
+                </div>
                 <div class="form-group">
                     <label id="labelProxOleo">Prox. Troca (KM)</label>
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
@@ -145,7 +148,8 @@
 
     function formatarKMLimpo(valor) {
         if (!valor) return "";
-        return valor.toString().replace(/\./g, '');
+        let limpo = valor.toString().replace(/\./g, '');
+        return limpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
     function calcularTudo() {
@@ -165,7 +169,7 @@
                 displayOleo.style.color = diff < 0 ? "red" : "green";
             } else if (kmReferencia > 0) {
                 const saldo = Math.round(limparKM(proxOleoField.value) - kmReferencia);
-                displayOleo.innerText = saldo < 0 ? `Passou ${Math.abs(saldo)} KM` : `Restam ${saldo} KM`;
+                displayOleo.innerText = saldo < 0 ? `Passou ${formatarKMLimpo(Math.abs(saldo))} KM` : `Restam ${formatarKMLimpo(saldo)} KM`;
                 displayOleo.style.color = saldo < 0 ? "red" : "green";
             }
         }
@@ -181,17 +185,31 @@
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
-        const v = frota[document.getElementById('selectTag').value];
+        const tag = document.getElementById('selectTag').value;
+        const v = frota[tag];
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
-            const prox = document.getElementById('prox_oleo');
-            prox.type = v.tipoTroca === "data" ? "month" : "text";
-            document.getElementById('labelProxOleo').innerText = v.tipoTroca === "data" ? "Prox. Troca" : "Prox. Troca (KM)";
-            prox.value = ""; 
+            
+            const trocadoInput = document.getElementById('trocado_com');
+            const proxInput = document.getElementById('prox_oleo');
+            
+            if (v.tipoTroca === "data") {
+                trocadoInput.type = "month";
+                proxInput.type = "month";
+                document.getElementById('labelTrocadoCom').innerText = "Trocado em";
+                document.getElementById('labelProxOleo').innerText = "Prox. Troca";
+            } else {
+                trocadoInput.type = "text";
+                proxInput.type = "text";
+                document.getElementById('labelTrocadoCom').innerText = "Trocado com (KM)";
+                document.getElementById('labelProxOleo').innerText = "Prox. Troca (KM)";
+            }
+            
+            trocadoInput.value = "";
+            proxInput.value = ""; 
             document.getElementById('km_inicio').value = "";
-            document.getElementById('trocado_com').value = "";
             document.getElementById('calc_oleo').innerText = "";
         }
     }
@@ -202,11 +220,19 @@
         
         const kmI = formatarKMLimpo(d('km_inicio'));
         const kmF = kmFValue ? formatarKMLimpo(kmFValue) : "";
-        const proxOleoStr = document.getElementById('prox_oleo').type === 'month' ? d('prox_oleo').split('-').reverse().join('/') : formatarKMLimpo(d('prox_oleo'));
         
-        const kmReferencia = kmFValue ? limparKM(kmFValue) : limparKM(d('km_inicio'));
-        const saldoOleo = Math.round(limparKM(d('prox_oleo')) - kmReferencia);
-        const statusOleoTexto = saldoOleo < 0 ? `Passou ${Math.abs(saldoOleo)} KM` : `Restam ${saldoOleo} KM`;
+        const isData = document.getElementById('prox_oleo').type === 'month';
+        const trocadoVisual = isData ? d('trocado_com').split('-').reverse().join('/') : formatarKMLimpo(d('trocado_com'));
+        const proxOleoVisual = isData ? d('prox_oleo').split('-').reverse().join('/') : formatarKMLimpo(d('prox_oleo'));
+        
+        let statusOleoTexto = "";
+        if (!isData) {
+            const kmReferencia = kmFValue ? limparKM(kmFValue) : limparKM(d('km_inicio'));
+            const saldoOleo = Math.round(limparKM(d('prox_oleo')) - kmReferencia);
+            statusOleoTexto = saldoOleo < 0 ? `Passou ${formatarKMLimpo(Math.abs(saldoOleo))} KM` : `Restam ${formatarKMLimpo(saldoOleo)} KM`;
+        } else {
+            statusOleoTexto = document.getElementById('calc_oleo').innerText;
+        }
 
         let t = `*Checklist ${d('selectTag')} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
         t += `############################\n\n`;
@@ -221,12 +247,12 @@
         if(status === 'FIM') {
             t += `*KM Final:* _${kmF} km_\n${sep}`;
             const perc = (limparKM(kmFValue) - limparKM(d('km_inicio'))).toFixed(0);
-            t += `*Km Percorrido:* _${perc} km_\n${sep}`;
+            t += `*Km Percorrido:* _${formatarKMLimpo(perc)} km_\n${sep}`;
         }
         
         t += `*Tipo Oleo:* ${d('tipo_oleo')}\n${sep}`;
-        t += `*Trocado com (KM):* _${formatarKMLimpo(d('trocado_com'))} km_\n${sep}`;
-        t += `*Prox. Troca:* _${proxOleoStr} km_\n${sep}`;
+        t += `*${isData ? 'Trocado em' : 'Trocado com (KM)'}:* _${trocadoVisual}${isData ? '' : ' km'}_\n${sep}`;
+        t += `*${isData ? 'Prox. Troca' : 'Prox. Troca (KM)'}:* _${proxOleoVisual}${isData ? '' : ' km'}_\n${sep}`;
         t += `*Status Oleo:* ${statusOleoTexto}\n${sep}`;
         t += `*Cor do Selo:* ${d('cor_selo')}\n${sep}`;
         t += `*Validade Selo:* ${d('val_selo').split('-').reverse().join('/')}\n${sep}`;
