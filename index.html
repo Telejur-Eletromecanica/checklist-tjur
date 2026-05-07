@@ -235,4 +235,13 @@
     }
 
     function switchTab(t) {
-        document.getElementById('tab-checklist').className = t === 'checklist' ? ''
+        document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
+        document.getElementById('tab-admin').className = t === 'admin' ? '' : 'hidden';
+    }
+
+    function solicitarAcessoAdmin() { if (prompt("Senha:") === SENHA_MESTRA) switchTab('admin'); }
+
+    window.onload = renderInterface;
+</script>
+</body>
+</html>
