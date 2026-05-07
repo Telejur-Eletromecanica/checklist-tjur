@@ -138,6 +138,8 @@
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul", tipoTroca: "km" }
     };
 
+    // Lista fixa de status que NÃO devem ser removidos e novas opções incluídas
+    const statusEspeciais = ["Férias", "Ausente", "Falta Justificada", "Falta", "Atestado", "Apoio"];
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira"];
 
     function limparKM(valor) {
@@ -234,14 +236,20 @@
             statusOleoTexto = document.getElementById('calc_oleo').innerText;
         }
 
+        // LÓGICA DE COMPUTAR EFETIVO (Ignora se for Apoio, Férias, etc)
+        const c1 = d('condutor1');
+        const listaNaoEfetivos = ["Férias", "Ausente", "Falta Justificada", "Falta", "Atestado", "Apoio"];
+        const ehEfetivo = !listaNaoEfetivos.includes(c1);
+
         let t = `*Checklist ${d('selectTag')} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
         t += `############################\n\n`;
         t += `*Data:* ${d('data_dia')}\n${sep}`;
         t += `*Hora:* ${d('hora_dia')}\n${sep}`;
         t += `*Placa:* ${d('placa')}\n${sep}`;
-        t += `*Condutor 1:* ${d('condutor1')}\n${sep}`;
+        t += `*Condutor 1:* ${c1}\n${sep}`;
         t += `*Condutor 2:* ${d('condutor2')}\n${sep}`;
         t += `*Condutor 3:* ${d('condutor3')}\n${sep}`;
+        t += `*Computar Efetivo:* ${ehEfetivo ? 'SIM' : 'NÃO'}\n${sep}`;
         t += `*KM Inicio:* _${kmI} km_\n${sep}`;
         
         if(status === 'FIM') {
@@ -281,6 +289,40 @@
         }
     }
 
+    function renderCondutoresChecklist() {
+        const s = document.getElementById('condutor1');
+        const atual = s.value;
+        
+        // Combina status fixos com condutores cadastrados
+        const listaCompleta = [...statusEspeciais, ...condutores];
+        
+        s.innerHTML = '<option value="">-- Selecione --</option>' + 
+            listaCompleta.map(c => `<option value="${c}">${c}</option>`).join('');
+            
+        if(atual) s.value = atual;
+    }
+
+    function renderListaAdmin() {
+        document.getElementById('listaCondutoresAdmin').innerHTML = condutores.map((c, i) => `
+            <div class="condutor-item"><span>${c}</span><button class="btn-del" onclick="removerCondutor(${i})">Remover</button></div>
+        `).join('');
+    }
+
+    function adicionarCondutor() {
+        const nome = document.getElementById('novoCondutorNome').value.trim();
+        if(!nome || statusEspeciais.includes(nome)) return;
+        condutores.push(nome);
+        localStorage.setItem('condutores', JSON.stringify(condutores));
+        document.getElementById('novoCondutorNome').value = "";
+        renderListaAdmin(); renderCondutoresChecklist();
+    }
+
+    function removerCondutor(i) {
+        condutores.splice(i, 1);
+        localStorage.setItem('condutores', JSON.stringify(condutores));
+        renderListaAdmin(); renderCondutoresChecklist();
+    }
+
     function enviarInicio() {
         if (!document.getElementById('chkForm').checkValidity()) return document.getElementById('chkForm').reportValidity();
         const dados = {};
@@ -305,34 +347,6 @@
         document.getElementById('tab-checklist').className = t === 'checklist' ? '' : 'hidden';
         document.getElementById('tab-admin').className = t === 'admin' ? '' : 'hidden';
         if(t === 'admin') renderListaAdmin();
-    }
-
-    function renderCondutoresChecklist() {
-        const s = document.getElementById('condutor1');
-        const atual = s.value;
-        s.innerHTML = '<option value="">-- Selecione --</option>' + condutores.map(c => `<option value="${c}">${c}</option>`).join('');
-        if(atual) s.value = atual;
-    }
-
-    function renderListaAdmin() {
-        document.getElementById('listaCondutoresAdmin').innerHTML = condutores.map((c, i) => `
-            <div class="condutor-item"><span>${c}</span><button class="btn-del" onclick="removerCondutor(${i})">Remover</button></div>
-        `).join('');
-    }
-
-    function adicionarCondutor() {
-        const nome = document.getElementById('novoCondutorNome').value.trim();
-        if(!nome) return;
-        condutores.push(nome);
-        localStorage.setItem('condutores', JSON.stringify(condutores));
-        document.getElementById('novoCondutorNome').value = "";
-        renderListaAdmin(); renderCondutoresChecklist();
-    }
-
-    function removerCondutor(i) {
-        condutores.splice(i, 1);
-        localStorage.setItem('condutores', JSON.stringify(condutores));
-        renderListaAdmin(); renderCondutoresChecklist();
     }
 
     function salvarSomenteNome() { localStorage.setItem('nomeSalvo', document.getElementById('condutor1').value); }
