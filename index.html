@@ -75,6 +75,9 @@
                 </div>
                 <div class="form-group">
                     <label id="labelTrocadoCom">Trocado com (KM)</label>
+                     <select id="TrocadoCom" required>
+                       
+                    </select>
                     <input type="text" id="trocado_com" required oninput="calcularTudo()">
                 </div>
                 <div class="form-group">
@@ -133,7 +136,7 @@
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Verde", tipoTroca: "km" },
         "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", tipoTroca: "data" },
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul", tipoTroca: "km" },
-        "TJUR 14": { placa: "QVJ5J56", oleo: "15W40", cor: "Azul", trocado_com: "12345", tipoTroca: "123025" }
+        "TJUR 14": { placa: "QVJ5J56", oleo: "15W40", cor: "Azul", TrocadoCom: "12345", tipoTroca: "123025" }
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Ferreira", "Ezequiel Almeida"];
