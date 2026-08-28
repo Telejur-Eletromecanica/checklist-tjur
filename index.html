@@ -133,7 +133,7 @@
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Verde", trocado: "12345", prox:"12345", tipoTroca: "km" },
         "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", trocado: "12345", prox:"12345", tipoTroca: "data" },
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Azul", trocado: "12345", prox:"12345", tipoTroca: "km" },
-        "TJUR 14": { placa: "QVJ5J56", oleo: "15W40", cor: "Azul", trocado: "123000", prox:"133025", tipoTroca: "km" }
+        "TJUR 14": { placa: "QVJ5J56", oleo: "15W40", cor: "Azul", trocado: "123025", prox:"133025", selo: "30/09/2026", tipoTroca: "km" }
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Ferreira", "Ezequiel Almeida"];
@@ -192,6 +192,8 @@
             document.getElementById('cor_selo').value = v.cor;
             document.getElementById('trocado_com').value = v.trocado;
             document.getElementById('prox_oleo').value = v.prox;
+            document.getElementById('val_selo').value = v.selo;
+            
            const trocadoInput = document.getElementById('trocado');
             const proxInput = document.getElementById('prox');
            // const trocadoInput = document.getElementById('trocado_com');
