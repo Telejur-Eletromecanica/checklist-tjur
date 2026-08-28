@@ -153,8 +153,8 @@
     function calcularTudo() {
         const hoje = new Date(); hoje.setHours(0,0,0,0);
         const proxOleoField = document.getElementById('prox_oleo');
-         //const proxOleoField = document.getElementById('trocado');
-        const displayOleo = document.getElementById('calc_oleo');
+         const proxOleoField = document.getElementById('trocado');
+        //const displayOleo = document.getElementById('calc_oleo');
         
         const kmFinalVal = limparKM(document.getElementById('km_final').value);
         const kmReferencia = kmFinalVal > 0 ? kmFinalVal : limparKM(document.getElementById('km_inicio').value);
@@ -190,12 +190,12 @@
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
             document.getElementById('cor_selo').value = v.cor;
-            //document.getElementById('trocado_com').value = v.trocado;
-            //document.getElementById('prox_oleo').value = v.prox;
-           //const trocadoInput = document.getElementById('trocado');
-            //const proxInput = document.getElementById('prox');
-            const trocadoInput = document.getElementById('trocado_com');
-            const proxInput = document.getElementById('prox_oleo');
+            document.getElementById('trocado_com').value = v.trocado;
+            document.getElementById('prox_oleo').value = v.prox;
+           const trocadoInput = document.getElementById('trocado');
+            const proxInput = document.getElementById('prox');
+           // const trocadoInput = document.getElementById('trocado_com');
+           // const proxInput = document.getElementById('prox_oleo');
             if (v.tipoTroca === "data") {
                 trocadoInput.type = "month";
                 proxInput.type = "month";
