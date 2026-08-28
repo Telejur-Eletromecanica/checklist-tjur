@@ -152,7 +152,8 @@
 
     function calcularTudo() {
         const hoje = new Date(); hoje.setHours(0,0,0,0);
-        const proxOleoField = document.getElementById('prox_oleo');
+        //const proxOleoField = document.getElementById('prox_oleo');
+         const proxOleoField = document.getElementById('trocado');
         const displayOleo = document.getElementById('calc_oleo');
         
         const kmFinalVal = limparKM(document.getElementById('km_final').value);
@@ -221,7 +222,8 @@
         const kmF = kmFValue ? formatarKMLimpo(kmFValue) : "";
         
         const isData = document.getElementById('prox_oleo').type === 'month';
-        const trocadoVisual = isData ? d('trocado_com').split('-').reverse().join('/') : formatarKMLimpo(d('trocado_com'));
+        //const trocadoVisual = isData ? d('trocado_com').split('-').reverse().join('/') : formatarKMLimpo(d('trocado_com'));
+        const trocadoVisual = isData ? d('trocado_com').split('-').reverse().join('/') : formatarKMLimpo(d('trocado'));
         const proxOleoVisual = isData ? d('prox_oleo').split('-').reverse().join('/') : formatarKMLimpo(d('prox_oleo'));
         
         let statusOleoTexto = "";
