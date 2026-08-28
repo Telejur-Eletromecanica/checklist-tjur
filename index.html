@@ -101,7 +101,7 @@
                 <div class="form-group"><label>KM Final</label><input type="text" id="km_final" disabled oninput="calcularTudo()"></div>
                 <div class="form-group full-width">
                     <label>Validade Selo</label>
-                    <input type="date" id="val_selo" required onchange="calcularTudo()">
+                    <input type="text" id="val_selo" required onchange="calcularTudo()">
                     <span id="calc_selo" class="status-calc"></span>
                 </div>
                 <div class="form-group full-width">
@@ -173,7 +173,7 @@
             }
         }
 
-        const valSelo = document.getElementById('calc_selo').value;
+        const valSelo = document.getElementById('selo').value;
         if (valSelo) {
             const dSelo = new Date(valSelo + "T00:00:00");
             const diffSelo = Math.ceil((dSelo - hoje) / (1000 * 60 * 60 * 24));
