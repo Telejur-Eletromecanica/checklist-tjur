@@ -178,8 +178,8 @@
         if (valSelo) {
             const dSelo = new Date(valSelo + "T00:00:00");
             const diffSelo = Math.ceil((dSelo - hoje) / (1000 * 60 * 60 * 24));
-            document.getElementById('selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
-            document.getElementById('selo').style.color = diffSelo < 0 ? "red" : "green";
+            document.getElementById('val_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
+            document.getElementById('val_selo').style.color = diffSelo < 0 ? "red" : "green";
             //document.getElementById('calc_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
            // document.getElementById('calc_selo').style.color = diffSelo < 0 ? "red" : "green";
         }
