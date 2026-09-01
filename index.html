@@ -128,22 +128,16 @@
 <script>
     const SENHA_MESTRA = "1234";
     const frota = {
-        
-        "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", selo: "30/09/2026", tipoTroca: "data" },
-        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", selo: "30/09/2026", tipoTroca: "data" },
-        "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", selo: "30/08/2026", tipoTroca: "data" },
+        "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", trocado: "166374", prox:"172000", selo: "30/09/2026", tipoTroca: "km" },
+        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", trocado: "166374", prox:"172000", selo: "30/09/2026", tipoTroca: "km" },
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Azul", trocado: "166374", prox:"172000", selo: "30/09/2026", tipoTroca: "km" },
+        "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", trocado: "35884", prox:"45884", selo: "30/08/2026", tipoTroca: "km" },
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Vermelho", trocado: "169323", prox:"174123", selo: "31/08/2026", tipoTroca: "km" },
         "TJUR 14": { placa: "QVJ5J56", oleo: "15W40", cor: "Azul", trocado: "123025", prox:"133025", selo: "30/08/2026", tipoTroca: "km" }
 
-       
-        //"TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", trocado: "166374", prox:"172000", selo: "30/09/2026", tipoTroca: "km" },
-        //"TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", trocado: "166374", prox:"172000", selo: "30/09/2026", tipoTroca: "km" },
-        //"TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", trocado: "35884", prox:"45884", selo: "30/08/2026", tipoTroca: "km" },
-       // "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", tipoTroca: "data" },
-       // "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Verde", tipoTroca: "data" },
-      //  "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", tipoTroca: "data" },
-        
+       // "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", trocado: "166374", prox:"172000", selo: "30/09/2026", tipoTroca: "data" },
+       // "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", trocado: "166374", prox:"172000", selo: "30/09/2026", tipoTroca: "data" },
+       // "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", trocado: "12345", prox:"12345", selo: "30/08/2026", tipoTroca: "data" },
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Ferreira", "Ezequiel Almeida"];
@@ -165,7 +159,7 @@
         const proxOleoField = document.getElementById('prox_oleo');
          //const proxOleoField = document.getElementById('trocado');
         const displayOleo = document.getElementById('calc_oleo');
-        
+
         const kmFinalVal = limparKM(document.getElementById('km_final').value);
         const kmReferencia = kmFinalVal > 0 ? kmFinalVal : limparKM(document.getElementById('km_inicio').value);
 
@@ -206,11 +200,11 @@
             document.getElementById('trocado_com').value = v.trocado;
             document.getElementById('prox_oleo').value = v.prox;
             document.getElementById('val_selo').value = v.selo;
-            
-          // const trocadoInput = document.getElementById('trocado');
-            //const proxInput = document.getElementById('prox');
-            const trocadoInput = document.getElementById('trocado_com');
-            const proxInput = document.getElementById('prox_oleo');
+
+           const trocadoInput = document.getElementById('trocado');
+            const proxInput = document.getElementById('prox');
+           // const trocadoInput = document.getElementById('trocado_com');
+           // const proxInput = document.getElementById('prox_oleo');
             if (v.tipoTroca === "data") {
                 trocadoInput.type = "month";
                 proxInput.type = "month";
@@ -219,10 +213,10 @@
             } else {
                 trocadoInput.type = "text";
                 proxInput.type = "text";
-                document.getElementById('labelTrocadoCom').innerText = "Trocado com (data)";
-                document.getElementById('labelProxOleo').innerText = "Prox. Troca (data)";
+                document.getElementById('labelTrocadoCom').innerText = "Trocado com (KM)";
+                document.getElementById('labelProxOleo').innerText = "Prox. Troca (KM)";
             }
-            
+
             trocadoInput.value = "";
             proxInput.value = ""; 
             document.getElementById('km_inicio').value = "";
@@ -233,15 +227,15 @@
     function montarTextoWhatsapp(status, kmFValue = null) {
         const d = (id) => document.getElementById(id).value;
         const sep = "--------------------------------\n";
-        
+
         const kmI = formatarKMLimpo(d('km_inicio'));
         const kmF = kmFValue ? formatarKMLimpo(kmFValue) : "";
-        
+
         const isData = document.getElementById('prox_oleo').type === 'month';
         const trocadoVisual = isData ? d('trocado_com').split('-').reverse().join('/') : formatarKMLimpo(d('trocado_com'));
         //const trocadoVisual = isData ? d('trocado_com').split('-').reverse().join('/') : formatarKMLimpo(d('trocado'));
         const proxOleoVisual = isData ? d('prox_oleo').split('-').reverse().join('/') : formatarKMLimpo(d('prox_oleo'));
-        
+
         let statusOleoTexto = "";
         if (!isData) {
             const kmReferencia = kmFValue ? limparKM(kmFValue) : limparKM(d('km_inicio'));
@@ -260,13 +254,13 @@
         t += `*Condutor 2:* ${d('condutor2')}\n${sep}`;
         t += `*Condutor 3:* ${d('condutor3')}\n${sep}`;
         t += `*KM Inicio:* _${kmI} km_\n${sep}`;
-        
+
         if(status === 'FIM') {
             t += `*KM Final:* _${kmF} km_\n${sep}`;
             const perc = (limparKM(kmFValue) - limparKM(d('km_inicio'))).toFixed(0);
             t += `*Km Percorrido:* _${formatarKMLimpo(perc)} km_\n${sep}`;
         }
-        
+
         t += `*Tipo Oleo:* ${d('tipo_oleo')}\n${sep}`;
         t += `*${isData ? 'Trocado em' : 'Trocado com (KM)'}:* _${trocadoVisual}${isData ? '' : ' km'}_\n${sep}`;
         t += `*${isData ? 'Prox. Troca' : 'Prox. Troca (KM)'}:* _${proxOleoVisual}${isData ? '' : ' km'}_\n${sep}`;
@@ -275,7 +269,7 @@
         t += `*Validade Selo:* ${d('val_selo').split('-').reverse().join('/')}\n${sep}`;
         t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n${sep}`;
         t += `*Obs:* ${d('obs') || "Sem observacoes"}`;
-        
+
         return t;
     }
 
