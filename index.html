@@ -129,7 +129,7 @@
     const SENHA_MESTRA = "1234";
     const frota = {
         "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", trocado: "89710", prox:"", selo: "2026-09-30", tipoTroca: "km" },
-        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", troca: "2026-08-31", cor: "Vermelho", trocado: "30000", prox:"35000", selo: "2026-09-30", tipoTroca: "km" },
+        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", trocado: "30000", prox:"35000", selo: "2026-09-30", tipoTroca: "km" },
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Azul", trocado: "166374", prox:"172000", selo: "2026-09-30", tipoTroca: "km" },
         "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", trocado: "35884", prox:"45884", selo: "2026-08-31", tipoTroca: "km" },
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Vermelho", trocado: "169323", prox:"174123", selo: "2026-08-31", tipoTroca: "km" },
@@ -190,13 +190,7 @@
         }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-         const valOleo = document.getElementById('troca').value;
-        if (valOleo) {
-            const dOleo = new Date(valOleo + "T00:00:00");
-            const diffOleo = Math.ceil((dOleo - hoje) / (1000 * 60 * 60 * 24));
-            document.getElementById('calc_oleo').innerText = diffOleo < 0 ? `VENCIDO!` : `Vence em ${diffOleo} dias`;
-            document.getElementById('calc_oleo').style.color = diffOleo < 0 ? "red" : "green";
-    }
+
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
