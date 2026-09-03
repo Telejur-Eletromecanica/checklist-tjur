@@ -84,16 +84,7 @@
                 </div>
 
 
-<div id="alertaSky"
-     style="display:none;
-            background:#fff3cd;
-            color:#856404;
-            border:1px solid #ffeeba;
-            padding:10px;
-            border-radius:6px;
-            margin-top:10px;
-            font-weight:bold;">
-</div>
+
 
                 
                 <div class="form-group">
@@ -155,48 +146,6 @@
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Ferreira", "Ezequiel Almeida"];
-function verificarTrocaSky(v) {
-
-    const alerta = document.getElementById('alertaSky');
-
-    if (v.tipoTroca !== "data" || !v.ultimaTroca) {
-        alerta.style.display = "none";
-        return;
-    }
-
-    const hoje = new Date();
-
-    const ultimaTroca = new Date(v.ultimaTroca);
-
-    const proximaTroca = new Date(ultimaTroca);
-    proximaTroca.setMonth(proximaTroca.getMonth() + 6);
-
-    const diasRestantes = Math.ceil(
-        (proximaTroca - hoje) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diasRestantes < 0) {
-
-        alerta.style.display = "block";
-        alerta.style.background = "#f8d7da";
-        alerta.style.color = "#721c24";
-        alerta.innerHTML =
-            `🚨 TROCA DE ÓLEO VENCIDA há ${Math.abs(diasRestantes)} dias!`;
-
-    } else if (diasRestantes <= 30) {
-
-        alerta.style.display = "block";
-        alerta.style.background = "#fff3cd";
-        alerta.style.color = "#856404";
-        alerta.innerHTML =
-            `⚠️ Atenção: a troca de óleo vence em ${diasRestantes} dias.`;
-
-    } else {
-
-        alerta.style.display = "none";
-    }
-}
-
 
     
     function limparKM(valor) {
