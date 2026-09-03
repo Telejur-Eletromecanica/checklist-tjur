@@ -102,16 +102,7 @@
                     <label>Validade Selo</label>
                     <input type="date" id="val_selo" required onchange="calcularTudo()">
                     <span id="calc_selo" class="status-calc"></span>
-                </div>
-                 <div class="form-group full-width">
-                    <label>Validade Óleo</label>
-                    <input type="date" id="val_oleo" required onchange="calcularTudo()">
                     <span id="calc_oleo" class="status-calc"></span>
-                </div>
-                 <div class="form-group full-width">
-                    <label>Validade Oleo</label>
-                    <input type="date" id="val_selo" required onchange="calcularTudo()">
-                    <span id="calc_selo" class="status-calc"></span>
                 </div>
                 <div class="form-group full-width">
                     <label>Observações</label>
@@ -218,7 +209,7 @@
             document.getElementById('trocado_com').value = v.trocado;
             document.getElementById('prox_oleo').value = v.prox;
             document.getElementById('val_selo').value = v.selo;
-            document.getElementById('val_oleo').value = v.troca;
+           // document.getElementById('val_oleo').value = v.troca;
             calcularTudo();
 
            const trocadoInput = document.getElementById('trocado');
