@@ -82,7 +82,6 @@
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
                     <span id="calc_oleo" class="status-calc"></span>
                 </div>
-                <div id="msgTroca"></div>
                 <div class="form-group">
                     <label>Cor do Selo</label>
                     <select id="cor_selo" required>
@@ -130,7 +129,7 @@
     const SENHA_MESTRA = "1234";
     const frota = {
         "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", trocado: "89710", prox:"", selo: "2026-09-30", tipoTroca: "km" },
-        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", ultroca: "2026-09-30", trocado: "30000", prox:"35000", selo: "2026-09-30", tipoTroca: "km" },
+        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", trocado: "30000", prox:"35000", selo: "2026-09-30", tipoTroca: "km" },
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Azul", trocado: "166374", prox:"172000", selo: "2026-09-30", tipoTroca: "km" },
         "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", trocado: "35884", prox:"45884", selo: "2026-08-31", tipoTroca: "km" },
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Vermelho", trocado: "169323", prox:"174123", selo: "2026-08-31", tipoTroca: "km" },
@@ -194,12 +193,6 @@
         if (localStorage.getItem('viagemAtiva')) return;
         const tag = document.getElementById('selectTag').value;
         const v = frota[tag];
-
-if (v) {
-document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ultroca}`;
-}
-
-        
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
@@ -259,8 +252,8 @@ document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ult
         t += `*Hora:* ${d('hora_dia')}\n${sep}`;
         t += `*Placa:* ${d('placa')}\n${sep}`;
         t += `*Condutor 1:* ${d('condutor1')}\n${sep}`;
-        //t += `*Condutor 2:* ${d('condutor2')}\n${sep}`;
-       // t += `*Condutor 3:* ${d('condutor3')}\n${sep}`;
+        t += `*Condutor 2:* ${d('condutor2')}\n${sep}`;
+        t += `*Condutor 3:* ${d('condutor3')}\n${sep}`;
         t += `*KM Inicio:* _${kmI} km_\n${sep}`;
 
         if(status === 'FIM') {
@@ -276,9 +269,7 @@ document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ult
         t += `*Cor do Selo:* ${d('cor_selo')}\n${sep}`;
         t += `*Validade Selo:* ${d('val_selo').split('-').reverse().join('/')}\n${sep}`;
         t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n${sep}`;
-         
         t += `*Obs:* ${d('obs') || "Sem observacoes"}`;
-         t += `*Última Troca:* ${v.ultroca}\n${sep}`;
 
         return t;
     }
