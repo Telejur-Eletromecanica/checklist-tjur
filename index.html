@@ -82,17 +82,20 @@
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
                     <span id="calc_oleo" class="status-calc"></span>
                 </div>
-    <div id="msgSky" style="
-    display:none;
-    background:#fff3cd;
-    color:#856404;
-    border:1px solid #ffeeba;
-    padding:10px;
-    border-radius:6px;
-    margin-top:10px;
-    font-weight:bold;">
-    ⚠️ Atenção: Veículos SKY devem realizar troca de óleo a cada 6 meses.
+
+
+<div id="alertaSky"
+     style="display:none;
+            background:#fff3cd;
+            color:#856404;
+            border:1px solid #ffeeba;
+            padding:10px;
+            border-radius:6px;
+            margin-top:10px;
+            font-weight:bold;">
 </div>
+
+                
                 <div class="form-group">
                     <label>Cor do Selo</label>
                     <select id="cor_selo" required>
@@ -152,7 +155,50 @@
     };
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Ferreira", "Ezequiel Almeida"];
+function verificarTrocaSky(v) {
 
+    const alerta = document.getElementById('alertaSky');
+
+    if (v.tipoTroca !== "data" || !v.ultimaTroca) {
+        alerta.style.display = "none";
+        return;
+    }
+
+    const hoje = new Date();
+
+    const ultimaTroca = new Date(v.ultimaTroca);
+
+    const proximaTroca = new Date(ultimaTroca);
+    proximaTroca.setMonth(proximaTroca.getMonth() + 6);
+
+    const diasRestantes = Math.ceil(
+        (proximaTroca - hoje) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diasRestantes < 0) {
+
+        alerta.style.display = "block";
+        alerta.style.background = "#f8d7da";
+        alerta.style.color = "#721c24";
+        alerta.innerHTML =
+            `🚨 TROCA DE ÓLEO VENCIDA há ${Math.abs(diasRestantes)} dias!`;
+
+    } else if (diasRestantes <= 30) {
+
+        alerta.style.display = "block";
+        alerta.style.background = "#fff3cd";
+        alerta.style.color = "#856404";
+        alerta.innerHTML =
+            `⚠️ Atenção: a troca de óleo vence em ${diasRestantes} dias.`;
+
+    } else {
+
+        alerta.style.display = "none";
+    }
+}
+
+
+    
     function limparKM(valor) {
         if (!valor) return 0;
         let str = valor.toString().replace(/\./g, '').replace(',', '.');
@@ -202,8 +248,11 @@
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
-        const tag = document.getElementById('selectTag').value;
+        const tag = document.getElementById('selectTag').value;      
         const v = frota[tag];
+                    if (v) {
+                verificarTrocaSky(v);
+            }
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
@@ -234,6 +283,14 @@
             document.getElementById('km_inicio').value = "";
             document.getElementById('calc_oleo').innerText = "";
         }
+                        const tag = document.getElementById('selectTag').value;
+                const msgSky = document.getElementById('msgSky');
+                
+                if (["TJUR 04", "TJUR 07", "TJUR 09"].includes(tag)) {
+                    msgSky.style.display = "block";
+                } else {
+                    msgSky.style.display = "none";
+                }
     }
 
     function montarTextoWhatsapp(status, kmFValue = null) {
