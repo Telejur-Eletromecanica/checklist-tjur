@@ -39,7 +39,7 @@
         <h1>Telejur</h1>
         <p>CHECKLIST DE VEÍCULOS</p>
     </div>
-
+<div id="msgTroca"></div>
     <div class="tabs">
         <button class="tab-btn active" id="btn-chk" onclick="switchTab('checklist')">Checklist</button>
         <button class="tab-btn" id="btn-adm" onclick="solicitarAcessoAdmin()">Admin</button>
@@ -129,7 +129,7 @@
     const SENHA_MESTRA = "1234";
     const frota = {
         "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", trocado: "89710", prox:"", selo: "2026-09-30", tipoTroca: "km" },
-        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", trocado: "30000", prox:"35000", selo: "2026-09-30", tipoTroca: "km" },
+        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", ultroca: "2026-09-30", trocado: "30000", prox:"35000", selo: "2026-09-30", tipoTroca: "km" },
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Azul", trocado: "166374", prox:"172000", selo: "2026-09-30", tipoTroca: "km" },
         "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", trocado: "35884", prox:"45884", selo: "2026-08-31", tipoTroca: "km" },
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Vermelho", trocado: "169323", prox:"174123", selo: "2026-08-31", tipoTroca: "km" },
@@ -193,6 +193,12 @@
         if (localStorage.getItem('viagemAtiva')) return;
         const tag = document.getElementById('selectTag').value;
         const v = frota[tag];
+
+if (v) {
+document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ultroca}`;
+}
+
+        
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
