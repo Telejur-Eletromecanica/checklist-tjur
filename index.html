@@ -87,7 +87,7 @@
 
                 
                 <div class="form-group">
-                <div id="msgTroca"></div>
+              <div id="msgTroca"></div>
                 </div>
 
 
@@ -207,10 +207,7 @@
 
 
             if (v) {
-            
-                document.getElementById('msgTroca').innerHTML =
-                    `Última troca de óleo: ${v.ultroca}`;
-            
+            document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ultroca}`;
             }
 
         
@@ -245,6 +242,39 @@
             document.getElementById('calc_oleo').innerText = "";
         }
     }
+
+
+
+
+
+
+    
+    if (v && v.ultroca) {
+
+    const data = v.ultroca.split('-').reverse().join('/');
+
+    document.getElementById('msgTroca').innerHTML = `Última troca de óleo: <strong>${data}</strong>`;
+}
+    if (v && v.ultroca) {
+
+    document.getElementById('msgTroca').style.display = "block";
+
+    const data = v.ultroca.split('-').reverse().join('/');
+
+    document.getElementById('msgTroca').innerHTML = `Veículo SKY<br>Última troca: ${data}`;
+
+} else {
+
+    document.getElementById('msgTroca').style.display = "none";
+
+}
+
+
+
+
+
+
+    
 
     function montarTextoWhatsapp(status, kmFValue = null) {
         const d = (id) => document.getElementById(id).value;
