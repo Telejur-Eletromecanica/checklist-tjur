@@ -103,6 +103,11 @@
                     <input type="date" id="val_selo" required onchange="calcularTudo()">
                     <span id="calc_selo" class="status-calc"></span>
                 </div>
+                 <div class="form-group full-width">
+                    <label>Validade Oleo</label>
+                    <input type="date" id="val_selo" required onchange="calcularTudo()">
+                    <span id="calc_selo" class="status-calc"></span>
+                </div>
                 <div class="form-group full-width">
                     <label>Observações</label>
                     <textarea id="obs">Sem observacoes</textarea>
@@ -174,6 +179,7 @@
                 displayOleo.innerText = saldo < 0 ? `Passou ${formatarKMLimpo(Math.abs(saldo))} KM` : `Restam ${formatarKMLimpo(saldo)} KM`;
                 displayOleo.style.color = saldo < 0 ? "red" : "green";
             }
+            
         }
 
         //const valSelo = document.getElementById('calc_selo').value;
@@ -186,6 +192,12 @@
             //document.getElementById('calc_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
            // document.getElementById('calc_selo').style.color = diffSelo < 0 ? "red" : "green";
         }
+         const valOleo = document.getElementById('val_oleo').value;
+        if (valOleo) {
+            const dOleo = new Date(valOleo + "T00:00:00");
+            const diffOleo = Math.ceil((dOleo - hoje) / (1000 * 60 * 60 * 24));
+            document.getElementById('calc_oleo').innerText = diffOleo < 0 ? `VENCIDO!` : `Vence em ${diffOleo} dias`;
+            document.getElementById('calc_oleo').style.color = diffOleo < 0 ? "red" : "green";
     }
 
     function atualizarDadosVeiculo() {
