@@ -259,8 +259,8 @@ document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ult
         t += `*Hora:* ${d('hora_dia')}\n${sep}`;
         t += `*Placa:* ${d('placa')}\n${sep}`;
         t += `*Condutor 1:* ${d('condutor1')}\n${sep}`;
-        t += `*Condutor 2:* ${d('condutor2')}\n${sep}`;
-        t += `*Condutor 3:* ${d('condutor3')}\n${sep}`;
+        //t += `*Condutor 2:* ${d('condutor2')}\n${sep}`;
+       // t += `*Condutor 3:* ${d('condutor3')}\n${sep}`;
         t += `*KM Inicio:* _${kmI} km_\n${sep}`;
 
         if(status === 'FIM') {
@@ -276,7 +276,9 @@ document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ult
         t += `*Cor do Selo:* ${d('cor_selo')}\n${sep}`;
         t += `*Validade Selo:* ${d('val_selo').split('-').reverse().join('/')}\n${sep}`;
         t += `*Status Selo:* ${document.getElementById('calc_selo').innerText}\n${sep}`;
+         
         t += `*Obs:* ${d('obs') || "Sem observacoes"}`;
+         t += `*Última Troca:* ${v.ultroca}\n${sep}`;
 
         return t;
     }
