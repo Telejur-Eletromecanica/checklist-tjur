@@ -82,11 +82,6 @@
                     <input type="text" id="prox_oleo" required oninput="calcularTudo()">
                     <span id="calc_oleo" class="status-calc"></span>
                 </div>
-
-
-
-
-                
                 <div class="form-group">
                     <label>Cor do Selo</label>
                     <select id="cor_selo" required>
@@ -134,7 +129,7 @@
     const SENHA_MESTRA = "1234";
     const frota = {
         "TJUR 04": { placa: "QFA1I50", oleo: "15W40", cor: "Verde", trocado: "89710", prox:"", selo: "2026-09-30", tipoTroca: "km" },
-        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", ultimaTroca: "2026-09-30", cor: "Vermelho", trocado: "30000", prox:"35000", selo: "2026-09-30", tipoTroca: "km" },
+        "TJUR 07": { placa: "RWR3C75", oleo: "15W40", cor: "Vermelho", trocado: "30000", prox:"35000", selo: "2026-09-30", tipoTroca: "km" },
         "TJUR 08": { placa: "QVE5H48", oleo: "5W30", cor: "Azul", trocado: "166374", prox:"172000", selo: "2026-09-30", tipoTroca: "km" },
         "TJUR 09": { placa: "RXC6J04", oleo: "15W40", cor: "Verde", trocado: "35884", prox:"45884", selo: "2026-08-31", tipoTroca: "km" },
         "TJUR 13": { placa: "QVD4I38", oleo: "15W40", cor: "Vermelho", trocado: "169323", prox:"174123", selo: "2026-08-31", tipoTroca: "km" },
@@ -147,7 +142,6 @@
 
     let condutores = JSON.parse(localStorage.getItem('condutores')) || ["Francivaldo Costa", "Joelcinei Guimarães", "Reginaldo Pereira", "Adriano Ferreira", "Ezequiel Almeida"];
 
-    
     function limparKM(valor) {
         if (!valor) return 0;
         let str = valor.toString().replace(/\./g, '').replace(',', '.');
@@ -197,7 +191,8 @@
 
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
-        const tag = document.getElementById('selectTag').value;      
+        const tag = document.getElementById('selectTag').value;
+        const v = frota[tag];
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
@@ -228,14 +223,6 @@
             document.getElementById('km_inicio').value = "";
             document.getElementById('calc_oleo').innerText = "";
         }
-                        const tag = document.getElementById('selectTag').value;
-                const msgSky = document.getElementById('msgSky');
-                
-                if (["TJUR 04", "TJUR 07", "TJUR 09"].includes(tag)) {
-                    msgSky.style.display = "block";
-                } else {
-                    msgSky.style.display = "none";
-                }
     }
 
     function montarTextoWhatsapp(status, kmFValue = null) {
