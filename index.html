@@ -204,12 +204,6 @@
         if (localStorage.getItem('viagemAtiva')) return;
         const tag = document.getElementById('selectTag').value;
         const v = frota[tag];
-
-
-            if (v) {
-            document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ultroca}`;
-            }
-
         
         if (v) {
             document.getElementById('placa').value = v.placa;
@@ -218,6 +212,7 @@
             document.getElementById('trocado_com').value = v.trocado;
             document.getElementById('prox_oleo').value = v.prox;
             document.getElementById('val_selo').value = v.selo;
+            document.getElementById('msgTroca').innerHTML = `Última troca de óleo: ${v.ultroca}`;
             calcularTudo();
 
            const trocadoInput = document.getElementById('trocado');
@@ -306,6 +301,8 @@
         t += `*Condutor 2:* ${d('condutor2')}\n${sep}`;
         t += `*Condutor 3:* ${d('condutor3')}\n${sep}`;
         t += `*KM Inicio:* _${kmI} km_\n${sep}`;
+        t += `*Última Troca:* ${v.ultroca}\n${sep}`;
+        
 
         if(status === 'FIM') {
             t += `*KM Final:* _${kmF} km_\n${sep}`;
