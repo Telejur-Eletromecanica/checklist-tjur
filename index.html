@@ -198,10 +198,6 @@
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
         const tag = document.getElementById('selectTag').value;      
-        const v = frota[tag];
-                    if (v) {
-                verificarTrocaSky(v);
-            }
         if (v) {
             document.getElementById('placa').value = v.placa;
             document.getElementById('tipo_oleo').value = v.oleo;
