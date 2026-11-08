@@ -278,68 +278,50 @@
        // t += `*Obs:* ${d('obs') || "Sem observacoes"}`;
 
 
+let t = `📋 *Checklist ${d('selectTag')} - ${status === 'INI' ? '🚀 Início' : '🏁 Fim'} de Trajeto*\n`;
+t += `════════════════════\n\n`;
 
-let t = `📋 *CHECKLIST ${d('selectTag')} - ${status === 'INI' ? '🚀 INÍCIO' : '🏁 FIM'} DE TRAJETO*
+t += `📅 *Data:* ${d('data_dia')}\n${sep}`;
+t += `🕒 *Hora:* ${d('hora_dia')}\n${sep}`;
+t += `🚘 *Placa:* ${d('placa')}\n${sep}`;
 
-════════════════════
+t += `👨‍✈️ *Condutor 1:* ${d('condutor1')}\n${sep}`;
+t += `👨‍✈️ *Condutor 2:* ${d('condutor2')}\n${sep}`;
+t += `👨‍✈️ *Condutor 3:* ${d('condutor3')}\n${sep}`;
 
-📅 *DADOS GERAIS*
-
-*Data:* ${d('data_dia')}
-*Hora:* ${d('hora_dia')}
-*Placa:* ${d('placa')}
-
-════════════════════
-
-👨‍✈️ *CONDUTORES*
-
-*Condutor 1:* ${d('condutor1')}
-*Condutor 2:* ${d('condutor2')}
-*Condutor 3:* ${d('condutor3')}
-
-════════════════════
-
-🚗 *QUILOMETRAGEM*
-
-*KM Início:* ${kmI} km
-`;
+t += `🛣️ *KM Início:* ${kmI} km\n${sep}`;
 
 if (status === 'FIM') {
-    const perc = (limparKM(kmFValue) - limparKM(d('km_inicio'))).toFixed(0);
 
-    t += `
-*KM Final:* ${kmF} km
-*KM Percorrido:* ${formatarKMLimpo(perc)} km
-`;
+    t += `🏁 *KM Final:* ${kmF} km\n${sep}`;
+
+    const perc = (
+        limparKM(kmFValue) -
+        limparKM(d('km_inicio'))
+    ).toFixed(0);
+
+    t += `📏 *KM Percorrido:* ${formatarKMLimpo(perc)} km\n${sep}`;
 }
 
-t += `
+t += `🛢️ *Tipo Óleo:* ${d('tipo_oleo')}\n${sep}`;
 
-════════════════════
+t += `🔧 *${isData ? 'Trocado em' : 'Trocado com (KM)'}:* ${trocadoVisual}${isData ? '' : ' km'}\n${sep}`;
 
-🛢️ *CONTROLE DE ÓLEO*
+t += `⏭️ *${isData ? 'Próx. Troca' : 'Próx. Troca (KM)'}:* ${proxOleoVisual}${isData ? '' : ' km'}\n${sep}`;
 
-*Tipo de Óleo:* ${d('tipo_oleo')}
-*${isData ? 'Trocado em' : 'Trocado com (KM)'}:* ${trocadoVisual}${isData ? '' : ' km'}
-*${isData ? 'Próxima Troca' : 'Próxima Troca (KM)'}:* ${proxOleoVisual}${isData ? '' : ' km'}
-*Status do Óleo:* ${statusOleoTexto}
+t += `✅ *Status Óleo:* ${statusOleoTexto}\n${sep}`;
 
-════════════════════
+t += `🏷️ *Cor do Selo:* ${d('cor_selo')}\n${sep}`;
 
-🏷️ *CONTROLE DE SELO*
+t += `📆 *Validade Selo:* ${d('val_selo').split('-').reverse().join('/')}\n${sep}`;
 
-*Cor do Selo:* ${d('cor_selo')}
-*Validade:* ${d('val_selo').split('-').reverse().join('/')}
-*Status:* ${document.getElementById('calc_selo').innerText}
+t += `🔍 *Status Selo:* ${document.getElementById('calc_selo').innerText}\n${sep}`;
 
-════════════════════
+t += `📝 *Obs:* ${d('obs') || 'Sem observações'}`;
 
-📝 *OBSERVAÇÕES*
 
-${d('obs') || 'Sem observações'}
 
-════════════════════`;
-
+        
 
         
         return t;
