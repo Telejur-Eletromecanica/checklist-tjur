@@ -280,47 +280,54 @@
 
 let t = `📋 *Checklist ${d('selectTag')} - ${status === 'INI' ? '🚀 Início' : '🏁 Fim'} de Trajeto*\n\n`;
 
-t += `════════════════════\n`;
-t += `📅 *DADOS GERAIS*\n\n`;
+t += `📅 *DADOS GERAIS*\n`;
 t += `*Data:* ${d('data_dia')}\n`;
 t += `*Hora:* ${d('hora_dia')}\n\n`;
 
-t += `════════════════════\n`;
-t += `🚘 *VEÍCULO*\n\n`;
+t += `${sep}\n\n`;
+
+t += `🚘 *VEÍCULO*\n`;
 t += `*Placa:* ${d('placa')}\n\n`;
 
-t += `════════════════════\n`;
-t += `👨‍✈️ *CONDUTORES*\n\n`;
+t += `${sep}\n\n`;
+
+t += `👨‍✈️ *CONDUTORES*\n`;
 t += `*Condutor 1:* ${d('condutor1')}\n`;
 t += `*Condutor 2:* ${d('condutor2')}\n`;
 t += `*Condutor 3:* ${d('condutor3')}\n\n`;
 
-t += `════════════════════\n`;
-t += `🛣️ *QUILOMETRAGEM*\n\n`;
+t += `${sep}\n\n`;
+
+t += `🛣️ *QUILOMETRAGEM*\n`;
 t += `*KM Início:* ${kmI} km\n`;
 
 if (status === 'FIM') {
-    const perc = (limparKM(kmFValue) - limparKM(d('km_inicio'))).toFixed(0);
+    const perc =
+        (limparKM(kmFValue) - limparKM(d('km_inicio')))
+        .toFixed(0);
 
     t += `*KM Final:* ${kmF} km\n`;
     t += `*KM Percorrido:* ${formatarKMLimpo(perc)} km\n`;
 }
 
-t += `\n════════════════════\n`;
-t += `🛢️ *ÓLEO*\n\n`;
+t += `\n${sep}\n\n`;
+
+t += `🛢️ *ÓLEO*\n`;
 t += `*Tipo:* ${d('tipo_oleo')}\n`;
 t += `*${isData ? 'Trocado em' : 'Trocado com (KM)'}:* ${trocadoVisual}${isData ? '' : ' km'}\n`;
 t += `*${isData ? 'Próx. Troca' : 'Próx. Troca (KM)'}:* ${proxOleoVisual}${isData ? '' : ' km'}\n`;
 t += `*Status:* ${statusOleoTexto}\n\n`;
 
-t += `════════════════════\n`;
-t += `🏷️ *SELO*\n\n`;
+t += `${sep}\n\n`;
+
+t += `🏷️ *SELO*\n`;
 t += `*Cor:* ${d('cor_selo')}\n`;
 t += `*Validade:* ${d('val_selo').split('-').reverse().join('/')}\n`;
 t += `*Status:* ${document.getElementById('calc_selo').innerText}\n\n`;
 
-t += `════════════════════\n`;
-t += `📝 *OBSERVAÇÕES*\n\n`;
+t += `${sep}\n\n`;
+
+t += `📝 *OBSERVAÇÕES*\n`;
 t += `${d('obs') || 'Sem observações'}`;
 
 
