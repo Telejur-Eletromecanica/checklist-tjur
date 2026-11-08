@@ -346,7 +346,12 @@ t += `*Validade:* ${d('val_selo').split('-').reverse().join('/')}\n`;
 //t += `*Status:* ${document.getElementById('calc_selo').innerText}\n`;
 const dias = parseInt(document.getElementById('calc_selo').innerText);
 
-t += `*Status:* ${document.getElementById('calc_selo').innerText}${dias < 10 ? ' ⚠️' : ''}\n`;
+const alerta =
+  dias < 5 ? ' 🔴 CRÍTICO' :
+  dias < 10 ? ' 🟡 ATENÇÃO' :
+  ' 🟢 OK';
+
+t += `*Status:* ${document.getElementById('calc_selo').innerText}${alerta}\n`;
 
 
         
