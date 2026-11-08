@@ -227,7 +227,9 @@
 
     function montarTextoWhatsapp(status, kmFValue = null) {
         const d = (id) => document.getElementById(id).value;
-        const sep = "--------------------------------\n";
+        //const sep = "--------------------------------\n";
+        const sep = "───────────────";
+        //const sep = "═══════════════";
 
         const kmI = formatarKMLimpo(d('km_inicio'));
         const kmF = kmFValue ? formatarKMLimpo(kmFValue) : "";
@@ -247,7 +249,7 @@
         }
 
         let t = `*Checklist ${d('selectTag')} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
-        t += `############################\n\n`;
+        t += `═══════════════\n\n`;
         t += `*Data:* ${d('data_dia')}\n${sep}`;
         t += `*Hora:* ${d('hora_dia')}\n${sep}`;
         t += `*Placa:* ${d('placa')}\n${sep}`;
