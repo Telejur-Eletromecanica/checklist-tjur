@@ -501,8 +501,6 @@ t += `${d('obs') || 'Sem observações'}`;
         if(!kmFValue) return alert("Preencha o KM Final.");
         if(kmF < kmI) return alert("Erro: O KM Final não pode ser menor que o Inicial!");
         window.open("https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmFValue)), '_blank');
-
-            );
         
         localStorage.removeItem('viagemAtiva');
         location.reload();
