@@ -162,7 +162,14 @@
         const displayOleo = document.getElementById('calc_oleo');
 
         const kmFinalVal = limparKM(document.getElementById('km_final').value);
-        const kmReferencia = kmFinalVal > 0 ? kmFinalVal : limparKM(document.getElementById('km_inicio').value);
+        //const kmReferencia = kmFinalVal > 0 ? kmFinalVal : limparKM(document.getElementById('km_inicio').value);
+                const kmInicio = limparKM(document.getElementById('km_inicio').value);
+        const kmTroca = limparKM(document.getElementById('trocado_com').value);
+        
+        const kmReferencia = kmFinalVal > 0
+            ? kmFinalVal
+            : (kmInicio > 0 ? kmInicio : kmTroca);
+        
 
         if (proxOleoField.value) {
             if (proxOleoField.type === 'month') {
