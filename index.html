@@ -193,10 +193,10 @@
             if (valSelo) {
             
                 const dSelo = new Date(valSelo + "T00:00:00");
-                const diffSelo = Math.ceil(
+                const diffSelo = Math.floor(
                     (dSelo - hoje) / (1000 * 60 * 60 * 24)
                 );
-            
+                            
                 const calcSelo = document.getElementById('calc_selo');
             
                 if (diffSelo < 0) {
@@ -227,7 +227,6 @@
             document.getElementById('trocado_com').value = v.trocado;
             document.getElementById('prox_oleo').value = v.prox;
             document.getElementById('val_selo').value = v.selo;
-            calcularTudo();
 
             const trocadoInput = document.getElementById('trocado_com');
             const proxInput = document.getElementById('prox_oleo');
@@ -236,22 +235,22 @@
             //const proxInput = document.getElementById('prox');
            // const trocadoInput = document.getElementById('trocado_com');
            // const proxInput = document.getElementById('prox_oleo');
-            if (v.tipoTroca === "data") {
+                       if (v.tipoTroca === "data") {
                 trocadoInput.type = "month";
                 proxInput.type = "month";
                 document.getElementById('labelTrocadoCom').innerText = "Trocado em";
-                document.getElementById('labelProxOleo').innerText = "Prox. Troca";
+                document.getElementById('labelProxOleo').innerText = "Próx. Troca";
             } else {
                 trocadoInput.type = "text";
                 proxInput.type = "text";
                 document.getElementById('labelTrocadoCom').innerText = "Trocado com (KM)";
-                document.getElementById('labelProxOleo').innerText = "Prox. Troca (KM)";
+                document.getElementById('labelProxOleo').innerText = "Próx. Troca (KM)";
             }
-
-            trocadoInput.value = "";
-            proxInput.value = ""; 
+            
             document.getElementById('km_inicio').value = "";
             document.getElementById('calc_oleo').innerText = "";
+            
+            calcularTudo();
         }
     }
 
