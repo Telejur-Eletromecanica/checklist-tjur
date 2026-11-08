@@ -278,25 +278,30 @@
        // t += `*Obs:* ${d('obs') || "Sem observacoes"}`;
 
 
-let t = `📋 *Checklist ${d('selectTag')} - ${status === 'INI' ? '🚀 Início' : '🏁 Fim'} de Trajeto*\n\n`;
+//let t = `📋 *Checklist ${d('selectTag')} - ${status === 'INI' ? '🚀 Início' : '🏁 Fim'} de Trajeto*\n\n`;
+//let t = `📋 *CHECKLIST DE VEÍCULO*\n` +
+      //  `${status === 'INI' ? '🚀 Início de Trajeto' : '🏁 Fim de Trajeto'} - ${d('selectTag')}\n\n`;
+let t = `📋 *CHECKLIST DE VEÍCULO*\n` +
+        `${status === 'INI' ? '🚀 *Início de Trajeto*' : '🏁 *Fim de Trajeto*'} - ${d('selectTag')}\n\n`;
 
-t += `📅 *DADOS GERAIS*\n`;
+t += `${sep}\n`;
+//t += `📅 *DADOS GERAIS*\n`;
 t += `*Data:* ${d('data_dia')}\n`;
-t += `*Hora:* ${d('hora_dia')}\n\n`;
+t += `*Hora:* ${d('hora_dia')}\n`;
 
-t += `${sep}\n\n`;
+t += `${sep}\n`;
 
 t += `🚘 *VEÍCULO*\n`;
-t += `*Placa:* ${d('placa')}\n\n`;
+t += `*Placa:* ${d('placa')}\n`;
 
-t += `${sep}\n\n`;
+t += `${sep}\n`;
 
 t += `👨‍✈️ *CONDUTORES*\n`;
 t += `*Condutor 1:* ${d('condutor1')}\n`;
 t += `*Condutor 2:* ${d('condutor2')}\n`;
-t += `*Condutor 3:* ${d('condutor3')}\n\n`;
+t += `*Condutor 3:* ${d('condutor3')}\n`;
 
-t += `${sep}\n\n`;
+t += `${sep}\n`;
 
 t += `🛣️ *QUILOMETRAGEM*\n`;
 t += `*KM Início:* ${kmI} km\n`;
@@ -310,22 +315,22 @@ if (status === 'FIM') {
     t += `*KM Percorrido:* ${formatarKMLimpo(perc)} km\n`;
 }
 
-t += `\n${sep}\n\n`;
+t += `\n${sep}\n`;
 
 t += `🛢️ *ÓLEO*\n`;
 t += `*Tipo:* ${d('tipo_oleo')}\n`;
 t += `*${isData ? 'Trocado em' : 'Trocado com (KM)'}:* ${trocadoVisual}${isData ? '' : ' km'}\n`;
 t += `*${isData ? 'Próx. Troca' : 'Próx. Troca (KM)'}:* ${proxOleoVisual}${isData ? '' : ' km'}\n`;
-t += `*Status:* ${statusOleoTexto}\n\n`;
+t += `*Status:* ${statusOleoTexto}\n`;
 
-t += `${sep}\n\n`;
+t += `${sep}\n`;
 
 t += `🏷️ *SELO*\n`;
 t += `*Cor:* ${d('cor_selo')}\n`;
 t += `*Validade:* ${d('val_selo').split('-').reverse().join('/')}\n`;
-t += `*Status:* ${document.getElementById('calc_selo').innerText}\n\n`;
+t += `*Status:* ${document.getElementById('calc_selo').innerText}\n`;
 
-t += `${sep}\n\n`;
+t += `${sep}\n`;
 
 t += `📝 *OBSERVAÇÕES*\n`;
 t += `${d('obs') || 'Sem observações'}`;
