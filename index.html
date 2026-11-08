@@ -329,16 +329,16 @@ t += `${sep}\n`;
 
 t += `🏷️ *SELO*\n`;
 //t += `*Cor:* ${d('cor_selo')}\n`;
+const cores = {
+  VERDE: '🟢',
+  AMARELO: '🟡',
+  AZUL: '🔵',
+  VERMELHO: '🔴'
+};
+
 const cor = d('cor_selo').toUpperCase();
 
-const iconeCor =
-  cor === 'VERDE'    ? '🟢' :
-  cor === 'AMARELO'  ? '🟡' :
-  cor === 'AZUL'     ? '🔵' :
-  cor === 'VERMELHO' ? '🔴' :
-  '⚪';
-
-t += `*Cor:* ${iconeCor} ${d('cor_selo')}\n`;
+t += `*Cor:* ${cores[cor] || '⚪'}\n`;
 
 
         
