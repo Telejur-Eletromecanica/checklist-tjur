@@ -294,13 +294,27 @@
         const proxOleoVisual = isData ? d('prox_oleo').split('-').reverse().join('/') : formatarKMLimpo(d('prox_oleo'));
 
         let statusOleoTexto = "";
-        if (!isData) {
-            const kmReferencia = kmFValue ? limparKM(kmFValue) : limparKM(d('km_inicio'));
-            const saldoOleo = Math.round(limparKM(d('prox_oleo')) - kmReferencia);
-            statusOleoTexto = saldoOleo < 0 ? `Passou ${formatarKMLimpo(Math.abs(saldoOleo))} KM` : `Restam ${formatarKMLimpo(saldoOleo)} KM`;
-        } else {
-            statusOleoTexto = document.getElementById('calc_oleo').innerText;
-        }
+if (!isData) {
+    const kmInicio = limparKM(d('km_inicio'));
+    const kmTroca = limparKM(d('trocado_com'));
+    const kmReferencia = kmFValue
+        ? limparKM(kmFValue)
+        : (kmInicio > 0 ? kmInicio : kmTroca);
+    const saldoOleo =
+        Math.round(limparKM(d('prox_oleo')) - kmReferencia);
+    if (saldoOleo < 0) {
+        statusOleoTexto =
+            `🔴 Troca vencida há ${formatarKMLimpo(Math.abs(saldoOleo))} KM`;
+    } else if (saldoOleo <= 1000) {
+        statusOleoTexto =
+            `⚠️ Troca em ${formatarKMLimpo(saldoOleo)} KM`;
+    } else {
+        statusOleoTexto =
+            `✅ Restam ${formatarKMLimpo(saldoOleo)} KM`;
+    }
+} else {
+    statusOleoTexto = document.getElementById('calc_oleo').innerText;
+}
 
       //  let t = `*Checklist ${d('selectTag')} - ${status === 'INI' ? 'Início' : 'Fim'} de Trajeto*\n`;
        // t += `=====================\n\n`;
