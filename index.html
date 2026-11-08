@@ -179,17 +179,43 @@
         }
 
         //const valSelo = document.getElementById('calc_selo').value;
-        const valSelo = document.getElementById('val_selo').value;
-        if (valSelo) {
-            const dSelo = new Date(valSelo + "T00:00:00");
-            const diffSelo = Math.ceil((dSelo - hoje) / (1000 * 60 * 60 * 24));
-            document.getElementById('calc_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
-            document.getElementById('calc_selo').style.color = diffSelo < 0 ? "red" : "green";
+        //const valSelo = document.getElementById('val_selo').value;
+        //if (valSelo) {
+            //const dSelo = new Date(valSelo + "T00:00:00");
+            //const diffSelo = Math.ceil((dSelo - hoje) / (1000 * 60 * 60 * 24));
+           // document.getElementById('calc_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
+            //document.getElementById('calc_selo').style.color = diffSelo < 0 ? "red" : "green";
             //document.getElementById('calc_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
            // document.getElementById('calc_selo').style.color = diffSelo < 0 ? "red" : "green";
-        }
-    }
 
+        const valSelo = document.getElementById('val_selo').value;
+
+if (valSelo) {
+
+    const dSelo = new Date(valSelo + "T00:00:00");
+    const diffSelo = Math.ceil(
+        (dSelo - hoje) / (1000 * 60 * 60 * 24)
+    );
+
+    const calcSelo = document.getElementById('calc_selo');
+
+    if (diffSelo < 0) {
+        calcSelo.innerText = '🔴 VENCIDO!';
+        calcSelo.style.color = 'red';
+    }
+    else if (diffSelo < 10) {
+        calcSelo.innerText = `⚠️ Vence em ${diffSelo} dias`;
+        calcSelo.style.color = 'orange';
+    }
+    else {
+        calcSelo.innerText = `✅ Vence em ${diffSelo} dias`;
+        calcSelo.style.color = 'green';
+    }
+}
+
+
+
+        
     function atualizarDadosVeiculo() {
         if (localStorage.getItem('viagemAtiva')) return;
         const tag = document.getElementById('selectTag').value;
@@ -345,19 +371,7 @@ t += `*Cor:* ${cores[cor] || '⚪'}\n`;
         
 t += `*Validade:* ${d('val_selo').split('-').reverse().join('/')}\n`;
 //t += `*Status:* ${document.getElementById('calc_selo').innerText}\n`;
-const validade = new Date(d('val_selo'));
-const hoje = new Date();
-
-const dias = Math.ceil(
-  (validade - hoje) / (1000 * 60 * 60 * 24)
-);
-
-const alerta =
-  dias < 0 ? ' 🔴 VENCIDO' :
-  dias < 10 ? ' ⚠️ VENCENDO' :
-  ' ✅ OK';
-
-t += `*Status:* ${document.getElementById('calc_selo').innerText}${alerta}\n`;
+t += `*Status:* ${document.getElementById('calc_selo').innerText}\n`;
 
 
         
