@@ -188,31 +188,31 @@
             //document.getElementById('calc_selo').innerText = diffSelo < 0 ? `VENCIDO!` : `Vence em ${diffSelo} dias`;
            // document.getElementById('calc_selo').style.color = diffSelo < 0 ? "red" : "green";
 
-        const valSelo = document.getElementById('val_selo').value;
-
-if (valSelo) {
-
-    const dSelo = new Date(valSelo + "T00:00:00");
-    const diffSelo = Math.ceil(
-        (dSelo - hoje) / (1000 * 60 * 60 * 24)
-    );
-
-    const calcSelo = document.getElementById('calc_selo');
-
-    if (diffSelo < 0) {
-        calcSelo.innerText = '🔴 VENCIDO!';
-        calcSelo.style.color = 'red';
+                    const valSelo = document.getElementById('val_selo').value;
+            
+            if (valSelo) {
+            
+                const dSelo = new Date(valSelo + "T00:00:00");
+                const diffSelo = Math.ceil(
+                    (dSelo - hoje) / (1000 * 60 * 60 * 24)
+                );
+            
+                const calcSelo = document.getElementById('calc_selo');
+            
+                if (diffSelo < 0) {
+                    calcSelo.innerText = '🔴 VENCIDO!';
+                    calcSelo.style.color = 'red';
+                }
+                else if (diffSelo < 10) {
+                    calcSelo.innerText = `⚠️ Vence em ${diffSelo} dias`;
+                    calcSelo.style.color = 'orange';
+                }
+                else {
+                    calcSelo.innerText = `✅ Vence em ${diffSelo} dias`;
+                    calcSelo.style.color = 'green';
+                }
+            }
     }
-    else if (diffSelo < 10) {
-        calcSelo.innerText = `⚠️ Vence em ${diffSelo} dias`;
-        calcSelo.style.color = 'orange';
-    }
-    else {
-        calcSelo.innerText = `✅ Vence em ${diffSelo} dias`;
-        calcSelo.style.color = 'green';
-    }
-}
-
 
 
         
@@ -229,8 +229,11 @@ if (valSelo) {
             document.getElementById('val_selo').value = v.selo;
             calcularTudo();
 
-           const trocadoInput = document.getElementById('trocado');
-            const proxInput = document.getElementById('prox');
+            const trocadoInput = document.getElementById('trocado_com');
+            const proxInput = document.getElementById('prox_oleo');
+            
+           //const trocadoInput = document.getElementById('trocado');
+            //const proxInput = document.getElementById('prox');
            // const trocadoInput = document.getElementById('trocado_com');
            // const proxInput = document.getElementById('prox_oleo');
             if (v.tipoTroca === "data") {
