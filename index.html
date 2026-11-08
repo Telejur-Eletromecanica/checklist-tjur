@@ -91,11 +91,10 @@
                     </select>
                 </div>
                 <div class="form-group full-width">
-                    <label>Condutor 1</label>
+                    <label>Condutor</label>
                     <select id="condutor1" required onchange="salvarSomenteNome()"></select>
                 </div>
-                <div class="form-group full-width"><label>Condutor 2</label><input type="text" id="condutor2" value="Não informado"></div>
-                <div class="form-group full-width"><label>Condutor 3</label><input type="text" id="condutor3" value="Não informado"></div>
+                
                 <div class="form-group"><label>KM Início</label><input type="text" id="km_inicio" required oninput="calcularTudo()"></div>
                 <div class="form-group"><label>KM Final</label><input type="text" id="km_final" disabled oninput="calcularTudo()"></div>
                 <div class="form-group full-width">
@@ -334,10 +333,12 @@ t += `*Placa:* ${d('placa')}\n`;
 
 t += `${sep}\n`;
 
-t += `👨‍✈️ *CONDUTORES*\n`;
-t += `*Condutor 1:* ${d('condutor1')}\n`;
-t += `*Condutor 2:* ${d('condutor2')}\n`;
-t += `*Condutor 3:* ${d('condutor3')}\n`;
+t += `👨‍✈️ *CONDUTOR*\n`;
+t += `*Nome:* ${d('condutor1')}\n`;
+//t += `👨‍✈️ *CONDUTORES*\n`;
+//t += `*Condutor 1:* ${d('condutor1')}\n`;
+//t += `*Condutor 2:* ${d('condutor2')}\n`;
+//t += `*Condutor 3:* ${d('condutor3')}\n`;
 
 t += `${sep}\n`;
 
