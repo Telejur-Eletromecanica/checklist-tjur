@@ -179,10 +179,25 @@
                 displayOleo.style.color = diff < 0 ? "red" : "green";
             } else if (kmReferencia > 0) {
                 const saldo = Math.round(limparKM(proxOleoField.value) - kmReferencia);
-                displayOleo.innerText = saldo < 0 ? `Passou ${formatarKMLimpo(Math.abs(saldo))} KM` : `Restam ${formatarKMLimpo(saldo)} KM`;
-                displayOleo.style.color = saldo < 0 ? "red" : "green";
-            }
-        }
+                //displayOleo.innerText = saldo < 0 ? `Passou ${formatarKMLimpo(Math.abs(saldo))} KM` : `Restam ${formatarKMLimpo(saldo)} KM`;
+                //displayOleo.style.color = saldo < 0 ? "red" : "green";
+                                if (saldo < 0) {
+                    displayOleo.innerText =
+                        `🔴 Troca vencida há ${formatarKMLimpo(Math.abs(saldo))} KM`;
+                    displayOleo.style.color = "red";
+                }
+                else if (saldo <= 1000) {
+                    displayOleo.innerText =
+                        `⚠️ Troca em ${formatarKMLimpo(saldo)} KM`;
+                    displayOleo.style.color = "orange";
+                }
+                else {
+                    displayOleo.innerText =
+                        `✅ Restam ${formatarKMLimpo(saldo)} KM`;
+                    displayOleo.style.color = "green";
+                }
+                            }
+                        }
     
         //const valSelo = document.getElementById('calc_selo').value;
         //const valSelo = document.getElementById('val_selo').value;
