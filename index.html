@@ -166,37 +166,76 @@
         
         const kmReferencia = kmFinalVal > 0
             ? kmFinalVal
-            : (kmInicio > 0 ? kmInicio : kmTroca);
-        
+            : (kmInicio > 0 ? kmInicio : kmTroca); 
 
+
+        
         if (proxOleoField.value) {
-            if (proxOleoField.type === 'month') {
-                const [ano, mes] = proxOleoField.value.split('-');
-                const dUltimoDia = new Date(ano, mes, 0); 
-                const diff = Math.ceil((dUltimoDia - hoje) / (1000 * 60 * 60 * 24));
-                displayOleo.innerText = diff < 0 ? `Vencido há ${Math.abs(diff)} dias` : `Faltam ${diff} dias`;
-                displayOleo.style.color = diff < 0 ? "red" : "green";
-            } else if (kmReferencia > 0) {
-                const saldo = Math.round(limparKM(proxOleoField.value) - kmReferencia);
-                //displayOleo.innerText = saldo < 0 ? `Passou ${formatarKMLimpo(Math.abs(saldo))} KM` : `Restam ${formatarKMLimpo(saldo)} KM`;
-                //displayOleo.style.color = saldo < 0 ? "red" : "green";
-                                if (saldo < 0) {
-                    displayOleo.innerText =
-                        `🔴 Troca vencida há ${formatarKMLimpo(Math.abs(saldo))} KM`;
-                    displayOleo.style.color = "red";
-                }
-                else if (saldo <= 1000) {
-                    displayOleo.innerText =
-                        `⚠️ Troca em ${formatarKMLimpo(saldo)} KM`;
-                    displayOleo.style.color = "orange";
-                }
-                else {
-                    displayOleo.innerText =
-                        `✅ Restam ${formatarKMLimpo(saldo)} KM`;
-                    displayOleo.style.color = "green";
-                }
-                            }
-                        }
+
+    if (proxOleoField.type === 'month') {
+
+        const [ano, mes] = proxOleoField.value.split('-');
+        const dUltimoDia = new Date(ano, mes, 0);
+
+        const diff = Math.ceil(
+            (dUltimoDia - hoje) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diff < 0) {
+
+            displayOleo.innerText =
+                `🔴 Vencido há ${Math.abs(diff)} dias`;
+
+            displayOleo.style.color = "red";
+
+        }
+        else if (diff <= 10) {
+
+            displayOleo.innerText =
+                `⚠️ Vence em ${diff} dias`;
+
+            displayOleo.style.color = "orange";
+
+        }
+        else {
+
+            displayOleo.innerText =
+                `✅ Faltam ${diff} dias`;
+
+            displayOleo.style.color = "green";
+
+        }
+
+    } else if (kmReferencia > 0) {
+
+        const saldo =
+            Math.round(limparKM(proxOleoField.value) - kmReferencia);
+
+        if (saldo < 0) {
+
+            displayOleo.innerText =
+                `🔴 Troca vencida há ${formatarKMLimpo(Math.abs(saldo))} KM`;
+
+            displayOleo.style.color = "red";
+
+        }
+        else if (saldo <= 1000) {
+
+            displayOleo.innerText =
+                `⚠️ Troca em ${formatarKMLimpo(saldo)} KM`;
+
+            displayOleo.style.color = "orange";
+
+        }
+        else {
+
+            displayOleo.innerText =
+                `✅ Restam ${formatarKMLimpo(saldo)} KM`;
+
+            displayOleo.style.color = "green";
+         }
+    }
+}
     
         //const valSelo = document.getElementById('calc_selo').value;
         //const valSelo = document.getElementById('val_selo').value;
@@ -213,7 +252,7 @@
             if (valSelo) {
             
                 const dSelo = new Date(valSelo + "T00:00:00");
-                const diffSelo = Math.floor(
+               const diffSelo = Math.ceil(
                     (dSelo - hoje) / (1000 * 60 * 60 * 24)
                 );
                             
@@ -451,6 +490,7 @@ t += `${d('obs') || 'Sem observações'}`;
         document.querySelectorAll('#chkForm input, #chkForm select, #chkForm textarea').forEach(i => { if(i.id) dados[i.id] = i.value; });
         localStorage.setItem('viagemAtiva', JSON.stringify(dados));
         window.open("https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('INI')), '_blank');
+
         renderInterface();
     }
 
@@ -461,6 +501,9 @@ t += `${d('obs') || 'Sem observações'}`;
         if(!kmFValue) return alert("Preencha o KM Final.");
         if(kmF < kmI) return alert("Erro: O KM Final não pode ser menor que o Inicial!");
         window.open("https://wa.me/?text=" + encodeURIComponent(montarTextoWhatsapp('FIM', kmFValue)), '_blank');
+
+            );
+        
         localStorage.removeItem('viagemAtiva');
         location.reload();
     }
