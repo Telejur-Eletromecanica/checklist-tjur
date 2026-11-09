@@ -181,7 +181,7 @@
             (dUltimoDia - hoje) / (1000 * 60 * 60 * 24)
         );
 
-        if (diff < 0) {
+        if (diff <= 0) {
 
             displayOleo.innerText =
                 `🔴 Vencido há ${Math.abs(diff)} dias`;
@@ -189,7 +189,7 @@
             displayOleo.style.color = "red";
 
         }
-        else if (diff <= 10) {
+        else if (diff <= 120) {
 
             displayOleo.innerText =
                 `⚠️ Vence em ${diff} dias`;
@@ -211,7 +211,7 @@
         const saldo =
             Math.round(limparKM(proxOleoField.value) - kmReferencia);
 
-        if (saldo < 0) {
+        if (saldo <= 0) {
 
             displayOleo.innerText =
                 `🔴 Troca vencida há ${formatarKMLimpo(Math.abs(saldo))} KM`;
@@ -219,7 +219,7 @@
             displayOleo.style.color = "red";
 
         }
-        else if (saldo <= 1000) {
+        else if (saldo <= 120) {
 
             displayOleo.innerText =
                 `⚠️ Troca em ${formatarKMLimpo(saldo)} KM`;
@@ -258,7 +258,7 @@
                             
                 const calcSelo = document.getElementById('calc_selo');
             
-                if (diffSelo < 0) {
+                if (diffSelo <= 0) {
                     calcSelo.innerText = '🔴 VENCIDO!';
                     calcSelo.style.color = 'red';
                 }
